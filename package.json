@@ -1,0 +1,16 @@
+{
+  "name": "web-trade",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npm run dev --prefix investment-dashboard",
+    "build": "npm run build --prefix investment-dashboard",
+    "start": "npm run start --prefix investment-dashboard",
+    "lint": "npm run lint --prefix investment-dashboard",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

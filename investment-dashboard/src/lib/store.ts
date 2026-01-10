@@ -1,0 +1,120 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { AuthUser, Investment, InvestmentFilters, PaginatedResponse } from '@/types';
+
+// Auth Store
+interface AuthState {
+    user: AuthUser | null;
+    token: string | null;
+    isLoading: boolean;
+    setUser: (user: AuthUser | null) => void;
+    setToken: (token: string | null) => void;
+    setLoading: (loading: boolean) => void;
+    logout: () => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+    persist(
+        (set) => ({
+            user: null,
+            token: null,
+            isLoading: true,
+            setUser: (user) => set({ user }),
+            setToken: (token) => set({ token }),
+            setLoading: (isLoading) => set({ isLoading }),
+            logout: () => set({ user: null, token: null }),
+        }),
+        {
+            name: 'auth-storage',
+            partialize: (state) => ({ user: state.user, token: state.token }),
+        }
+    )
+);
+
+// Investment Store
+interface InvestmentState {
+    investments: Investment[];
+    selectedInvestment: Investment | null;
+    filters: InvestmentFilters;
+    pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+    };
+    isLoading: boolean;
+    setInvestments: (response: PaginatedResponse<Investment>) => void;
+    setSelectedInvestment: (investment: Investment | null) => void;
+    setFilters: (filters: InvestmentFilters) => void;
+    setPage: (page: number) => void;
+    setLimit: (limit: number) => void;
+    setLoading: (loading: boolean) => void;
+    addInvestment: (investment: Investment) => void;
+    updateInvestment: (investment: Investment) => void;
+    removeInvestment: (id: string) => void;
+}
+
+export const useInvestmentStore = create<InvestmentState>((set) => ({
+    investments: [],
+    selectedInvestment: null,
+    filters: {},
+    pagination: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        totalPages: 0,
+    },
+    isLoading: false,
+    setInvestments: (response) =>
+        set({
+            investments: response.data,
+            pagination: {
+                page: response.page,
+                limit: response.limit,
+                total: response.total,
+                totalPages: response.totalPages,
+            },
+        }),
+    setSelectedInvestment: (investment) => set({ selectedInvestment: investment }),
+    setFilters: (filters) => set({ filters }),
+    setPage: (page) => set((state) => ({ pagination: { ...state.pagination, page } })),
+    setLimit: (limit) => set((state) => ({ pagination: { ...state.pagination, limit, page: 1 } })),
+    setLoading: (isLoading) => set({ isLoading }),
+    addInvestment: (investment) =>
+        set((state) => ({
+            investments: [investment, ...state.investments],
+            pagination: { ...state.pagination, total: state.pagination.total + 1 },
+        })),
+    updateInvestment: (investment) =>
+        set((state) => ({
+            investments: state.investments.map((inv) =>
+                inv.id === investment.id ? investment : inv
+            ),
+        })),
+    removeInvestment: (id) =>
+        set((state) => ({
+            investments: state.investments.filter((inv) => inv.id !== id),
+            pagination: { ...state.pagination, total: state.pagination.total - 1 },
+        })),
+}));
+
+// UI Store
+interface UIState {
+    sidebarOpen: boolean;
+    modalOpen: boolean;
+    modalType: 'add' | 'edit' | 'delete' | 'view' | null;
+    toggleSidebar: () => void;
+    setSidebarOpen: (open: boolean) => void;
+    openModal: (type: 'add' | 'edit' | 'delete' | 'view') => void;
+    closeModal: () => void;
+}
+
+export const useUIStore = create<UIState>((set) => ({
+    sidebarOpen: true,
+    modalOpen: false,
+    modalType: null,
+    toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+    setSidebarOpen: (open) => set({ sidebarOpen: open }),
+    openModal: (type) => set({ modalOpen: true, modalType: type }),
+    closeModal: () => set({ modalOpen: false, modalType: null }),
+}));
