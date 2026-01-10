@@ -51,8 +51,8 @@ export default function DashboardPage() {
             <div className="space-y-6">
                 {/* Header */}
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                    <p className="text-gray-500">ยินดีต้อนรับสู่ InvestPro - ระบบจัดการพอร์ตการลงทุน</p>
+                    <h1 className="text-2xl font-bold text-[#FAFAFA]">Dashboard</h1>
+                    <p className="text-[#A1A1AA]">ยินดีต้อนรับสู่ InvestPro - ระบบจัดการพอร์ตการลงทุน</p>
                 </div>
 
                 {/* Quick Stats */}
@@ -98,12 +98,12 @@ export default function DashboardPage() {
                             <CardTitle>เริ่มต้นใช้งาน</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <p className="text-gray-600">
+                            <p className="text-[#A1A1AA]">
                                 เริ่มต้นจัดการพอร์ตการลงทุนของคุณได้ที่หน้า Investment
                             </p>
                             <Link
                                 href="/dashboard/investments"
-                                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium"
+                                className="inline-flex items-center gap-2 text-[#F5C542] hover:text-[#FFC83D] font-medium"
                             >
                                 ไปที่ Investment
                                 <ArrowRight className="w-4 h-4" />
@@ -116,13 +116,13 @@ export default function DashboardPage() {
                             <CardTitle>คุณสมบัติหลัก</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <ul className="space-y-2 text-gray-600">
+                            <ul className="space-y-2 text-[#A1A1AA]">
                                 <li className="flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full bg-blue-500" />
                                     ติดตามการลงทุน GOLD, CRYPTO, STOCK
                                 </li>
                                 <li className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-green-500" />
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
                                     บันทึกประวัติการซื้อ/ขาย
                                 </li>
                                 <li className="flex items-center gap-2">
@@ -130,7 +130,7 @@ export default function DashboardPage() {
                                     วิเคราะห์สัดส่วนการลงทุน
                                 </li>
                                 <li className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-orange-500" />
+                                    <span className="w-2 h-2 rounded-full bg-amber-500" />
                                     คำนวณกำไร/ขาดทุนอัตโนมัติ
                                 </li>
                             </ul>
@@ -154,34 +154,34 @@ interface QuickStatCardProps {
 
 function QuickStatCard({ title, value, change, subtitle, icon, color, loading }: QuickStatCardProps) {
     const colorMap = {
-        blue: 'from-blue-500 to-blue-600 shadow-blue-500/20',
-        green: 'from-emerald-500 to-emerald-600 shadow-emerald-500/20',
-        purple: 'from-purple-500 to-purple-600 shadow-purple-500/20',
-        orange: 'from-orange-500 to-orange-600 shadow-orange-500/20',
+        blue: 'from-blue-600 to-blue-700 shadow-blue-500/20 text-white',
+        green: 'from-emerald-600 to-emerald-700 shadow-emerald-500/20 text-white',
+        purple: 'from-purple-600 to-purple-700 shadow-purple-500/20 text-white',
+        orange: 'from-[#F5C542] to-[#FFC83D] shadow-[#F5C542]/20 text-[#15140F]',
     };
 
     return (
         <Card className="relative overflow-hidden">
             <CardContent className="flex items-center gap-4">
                 <div
-                    className={`p-3 rounded-xl bg-gradient-to-br ${colorMap[color]} text-white shadow-lg`}
+                    className={`p-3 rounded-xl bg-gradient-to-br ${colorMap[color]} shadow-lg`}
                 >
                     {icon}
                 </div>
                 <div>
-                    <p className="text-sm text-gray-500">{title}</p>
+                    <p className="text-sm text-[#A1A1AA]">{title}</p>
                     {loading ? (
-                        <div className="h-8 w-24 bg-gray-200 animate-pulse rounded mt-1"></div>
+                        <div className="h-8 w-24 bg-[#2E2C24] animate-pulse rounded mt-1"></div>
                     ) : (
-                        <p className="text-2xl font-bold text-gray-900">{value}</p>
+                        <p className="text-2xl font-bold text-[#FAFAFA]">{value}</p>
                     )}
 
                     {!loading && change && (
-                        <p className={`text-sm ${change.startsWith('+') ? 'text-green-600' : change.startsWith('-') ? 'text-red-600' : 'text-gray-500'}`}>
+                        <p className={`text-sm ${change.startsWith('+') ? 'text-[#059669]' : change.startsWith('-') ? 'text-red-500' : 'text-[#A1A1AA]'}`}>
                             {change}
                         </p>
                     )}
-                    {!loading && subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+                    {!loading && subtitle && <p className="text-sm text-[#A1A1AA]">{subtitle}</p>}
                 </div>
             </CardContent>
         </Card>

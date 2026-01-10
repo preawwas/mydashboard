@@ -17,7 +17,6 @@ interface InvestmentTableProps {
     };
     onPageChange: (page: number) => void;
     onLimitChange: (limit: number) => void;
-    onView: (investment: Investment) => void;
     onEdit: (investment: Investment) => void;
     onDelete: (investment: Investment) => void;
 }
@@ -28,7 +27,6 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
     pagination,
     onPageChange,
     onLimitChange,
-    onView,
     onEdit,
     onDelete,
 }) => {
@@ -38,14 +36,18 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
             header: 'สินทรัพย์',
             render: (item: Investment) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center font-bold text-gray-600">
-                        {item.asset_code.slice(0, 2)}
-                    </div>
                     <div>
-                        <p className="font-medium text-gray-900">{item.asset_code}</p>
+                        <p className="font-medium text-[#FAFAFA]">{item.asset_code}</p>
                         <p className="text-sm text-gray-500">{item.asset_name}</p>
                     </div>
                 </div>
+            ),
+        },
+        {
+            key: 'market',
+            header: 'ตลาด',
+            render: (item: Investment) => (
+                <span className="text-[#FAFAFA]">{item.market}</span>
             ),
         },
         {
@@ -71,7 +73,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
             header: 'ซื้อ',
             render: (item: Investment) => (
                 <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-[#FAFAFA]">
                         {item.buy_quantity} × {formatCurrency(item.buy_price_per_unit, item.buy_currency)}
                     </p>
                     <p className="text-sm text-gray-500">{formatDateTime(item.buy_datetime)}</p>
@@ -84,7 +86,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
             render: (item: Investment) => {
                 const totalCost = item.buy_quantity * item.buy_price_per_unit + item.buy_fee;
                 return (
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-[#FAFAFA]">
                         {formatCurrency(totalCost, item.buy_currency)}
                     </p>
                 );
@@ -134,16 +136,6 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
-                            onView(item);
-                        }}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="ดูรายละเอียด"
-                    >
-                        <Eye className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
                             onEdit(item);
                         }}
                         className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
@@ -178,7 +170,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                 onPageChange,
                 onLimitChange,
             }}
-            onRowClick={onView}
+            onRowClick={() => { }}
         />
     );
 };

@@ -45,11 +45,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     }
 
     if (!user || !token) {
-        return <Loading fullScreen text="กำลังตรวจสอบสิทธิ์..." />;
+        return <Loading fullScreen text="กำลังดำเนินการ..." />;
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-[#0F0F0C]">
             <Sidebar />
             <Topbar />
             <main

@@ -83,7 +83,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                             <div className="absolute inset-0 flex items-center justify-center">
                                 <div className="w-24 h-24 rounded-full bg-white shadow-inner flex flex-col items-center justify-center">
                                     <span className="text-xs text-gray-500">รวม</span>
-                                    <span className="text-sm font-bold text-gray-900">{formatCurrency(total)}</span>
+                                    <span className="text-sm font-bold text-[#FAFAFA]">{formatCurrency(total)}</span>
                                 </div>
                             </div>
                         </div>
@@ -101,12 +101,12 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                                         className="w-4 h-4 rounded-full"
                                         style={{ backgroundColor: item.color }}
                                     />
-                                    <span className="font-medium text-gray-900">
+                                    <span className="font-medium text-[#FAFAFA]">
                                         {categoryLabels[item.category] || item.category}
                                     </span>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-semibold text-gray-900">{formatCurrency(item.value)}</p>
+                                    <p className="font-semibold text-[#FAFAFA]">{formatCurrency(item.value)}</p>
                                     <p className="text-sm text-gray-500">{item.percentage.toFixed(1)}%</p>
                                 </div>
                             </div>

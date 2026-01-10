@@ -87,25 +87,22 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-[#0F0F0C] via-[#15140F] to-[#1C1B16] flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-xl shadow-blue-500/30 mb-4">
-                        <TrendingUp className="w-8 h-8 text-white" />
-                    </div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-[#F5C542] to-[#FFD54F] bg-clip-text text-transparent">
                         สมัครสมาชิก
                     </h1>
-                    <p className="text-gray-500 mt-2">สร้างบัญชีใหม่เพื่อเริ่มต้นใช้งาน</p>
+                    <p className="text-[#A1A1AA] mt-2">สร้างบัญชีใหม่เพื่อเริ่มต้นใช้งาน</p>
                 </div>
 
                 {/* Form Card */}
-                <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-8">
+                <div className="bg-[#1C1B16] border border-[#2E2C24] rounded-2xl shadow-xl shadow-black/20 p-8">
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {errors.submit && (
-                            <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-                                <p className="text-sm text-red-600">{errors.submit}</p>
+                            <div className="p-4 rounded-lg bg-red-900/10 border border-red-900/20">
+                                <p className="text-sm text-red-500">{errors.submit}</p>
                             </div>
                         )}
 
@@ -141,7 +138,7 @@ export default function RegisterPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="focus:outline-none"
+                                    className="focus:outline-none text-[#71717A] hover:text-[#FAFAFA] transition-colors"
                                 >
                                     {showPassword ? (
                                         <EyeOff className="w-4 h-4" />
@@ -175,11 +172,11 @@ export default function RegisterPage() {
                     </form>
 
                     <div className="mt-6 text-center">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-[#71717A]">
                             มีบัญชีอยู่แล้ว?{' '}
                             <Link
                                 href="/login"
-                                className="text-blue-600 hover:text-blue-700 font-medium"
+                                className="text-[#F5C542] hover:text-[#FFC83D] font-medium"
                             >
                                 เข้าสู่ระบบ
                             </Link>

@@ -31,7 +31,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
             <div className="w-20 h-20 mb-6 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
                 {icon || <Inbox className="w-10 h-10 text-gray-400" />}
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+            <h3 className="text-lg font-semibold text-[#FAFAFA] mb-2">{title}</h3>
             {description && (
                 <p className="text-sm text-gray-500 max-w-sm mb-6">{description}</p>
             )}

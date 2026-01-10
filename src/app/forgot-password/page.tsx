@@ -55,40 +55,40 @@ export default function ForgotPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-[#0F0F0C] via-[#15140F] to-[#1C1B16] flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-xl shadow-blue-500/30 mb-4">
-                        <TrendingUp className="w-8 h-8 text-white" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#F5C542] to-[#FFC83D] shadow-xl shadow-[#F5C542]/20 mb-4">
+                        <TrendingUp className="w-8 h-8 text-[#15140F]" />
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-[#F5C542] to-[#FFD54F] bg-clip-text text-transparent">
                         ลืมรหัสผ่าน?
                     </h1>
-                    <p className="text-gray-500 mt-2">
+                    <p className="text-[#A1A1AA] mt-2">
                         กรอกอีเมลของคุณเพื่อรับลิงก์สำหรับตั้งรหัสผ่านใหม่
                     </p>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-8">
+                <div className="bg-[#1C1B16] border border-[#2E2C24] rounded-2xl shadow-xl shadow-black/20 p-8">
                     {isSubmitted ? (
                         <div className="text-center space-y-6">
                             <div className="flex justify-center">
-                                <CheckCircle className="w-16 h-16 text-green-500" />
+                                <CheckCircle className="w-16 h-16 text-[#059669]" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-semibold text-gray-900">ส่งลิงก์รีเซ็ตแล้ว!</h3>
-                                <p className="text-gray-600 mt-2">
+                                <h3 className="text-xl font-semibold text-[#FAFAFA]">ส่งลิงก์รีเซ็ตแล้ว!</h3>
+                                <p className="text-[#A1A1AA] mt-2">
                                     เราได้ส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ไปที่อีเมล<br />
-                                    <span className="font-medium text-gray-900">{email}</span>
+                                    <span className="font-medium text-[#FAFAFA]">{email}</span>
                                 </p>
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-[#71717A]">
                                 หากไม่ได้รับอีเมล กรุณาตรวจสอบในโฟลเดอร์ขยะ (Spam/Junk)
                             </div>
                             <div className="pt-4">
                                 <Link href="/login">
-                                    <Button variant="outline" className="w-full">
+                                    <Button variant="secondary" className="w-full">
                                         กลับไปหน้าเข้าสู่ระบบ
                                     </Button>
                                 </Link>
@@ -97,8 +97,8 @@ export default function ForgotPasswordPage() {
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {error && (
-                                <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-                                    <p className="text-sm text-red-600">{error}</p>
+                                <div className="p-4 rounded-lg bg-red-900/10 border border-red-900/20">
+                                    <p className="text-sm text-red-500">{error}</p>
                                 </div>
                             )}
 
@@ -124,7 +124,7 @@ export default function ForgotPasswordPage() {
                             <div className="text-center mt-4">
                                 <Link
                                     href="/login"
-                                    className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                                    className="inline-flex items-center text-sm text-[#71717A] hover:text-[#FAFAFA] transition-colors"
                                 >
                                     <ArrowLeft className="w-4 h-4 mr-1" />
                                     กลับไปหน้าเข้าสู่ระบบ

@@ -12,7 +12,16 @@ export default function LoginPage() {
     const searchParams = useSearchParams();
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
+    const [rememberMe, setRememberMe] = useState(false);
+
     useEffect(() => {
+        // Check for saved email
+        const savedEmail = localStorage.getItem('rememberedEmail');
+        if (savedEmail) {
+            setFormData(prev => ({ ...prev, email: savedEmail }));
+            setRememberMe(true);
+        }
+
         if (searchParams.get('registered')) {
             setShowSuccessMessage(true);
             // Hide message after 5 seconds
@@ -75,6 +84,13 @@ export default function LoginPage() {
                 return;
             }
 
+            // Handle Remember Me
+            if (rememberMe) {
+                localStorage.setItem('rememberedEmail', formData.email);
+            } else {
+                localStorage.removeItem('rememberedEmail');
+            }
+
             setUser(data.user);
             setToken(data.token);
             router.push('/dashboard');
@@ -86,30 +102,27 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-[#0F0F0C] via-[#15140F] to-[#1C1B16] flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-xl shadow-blue-500/30 mb-4">
-                        <TrendingUp className="w-8 h-8 text-white" />
-                    </div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        InvestPro
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-[#F5C542] to-[#FFD54F] bg-clip-text text-transparent">
+                        เข้าสู่ระบบ
                     </h1>
-                    <p className="text-gray-500 mt-2">เข้าสู่ระบบเพื่อจัดการพอร์ตการลงทุน</p>
+                    <p className="text-[#A1A1AA] mt-2">ระบบบริหารและจัดการข้อมูล</p>
                 </div>
 
                 {/* Success Message for Registration */}
                 {showSuccessMessage && (
-                    <div className="mb-6 p-4 rounded-lg bg-green-50 border border-green-200 flex items-start gap-3 transition-all duration-500 ease-in-out">
+                    <div className="mb-6 p-4 rounded-lg bg-[#059669]/10 border border-[#059669]/20 flex items-start gap-3 transition-all duration-500 ease-in-out">
                         <div className="flex-shrink-0 mt-0.5">
-                            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 text-[#059669]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
                         <div>
-                            <h3 className="text-sm font-medium text-green-800">สมัครสมาชิกสำเร็จ!</h3>
-                            <p className="text-sm text-green-700 mt-1">
+                            <h3 className="text-sm font-medium text-[#059669]">สมัครสมาชิกสำเร็จ!</h3>
+                            <p className="text-sm text-[#059669]/80 mt-1">
                                 กรุณาตรวจสอบอีเมลของคุณเพื่อยืนยันตัวตนก่อนเข้าสู่ระบบ
                             </p>
                         </div>
@@ -117,11 +130,11 @@ export default function LoginPage() {
                 )}
 
                 {/* Form Card */}
-                <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-8">
+                <div className="bg-[#1C1B16] border border-[#2E2C24] rounded-2xl shadow-xl shadow-black/20 p-8">
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {errors.submit && (
-                            <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-                                <p className="text-sm text-red-600">{errors.submit}</p>
+                            <div className="p-4 rounded-lg bg-red-900/10 border border-red-900/20">
+                                <p className="text-sm text-red-500">{errors.submit}</p>
                             </div>
                         )}
 
@@ -147,7 +160,7 @@ export default function LoginPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="focus:outline-none"
+                                    className="focus:outline-none text-[#71717A] hover:text-[#FAFAFA] transition-colors"
                                 >
                                     {showPassword ? (
                                         <EyeOff className="w-4 h-4" />
@@ -162,13 +175,15 @@ export default function LoginPage() {
                             <label className="flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="checkbox"
-                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    className="w-4 h-4 rounded border-[#3E3C32] bg-[#1C1B16] text-[#F5C542] focus:ring-[#F5C542]"
                                 />
-                                <span className="text-sm text-gray-600">จดจำฉัน</span>
+                                <span className="text-sm text-[#A1A1AA]">จดจำฉัน</span>
                             </label>
                             <Link
                                 href="/forgot-password"
-                                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                                className="text-sm text-[#F5C542] hover:text-[#FFC83D] font-medium"
                             >
                                 ลืมรหัสผ่าน?
                             </Link>
@@ -185,11 +200,11 @@ export default function LoginPage() {
                     </form>
 
                     <div className="mt-6 text-center">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-[#71717A]">
                             ยังไม่มีบัญชี?{' '}
                             <Link
                                 href="/register"
-                                className="text-blue-600 hover:text-blue-700 font-medium"
+                                className="text-[#F5C542] hover:text-[#FFC83D] font-medium"
                             >
                                 สมัครสมาชิก
                             </Link>

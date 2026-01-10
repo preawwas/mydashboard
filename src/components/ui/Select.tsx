@@ -38,8 +38,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         return (
             <div className="w-full">
                 {label && (
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        {label}
+                    <label className="block text-sm font-medium text-[#A1A1AA] mb-1.5">
+                        {label} {props.required && <span className="text-red-500">*</span>}
                     </label>
                 )}
                 <div className="relative">
@@ -48,30 +48,30 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
                         value={value}
                         onChange={handleChange}
                         className={cn(
-                            'w-full px-4 py-2.5 border rounded-lg text-gray-900 appearance-none',
-                            'bg-white transition-all duration-200',
-                            'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
-                            'disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed',
+                            'w-full px-4 py-2.5 border rounded-lg text-[#FAFAFA] appearance-none',
+                            'bg-[#1C1B16] transition-all duration-200',
+                            'focus:outline-none focus:ring-2 focus:ring-[#F5C542] focus:border-transparent',
+                            'disabled:bg-[#2E2C24] disabled:text-[#71717A] disabled:cursor-not-allowed',
                             error
                                 ? 'border-red-500 focus:ring-red-500'
-                                : 'border-gray-300 hover:border-gray-400',
+                                : 'border-[#3E3C32] hover:border-[#F5C542]/50',
                             className
                         )}
                         {...props}
                     >
-                        <option value="">{placeholder}</option>
+
                         {options.map((option) => (
-                            <option key={option.value} value={option.value}>
+                            <option key={option.value} value={option.value} className="bg-[#1C1B16] text-[#FAFAFA]">
                                 {option.label}
                             </option>
                         ))}
                     </select>
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[#A1A1AA]">
                         <ChevronDown className="w-5 h-5" />
                     </div>
                 </div>
                 {error && (
-                    <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
+                    <p className="mt-1.5 text-sm text-red-500 flex items-center gap-1">
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path
                                 fillRule="evenodd"
@@ -83,7 +83,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
                     </p>
                 )}
                 {helperText && !error && (
-                    <p className="mt-1.5 text-sm text-gray-500">{helperText}</p>
+                    <p className="mt-1.5 text-sm text-[#71717A]">{helperText}</p>
                 )}
             </div>
         );

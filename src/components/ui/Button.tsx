@@ -30,15 +30,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
         const variants = {
             primary:
-                'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md hover:shadow-lg focus:ring-blue-500',
+                'bg-gradient-to-r from-[#F5C542] to-[#FFC83D] hover:from-[#FFC83D] hover:to-[#FFD54F] text-[#15140F] shadow-lg shadow-[#F5C542]/20 hover:shadow-[#F5C542]/30 focus:ring-[#F5C542] border border-[#F5C542]/50',
             secondary:
-                'bg-gray-100 hover:bg-gray-200 text-gray-900 focus:ring-gray-500',
+                'bg-[#2E2C24] hover:bg-[#3E3C32] text-[#FAFAFA] border border-[#3E3C32] hover:border-[#F5C542]/30 focus:ring-[#F5C542]',
             danger:
-                'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-md hover:shadow-lg focus:ring-red-500',
+                'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white shadow-lg shadow-red-900/20 focus:ring-red-500',
             ghost:
-                'bg-transparent hover:bg-gray-100 text-gray-700 focus:ring-gray-500',
+                'bg-transparent hover:bg-[#2E2C24] text-[#A1A1AA] hover:text-[#FAFAFA] focus:ring-[#F5C542]',
             outline:
-                'border-2 border-gray-300 hover:border-gray-400 bg-transparent text-gray-700 focus:ring-gray-500',
+                'border border-[#3E3C32] hover:border-[#F5C542]/50 bg-transparent text-[#A1A1AA] hover:text-[#FAFAFA] focus:ring-[#F5C542]',
         };
 
         const sizes = {

@@ -67,8 +67,8 @@ export default function ResetPasswordPage() {
                     <div className="flex justify-center mb-6">
                         <CheckCircle className="w-16 h-16 text-green-500" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">เปลี่ยนรหัสผ่านสำเร็จ!</h3>
-                    <p className="text-gray-600 mb-6">
+                    <h3 className="text-xl font-semibold text-[#FAFAFA] mb-2">เปลี่ยนรหัสผ่านสำเร็จ!</h3>
+                    <p className="text-[#A1A1AA] mb-6">
                         รหัสผ่านของคุณได้รับการเปลี่ยนแปลงเรียบร้อยแล้ว<br />
                         กำลังนำคุณไปที่หน้าเข้าสู่ระบบ...
                     </p>
@@ -91,7 +91,7 @@ export default function ResetPasswordPage() {
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-xl shadow-blue-500/30 mb-4">
                         <TrendingUp className="w-8 h-8 text-white" />
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold text-[#FAFAFA]">
                         ตั้งรหัสผ่านใหม่
                     </h1>
                     <p className="text-gray-500 mt-2">

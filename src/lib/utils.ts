@@ -4,6 +4,12 @@ export function cn(...inputs: ClassValue[]) {
     return clsx(inputs);
 }
 
+export function getCurrentLocalDateTime() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+}
+
 export function formatCurrency(amount: number, currency: string = 'THB'): string {
     return new Intl.NumberFormat('th-TH', {
         style: 'currency',

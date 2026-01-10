@@ -224,7 +224,7 @@ export default function InvestmentsPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Investment</h1>
+                        <h1 className="text-2xl font-bold text-[#FAFAFA]">Investment</h1>
                         <p className="text-gray-500">จัดการพอร์ตการลงทุนของคุณ</p>
                     </div>
                     <Button
@@ -239,13 +239,13 @@ export default function InvestmentsPage() {
                 </div>
 
                 {/* Tabs */}
-                <div className="border-b border-gray-200">
+                <div className="border-b border-[#2E2C24]">
                     <nav className="flex gap-8">
                         <button
                             onClick={() => setActiveTab('overview')}
                             className={`py-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'overview'
-                                ? 'border-blue-600 text-blue-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                                ? 'border-[#F5C542] text-[#F5C542]'
+                                : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
                                 }`}
                         >
                             Overview
@@ -253,8 +253,8 @@ export default function InvestmentsPage() {
                         <button
                             onClick={() => setActiveTab('list')}
                             className={`py-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'list'
-                                ? 'border-blue-600 text-blue-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                                ? 'border-[#F5C542] text-[#F5C542]'
+                                : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
                                 }`}
                         >
                             รายการลงทุน
@@ -281,7 +281,7 @@ export default function InvestmentsPage() {
                                     rightIcon={
                                         searchQuery ? (
                                             <button onClick={() => handleSearch('')}>
-                                                <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                                                <X className="w-4 h-4 text-[#A1A1AA] hover:text-[#FAFAFA]" />
                                             </button>
                                         ) : undefined
                                     }
@@ -292,14 +292,18 @@ export default function InvestmentsPage() {
                                     variant={showFilters ? 'primary' : 'outline'}
                                     onClick={() => setShowFilters(!showFilters)}
                                     leftIcon={<Filter className="w-4 h-4" />}
+                                    className={showFilters
+                                        ? 'bg-[#F5C542] text-[#15140F] hover:bg-[#F5C542]/90 border-transparent'
+                                        : 'bg-transparent border-[#2E2C24] text-[#A1A1AA] hover:text-[#F5C542] hover:border-[#F5C542] hover:bg-[#2E2C24]/50'
+                                    }
                                 >
                                     ตัวกรอง
                                     {hasActiveFilters && (
-                                        <span className="ml-1.5 w-2 h-2 rounded-full bg-blue-400" />
+                                        <span className="ml-1.5 w-2 h-2 rounded-full bg-[#15140F]" />
                                     )}
                                 </Button>
                                 {hasActiveFilters && (
-                                    <Button variant="ghost" onClick={clearFilters}>
+                                    <Button variant="ghost" onClick={clearFilters} className="text-[#A1A1AA] hover:text-[#FAFAFA] hover:bg-[#2E2C24]">
                                         ล้าง
                                     </Button>
                                 )}
@@ -308,7 +312,7 @@ export default function InvestmentsPage() {
 
                         {/* Filter Panel */}
                         {showFilters && (
-                            <div className="p-4 rounded-xl bg-gray-50 border border-gray-200 grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="p-4 rounded-xl bg-[#1C1B16] border border-[#2E2C24] grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                 <Select
                                     label="ประเภทสินทรัพย์"
                                     placeholder="ทั้งหมด"
@@ -357,10 +361,6 @@ export default function InvestmentsPage() {
                             pagination={pagination}
                             onPageChange={setPage}
                             onLimitChange={setLimit}
-                            onView={(inv) => {
-                                setSelectedInvestment(inv);
-                                openModal('view');
-                            }}
                             onEdit={(inv) => {
                                 setSelectedInvestment(inv);
                                 openModal('edit');
@@ -387,109 +387,7 @@ export default function InvestmentsPage() {
                     />
                 )}
 
-                {/* View Modal */}
-                {modalType === 'view' && selectedInvestment && (
-                    <Modal
-                        isOpen={modalOpen}
-                        onClose={() => {
-                            closeModal();
-                            setSelectedInvestment(null);
-                        }}
-                        title="รายละเอียดการลงทุน"
-                        size="lg"
-                    >
-                        <div className="space-y-6">
-                            {/* Asset Info */}
-                            <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-2xl font-bold">
-                                    {selectedInvestment.asset_code.slice(0, 2)}
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold text-gray-900">{selectedInvestment.asset_code}</h3>
-                                    <p className="text-gray-500">{selectedInvestment.asset_name}</p>
-                                    <div className="flex gap-2 mt-2">
-                                        <Badge className={`${selectedInvestment.asset_category === 'GOLD' ? 'bg-yellow-100 text-yellow-800' : selectedInvestment.asset_category === 'CRYPTO' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
-                                            {selectedInvestment.asset_category}
-                                        </Badge>
-                                        <Badge className={selectedInvestment.status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                                            {selectedInvestment.status}
-                                        </Badge>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Details Grid */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 rounded-lg bg-gray-50">
-                                    <p className="text-sm text-gray-500">ตลาด</p>
-                                    <p className="font-semibold">{selectedInvestment.market}</p>
-                                </div>
-                                <div className="p-4 rounded-lg bg-gray-50">
-                                    <p className="text-sm text-gray-500">กลยุทธ์</p>
-                                    <p className="font-semibold">{selectedInvestment.strategy_type}</p>
-                                </div>
-                                <div className="p-4 rounded-lg bg-gray-50">
-                                    <p className="text-sm text-gray-500">จำนวนซื้อ</p>
-                                    <p className="font-semibold">{selectedInvestment.buy_quantity}</p>
-                                </div>
-                                <div className="p-4 rounded-lg bg-gray-50">
-                                    <p className="text-sm text-gray-500">ราคาต่อหน่วย</p>
-                                    <p className="font-semibold">
-                                        {new Intl.NumberFormat('th-TH', { style: 'currency', currency: selectedInvestment.buy_currency }).format(selectedInvestment.buy_price_per_unit)}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Sell History */}
-                            {selectedInvestment.sell_history.length > 0 && (
-                                <div>
-                                    <h4 className="font-medium text-gray-900 mb-3">ประวัติการขาย</h4>
-                                    <div className="space-y-2">
-                                        {selectedInvestment.sell_history.map((sell, i) => (
-                                            <div key={i} className="p-3 rounded-lg bg-gray-50 flex items-center justify-between">
-                                                <div>
-                                                    <p className="font-medium">{sell.qty} @ {sell.price} {sell.currency}</p>
-                                                    <p className="text-sm text-gray-500">{new Date(sell.datetime).toLocaleString('th-TH')}</p>
-                                                </div>
-                                                <p className="text-green-600 font-medium">
-                                                    +{(sell.qty * sell.price - sell.fee).toLocaleString()} {sell.currency}
-                                                </p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Note */}
-                            {selectedInvestment.note && (
-                                <div className="p-4 rounded-lg bg-blue-50 border border-blue-100">
-                                    <p className="text-sm text-blue-600 font-medium mb-1">หมายเหตุ</p>
-                                    <p className="text-gray-700">{selectedInvestment.note}</p>
-                                </div>
-                            )}
-
-                            {/* Actions */}
-                            <div className="flex justify-end gap-3 pt-4 border-t">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => {
-                                        closeModal();
-                                        setSelectedInvestment(null);
-                                    }}
-                                >
-                                    ปิด
-                                </Button>
-                                <Button
-                                    onClick={() => {
-                                        openModal('edit');
-                                    }}
-                                >
-                                    แก้ไข
-                                </Button>
-                            </div>
-                        </div>
-                    </Modal>
-                )}
+                {/* View Modal Removed */}
 
                 {/* Delete Confirmation */}
                 {deleteConfirm && (
@@ -500,7 +398,7 @@ export default function InvestmentsPage() {
                         size="sm"
                     >
                         <div className="space-y-4">
-                            <p className="text-gray-600">
+                            <p className="text-[#A1A1AA]">
                                 คุณต้องการลบ <strong>{deleteConfirm.asset_code}</strong> ({deleteConfirm.asset_name}) หรือไม่?
                             </p>
                             <p className="text-sm text-red-600">การดำเนินการนี้ไม่สามารถยกเลิกได้</p>

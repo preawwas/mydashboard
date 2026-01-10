@@ -32,16 +32,6 @@ const navItems: NavItem[] = [
         href: '/dashboard/investments',
         icon: <TrendingUp className="w-5 h-5" />,
     },
-    {
-        label: 'Profile',
-        href: '/dashboard/profile',
-        icon: <User className="w-5 h-5" />,
-    },
-    {
-        label: 'Settings',
-        href: '/dashboard/settings',
-        icon: <Settings className="w-5 h-5" />,
-    },
 ];
 
 const Sidebar: React.FC = () => {
@@ -57,19 +47,19 @@ const Sidebar: React.FC = () => {
     return (
         <aside
             className={cn(
-                'fixed left-0 top-0 z-40 h-screen bg-white border-r border-gray-200',
-                'transition-all duration-300 ease-in-out',
+                'fixed left-0 top-0 z-40 h-screen bg-[#0F0F0C] border-r border-[#2E2C24]',
+                'transition-all duration-300 ease-in-out flex flex-col',
                 sidebarOpen ? 'w-64' : 'w-20'
             )}
         >
             {/* Logo */}
-            <div className="h-16 flex items-center justify-between px-4 border-b border-gray-100">
+            <div className="h-16 flex items-center justify-between px-4 border-b border-[#2E2C24] shrink-0">
                 <div className={cn('flex items-center gap-3', !sidebarOpen && 'justify-center w-full')}>
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                        <TrendingUp className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#F5C542] to-[#FFC83D] flex items-center justify-center shadow-lg shadow-[#F5C542]/20">
+                        <TrendingUp className="w-5 h-5 text-[#15140F]" />
                     </div>
                     {sidebarOpen && (
-                        <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                        <span className="font-bold text-xl bg-gradient-to-r from-[#F5C542] to-[#FFD54F] bg-clip-text text-transparent">
                             InvestPro
                         </span>
                     )}
@@ -77,7 +67,7 @@ const Sidebar: React.FC = () => {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-2">
+            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                     return (
@@ -85,18 +75,18 @@ const Sidebar: React.FC = () => {
                             key={item.href}
                             href={item.href}
                             className={cn(
-                                'flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 font-medium',
+                                'flex items-center gap-3 px-4 py-3 rounded-xl font-medium',
                                 'transition-all duration-200 group',
                                 isActive
-                                    ? 'bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 shadow-sm'
-                                    : 'hover:bg-gray-100 hover:text-gray-900',
+                                    ? 'bg-[#1C1B16] text-[#F5C542] shadow-md shadow-black/20 border border-[#2E2C24]'
+                                    : 'text-[#A1A1AA] hover:bg-[#1C1B16] hover:text-[#FAFAFA]',
                                 !sidebarOpen && 'justify-center px-3'
                             )}
                         >
                             <span
                                 className={cn(
                                     'transition-colors',
-                                    isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
+                                    isActive ? 'text-[#F5C542]' : 'text-[#71717A] group-hover:text-[#FAFAFA]'
                                 )}
                             >
                                 {item.icon}
@@ -107,28 +97,35 @@ const Sidebar: React.FC = () => {
                 })}
             </nav>
 
-            {/* Logout */}
-            <div className="p-4 border-t border-gray-100">
+            {/* Bottom Section */}
+            <div className="p-4 border-t border-[#2E2C24] bg-[#0F0F0C]">
                 <button
                     onClick={handleLogout}
                     className={cn(
-                        'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 font-medium',
-                        'transition-all duration-200 hover:bg-red-50 hover:text-red-600 group',
+                        'w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium mb-4',
+                        'transition-all duration-200 text-[#A1A1AA] hover:bg-red-900/10 hover:text-red-500 group',
                         !sidebarOpen && 'justify-center px-3'
                     )}
                 >
-                    <LogOut className="w-5 h-5 text-gray-400 group-hover:text-red-500 transition-colors" />
+                    <LogOut className="w-5 h-5 text-[#71717A] group-hover:text-red-500 transition-colors" />
                     {sidebarOpen && <span>Logout</span>}
                 </button>
+
+                <div className={cn(
+                    "text-xs text-[#71717A] px-4 font-mono",
+                    !sidebarOpen && "hidden"
+                )}>
+                    v1.0.0
+                </div>
             </div>
 
             {/* Toggle Button */}
             <button
                 onClick={toggleSidebar}
                 className={cn(
-                    'absolute -right-3 top-20 w-6 h-6 bg-white rounded-full border border-gray-200',
-                    'flex items-center justify-center shadow-sm hover:shadow-md transition-shadow',
-                    'text-gray-400 hover:text-gray-600'
+                    'absolute -right-3 top-20 w-6 h-6 bg-[#2E2C24] rounded-full border border-[#1C1B16]',
+                    'flex items-center justify-center shadow-md hover:shadow-lg transition-shadow',
+                    'text-[#A1A1AA] hover:text-[#FAFAFA]'
                 )}
             >
                 {sidebarOpen ? (

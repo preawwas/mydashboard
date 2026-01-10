@@ -17,14 +17,14 @@ const Loading: React.FC<LoadingProps> = ({ size = 'md', text, fullScreen = false
 
     const content = (
         <div className="flex flex-col items-center justify-center gap-3">
-            <Loader2 className={cn('animate-spin text-blue-600', sizes[size])} />
-            {text && <p className="text-sm text-gray-500 animate-pulse">{text}</p>}
+            <Loader2 className={cn('animate-spin text-[#F5C542]', sizes[size])} />
+            {text && <p className="text-sm text-[#71717A] animate-pulse">{text}</p>}
         </div>
     );
 
     if (fullScreen) {
         return (
-            <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
                 {content}
             </div>
         );
@@ -55,7 +55,7 @@ const Skeleton: React.FC<SkeletonProps> = ({
     return (
         <div
             className={cn(
-                'animate-pulse bg-gray-200',
+                'animate-pulse bg-[#2E2C24]',
                 variants[variant],
                 className
             )}

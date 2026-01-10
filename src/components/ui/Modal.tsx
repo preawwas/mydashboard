@@ -58,7 +58,7 @@ const Modal: React.FC<ModalProps> = ({
         <div className="fixed inset-0 z-50 overflow-y-auto">
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
 
@@ -66,7 +66,7 @@ const Modal: React.FC<ModalProps> = ({
             <div className="flex min-h-full items-center justify-center p-4">
                 <div
                     className={cn(
-                        'relative w-full bg-white rounded-2xl shadow-2xl',
+                        'relative w-full bg-[#1C1B16] border border-[#2E2C24] rounded-2xl shadow-2xl shadow-black/50',
                         'transform transition-all duration-300',
                         'animate-in fade-in zoom-in-95',
                         sizes[size]
@@ -75,19 +75,19 @@ const Modal: React.FC<ModalProps> = ({
                 >
                     {/* Header */}
                     {(title || showCloseButton) && (
-                        <div className="flex items-start justify-between p-6 border-b border-gray-100">
+                        <div className="flex items-start justify-between p-6 border-b border-[#2E2C24]">
                             <div>
                                 {title && (
-                                    <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+                                    <h2 className="text-xl font-semibold text-[#FAFAFA]">{title}</h2>
                                 )}
                                 {description && (
-                                    <p className="mt-1 text-sm text-gray-500">{description}</p>
+                                    <p className="mt-1 text-sm text-[#A1A1AA]">{description}</p>
                                 )}
                             </div>
                             {showCloseButton && (
                                 <button
                                     onClick={onClose}
-                                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                    className="p-2 text-[#71717A] hover:text-[#FAFAFA] hover:bg-[#2E2C24] rounded-lg transition-colors"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
