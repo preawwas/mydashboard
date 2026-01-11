@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Button, Modal } from '@/components/ui';
-import { InvestmentFormData, SellRecord } from '@/types';
+import { InvestmentFormData, SellRecord, SellRecordWithId } from '@/types';
 import { getCurrentLocalDateTime } from '@/lib/utils';
 import InvestmentDetails from './InvestmentDetails';
 import SellHistoryList from './SellHistoryList';
@@ -23,8 +23,15 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
     mode,
 }) => {
     const [activeTab, setActiveTab] = useState<'details' | 'sell_history'>('details');
-    // Initialize state only once
-    const [formData, setFormData] = useState<InvestmentFormData>(() => ({
+    const idCounterRef = useRef(0);
+
+    // Generate unique ID for each sell record
+    const generateId = useCallback(() => {
+        idCounterRef.current += 1;
+        return `sell_${Date.now()}_${idCounterRef.current}`;
+    }, []);
+
+    const getDefaultFormData = useCallback((): InvestmentFormData & { sell_history: SellRecordWithId[] } => ({
         asset_category: initialData?.asset_category || 'GOLD',
         asset_code: initialData?.asset_code || '',
         asset_name: initialData?.asset_name || '',
@@ -36,12 +43,24 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
         buy_currency: initialData?.buy_currency || 'THB',
         buy_fee: initialData?.buy_fee || 0,
         buy_datetime: initialData?.buy_datetime || getCurrentLocalDateTime(),
-        sell_history: initialData?.sell_history || [],
+        sell_history: (initialData?.sell_history || []).map((s, i) => ({ ...s, _id: `init_${i}` })),
         note: initialData?.note || '',
-    }));
+    }), [initialData]);
 
+    const [formData, setFormData] = useState(getDefaultFormData);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isLoading, setIsLoading] = useState(false);
+
+    // Reset form when modal opens with new data
+    useEffect(() => {
+        if (isOpen) {
+            setFormData(getDefaultFormData());
+            setErrors({});
+            setActiveTab('details');
+            idCounterRef.current = 0;
+        }
+    }, [isOpen, getDefaultFormData]);
+
 
     const clearError = useCallback((field: string) => {
         setErrors(prev => {
@@ -98,11 +117,13 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
     };
 
     const addSellRecord = useCallback(() => {
+        const newId = generateId();
         setFormData(prev => ({
             ...prev,
             sell_history: [
                 ...prev.sell_history,
                 {
+                    _id: newId,
                     datetime: getCurrentLocalDateTime(),
                     qty: 0,
                     price: 0,
@@ -111,9 +132,9 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 },
             ],
         }));
-    }, []);
+    }, [generateId]);
 
-    const updateSellRecord = useCallback((index: number, field: keyof SellRecord, value: string | number) => {
+    const updateSellRecord = useCallback((index: number, field: keyof SellRecordWithId, value: string | number) => {
         setFormData(prev => {
             const newHistory = [...prev.sell_history];
             newHistory[index] = { ...newHistory[index], [field]: value };
@@ -129,7 +150,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
     const removeSellRecord = useCallback((index: number) => {
         setFormData(prev => ({
             ...prev,
-            sell_history: prev.sell_history.filter((_, i) => i !== index)
+            sell_history: prev.sell_history.filter((_, i): _ is SellRecordWithId => i !== index)
         }));
     }, []);
 
@@ -139,6 +160,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
             onClose={onClose}
             title={mode === 'add' ? 'เพิ่มการลงทุนใหม่' : 'แก้ไขการลงทุน'}
             size="xl"
+            className="max-w-[950px]"
         >
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 {/* Tabs */}
@@ -171,7 +193,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 </div>
 
                 {/* Details Tab */}
-                <div className={`${activeTab === 'details' ? 'block' : 'hidden'} space-y-4`}>
+                <div className={`${activeTab === 'details' ? 'block' : 'hidden'} space-y-4 min-h-[380px]`}>
                     <InvestmentDetails
                         formData={formData}
                         errors={errors}
@@ -181,7 +203,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 </div>
 
                 {/* Sell History Tab */}
-                <div className={`${activeTab === 'sell_history' ? 'block' : 'hidden'} space-y-4`}>
+                <div className={`${activeTab === 'sell_history' ? 'block' : 'hidden'} space-y-4 h-[380px] overflow-y-auto custom-scrollbar`}>
                     <SellHistoryList
                         sellHistory={formData.sell_history}
                         errors={errors}

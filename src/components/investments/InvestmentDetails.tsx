@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { Input, Select } from '@/components/ui';
 import { InvestmentFormData } from '@/types';
 import { assetCategoryOptions, marketOptions, strategyOptions, statusOptions, currencyOptions } from '@/components/investments/options';
@@ -16,6 +16,59 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
     onChange,
     clearError,
 }) => {
+    // Memoized handlers to prevent unnecessary re-renders
+    const handleAssetCodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange('asset_code', e.target.value.toUpperCase());
+        clearError('asset_code');
+    }, [onChange, clearError]);
+
+    const handleAssetNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange('asset_name', e.target.value);
+        clearError('asset_name');
+    }, [onChange, clearError]);
+
+    const handleAssetCategoryChange = useCallback((value: string) => {
+        onChange('asset_category', value);
+    }, [onChange]);
+
+    const handleMarketChange = useCallback((value: string) => {
+        onChange('market', value);
+    }, [onChange]);
+
+    const handleStrategyChange = useCallback((value: string) => {
+        onChange('strategy_type', value);
+    }, [onChange]);
+
+    const handleStatusChange = useCallback((value: string) => {
+        onChange('status', value);
+    }, [onChange]);
+
+    const handleBuyDatetimeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange('buy_datetime', e.target.value);
+    }, [onChange]);
+
+    const handleBuyQuantityChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange('buy_quantity', parseFloat(e.target.value) || 0);
+        clearError('buy_quantity');
+    }, [onChange, clearError]);
+
+    const handleBuyPriceChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange('buy_price_per_unit', parseFloat(e.target.value) || 0);
+        clearError('buy_price_per_unit');
+    }, [onChange, clearError]);
+
+    const handleBuyCurrencyChange = useCallback((value: string) => {
+        onChange('buy_currency', value);
+    }, [onChange]);
+
+    const handleBuyFeeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange('buy_fee', parseFloat(e.target.value) || 0);
+    }, [onChange]);
+
+    const handleNoteChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        onChange('note', e.target.value);
+    }, [onChange]);
+
     return (
         <div className="space-y-4">
             <div className="grid grid-cols-12 gap-4">
@@ -25,10 +78,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         label="รหัสสินทรัพย์"
                         placeholder="BTC"
                         value={formData.asset_code}
-                        onChange={(e) => {
-                            onChange('asset_code', e.target.value.toUpperCase());
-                            clearError('asset_code');
-                        }}
+                        onChange={handleAssetCodeChange}
                         error={errors.asset_code}
                         required
                     />
@@ -38,10 +88,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         label="ชื่อสินทรัพย์"
                         placeholder="Bitcoin"
                         value={formData.asset_name}
-                        onChange={(e) => {
-                            onChange('asset_name', e.target.value);
-                            clearError('asset_name');
-                        }}
+                        onChange={handleAssetNameChange}
                         error={errors.asset_name}
                         required
                     />
@@ -51,7 +98,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         label="ประเภท"
                         options={assetCategoryOptions}
                         value={formData.asset_category}
-                        onChange={(value) => onChange('asset_category', value)}
+                        onChange={handleAssetCategoryChange}
                     />
                 </div>
 
@@ -61,7 +108,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         label="ตลาด"
                         options={marketOptions}
                         value={formData.market}
-                        onChange={(value) => onChange('market', value)}
+                        onChange={handleMarketChange}
                     />
                 </div>
                 <div className="col-span-12 md:col-span-3">
@@ -69,7 +116,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         label="กลยุทธ์"
                         options={strategyOptions}
                         value={formData.strategy_type}
-                        onChange={(value) => onChange('strategy_type', value)}
+                        onChange={handleStrategyChange}
                     />
                 </div>
                 <div className="col-span-12 md:col-span-3">
@@ -77,7 +124,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         label="สถานะ"
                         options={statusOptions}
                         value={formData.status}
-                        onChange={(value) => onChange('status', value)}
+                        onChange={handleStatusChange}
                     />
                 </div>
                 <div className="col-span-12 md:col-span-3">
@@ -85,7 +132,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         label="วันที่ซื้อ"
                         type="datetime-local"
                         value={formData.buy_datetime}
-                        onChange={(e) => onChange('buy_datetime', e.target.value)}
+                        onChange={handleBuyDatetimeChange}
                     />
                 </div>
 
@@ -97,10 +144,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         step="0.00000001"
                         placeholder="0.00"
                         value={formData.buy_quantity || ''}
-                        onChange={(e) => {
-                            onChange('buy_quantity', parseFloat(e.target.value) || 0);
-                            clearError('buy_quantity');
-                        }}
+                        onChange={handleBuyQuantityChange}
                         error={errors.buy_quantity}
                         required
                     />
@@ -112,10 +156,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         step="0.01"
                         placeholder="0.00"
                         value={formData.buy_price_per_unit || ''}
-                        onChange={(e) => {
-                            onChange('buy_price_per_unit', parseFloat(e.target.value) || 0);
-                            clearError('buy_price_per_unit');
-                        }}
+                        onChange={handleBuyPriceChange}
                         error={errors.buy_price_per_unit}
                         required
                     />
@@ -125,7 +166,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         label="สกุลเงิน"
                         options={currencyOptions}
                         value={formData.buy_currency}
-                        onChange={(value) => onChange('buy_currency', value)}
+                        onChange={handleBuyCurrencyChange}
                     />
                 </div>
                 <div className="col-span-12 md:col-span-3">
@@ -135,7 +176,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         step="0.01"
                         placeholder="0.00"
                         value={formData.buy_fee || ''}
-                        onChange={(e) => onChange('buy_fee', parseFloat(e.target.value) || 0)}
+                        onChange={handleBuyFeeChange}
                     />
                 </div>
 
@@ -146,10 +187,10 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                     </label>
                     <textarea
                         className="w-full px-4 py-2.5 bg-[#1C1B16] border border-[#2E2C24] rounded-lg text-[#FAFAFA] placeholder-[#71717A] focus:outline-none focus:ring-1 focus:ring-[#F5C542]/50 focus:border-[#F5C542]/50 resize-none"
-                        rows={2}
+                        rows={3}
                         placeholder="บันทึกเพิ่มเติม..."
                         value={formData.note}
-                        onChange={(e) => onChange('note', e.target.value)}
+                        onChange={handleNoteChange}
                     />
                 </div>
             </div>

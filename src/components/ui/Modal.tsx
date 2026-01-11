@@ -12,6 +12,7 @@ interface ModalProps {
     children: React.ReactNode;
     size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
     showCloseButton?: boolean;
+    className?: string;
 }
 
 const Modal: React.FC<ModalProps> = ({
@@ -22,6 +23,7 @@ const Modal: React.FC<ModalProps> = ({
     children,
     size = 'md',
     showCloseButton = true,
+    className,
 }) => {
     const handleEscape = useCallback(
         (e: KeyboardEvent) => {
@@ -56,9 +58,9 @@ const Modal: React.FC<ModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 overflow-y-auto">
-            {/* Backdrop */}
+            {/* Backdrop - removed backdrop-blur for performance */}
             <div
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+                className="fixed inset-0 bg-black/70"
                 onClick={onClose}
             />
 
@@ -67,9 +69,8 @@ const Modal: React.FC<ModalProps> = ({
                 <div
                     className={cn(
                         'relative w-full bg-[#1C1B16] border border-[#2E2C24] rounded-2xl shadow-2xl shadow-black/50',
-                        'transform transition-all duration-300',
-                        'animate-in fade-in zoom-in-95',
-                        sizes[size]
+                        sizes[size],
+                        className
                     )}
                     onClick={(e) => e.stopPropagation()}
                 >

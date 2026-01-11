@@ -1,15 +1,15 @@
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { Button, Input, Select } from '@/components/ui';
-import { SellRecord } from '@/types';
+import { SellRecordWithId } from '@/types';
 import { Plus, Trash2 } from 'lucide-react';
 import { currencyOptions } from '@/components/investments/options';
 
 interface SellHistoryListProps {
-    sellHistory: SellRecord[];
+    sellHistory: SellRecordWithId[];
     errors: Record<string, string>;
     onAdd: () => void;
     onRemove: (index: number) => void;
-    onUpdate: (index: number, field: keyof SellRecord, value: string | number) => void;
+    onUpdate: (index: number, field: keyof SellRecordWithId, value: string | number) => void;
 }
 
 const SellHistoryList: React.FC<SellHistoryListProps> = ({
@@ -38,7 +38,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                 <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                     {sellHistory.map((sell, index) => (
                         <div
-                            key={index}
+                            key={sell._id}
                             className="p-4 rounded-xl bg-[#1C1B16] border border-[#2E2C24] space-y-3 relative group"
                         >
                             <div className="absolute top-2 right-2">
@@ -107,7 +107,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                     ))}
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed border-[#2E2C24] rounded-xl">
+                <div className="flex flex-col items-center justify-center min-h-[320px] border-2 border-dashed border-[#2E2C24] rounded-xl">
                     <p className="text-[#A1A1AA]">ยังไม่มีประวัติการขาย</p>
                     <p className="text-xs text-[#71717A] mt-1">กดปุ่ม "เพิ่มรายการขาย" ด้านบนเพื่อเริ่มบันทึก</p>
                 </div>

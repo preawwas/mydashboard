@@ -28,6 +28,11 @@ export interface SellRecord {
     fee: number;
 }
 
+// Extended SellRecord with unique ID for React key management
+export interface SellRecordWithId extends SellRecord {
+    _id: string;
+}
+
 export interface Investment {
     id: string;
     user_id: string;
