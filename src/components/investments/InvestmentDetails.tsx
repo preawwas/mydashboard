@@ -76,7 +76,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 <div className="col-span-12 md:col-span-3">
                     <Input
                         label="รหัสสินทรัพย์"
-                        placeholder="BTC"
+                        placeholder="ระบุรหัสสินทรัพย์"
                         value={formData.asset_code}
                         onChange={handleAssetCodeChange}
                         error={errors.asset_code}
@@ -86,7 +86,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 <div className="col-span-12 md:col-span-6">
                     <Input
                         label="ชื่อสินทรัพย์"
-                        placeholder="Bitcoin"
+                        placeholder="ระบุชื่อสินทรัพย์"
                         value={formData.asset_name}
                         onChange={handleAssetNameChange}
                         error={errors.asset_name}

@@ -152,6 +152,21 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
             ...prev,
             sell_history: prev.sell_history.filter((_, i): _ is SellRecordWithId => i !== index)
         }));
+
+        // Clear errors associated with the removed index
+        setErrors(prev => {
+            const newErrors = { ...prev };
+            // We need to clear errors for the specific index being removed
+            // Note: Since we are removing by index, subsequent indices will shift.
+            // A more robust approach if we were using IDs for validation keys would be better,
+            // but for now, we simply clear the specific keys for this index.
+            // CAUTION: If we remove index 0, index 1 becomes index 0. Re-validating on submit handles new structure,
+            // but clearing old specific errors prevents ghost errors if we re-add immediately.
+            delete newErrors[`sell_history_${index}_qty`];
+            delete newErrors[`sell_history_${index}_price`];
+            delete newErrors[`sell_history_${index}_fee`];
+            return newErrors;
+        });
     }, []);
 
     return (

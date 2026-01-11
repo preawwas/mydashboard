@@ -2,99 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui';
-import { cn } from '@/lib/utils';
-import { TrendingUp, TrendingDown, Wallet, BarChart3, PieChart, Target } from 'lucide-react';
-
-interface SummaryCardProps {
-    title: string;
-    value: string;
-    subtitle?: string;
-    change?: number;
-    icon: React.ReactNode;
-    color: 'blue' | 'green' | 'purple' | 'orange' | 'red';
-}
-
-const colorMap = {
-    blue: {
-        bg: 'from-blue-500 to-blue-600',
-        icon: 'bg-blue-400/30',
-        shadow: 'shadow-blue-500/30',
-    },
-    green: {
-        bg: 'from-emerald-500 to-emerald-600',
-        icon: 'bg-emerald-400/30',
-        shadow: 'shadow-emerald-500/30',
-    },
-    purple: {
-        bg: 'from-purple-500 to-purple-600',
-        icon: 'bg-purple-400/30',
-        shadow: 'shadow-purple-500/30',
-    },
-    orange: {
-        bg: 'from-orange-500 to-orange-600',
-        icon: 'bg-orange-400/30',
-        shadow: 'shadow-orange-500/30',
-    },
-    red: {
-        bg: 'from-red-500 to-red-600',
-        icon: 'bg-red-400/30',
-        shadow: 'shadow-red-500/30',
-    },
-};
-
-const SummaryCard: React.FC<SummaryCardProps> = ({
-    title,
-    value,
-    subtitle,
-    change,
-    icon,
-    color,
-}) => {
-    const colors = colorMap[color];
-
-    return (
-        <Card
-            className={cn(
-                'relative overflow-hidden bg-gradient-to-br text-white',
-                colors.bg,
-                'shadow-lg',
-                colors.shadow
-            )}
-            padding="md"
-        >
-            <CardContent>
-                <div className="flex items-start justify-between">
-                    <div>
-                        <p className="text-sm font-medium text-white/80 mb-1">{title}</p>
-                        <h3 className="text-2xl font-bold mb-1">{value}</h3>
-                        {subtitle && (
-                            <p className="text-sm text-white/70">{subtitle}</p>
-                        )}
-                        {change !== undefined && (
-                            <div className="flex items-center gap-1 mt-2">
-                                {change >= 0 ? (
-                                    <TrendingUp className="w-4 h-4" />
-                                ) : (
-                                    <TrendingDown className="w-4 h-4" />
-                                )}
-                                <span className="text-sm font-medium">
-                                    {change >= 0 ? '+' : ''}
-                                    {change.toFixed(2)}%
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                    <div className={cn('p-3 rounded-xl', colors.icon)}>
-                        {icon}
-                    </div>
-                </div>
-            </CardContent>
-            {/* Decorative circles */}
-            <div className="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-white/10" />
-            <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-white/5" />
-        </Card>
-    );
-};
+import { TrendingUp, TrendingDown, Wallet, PieChart, Activity, DollarSign } from 'lucide-react';
 
 interface SummaryCardsProps {
     data: {
@@ -117,35 +25,83 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <SummaryCard
-                title="มูลค่าพอร์ตทั้งหมด"
-                value={formatCurrency(data.totalValue)}
-                subtitle="Total Portfolio Value"
-                icon={<Wallet className="w-6 h-6" />}
-                color="blue"
-            />
-            <SummaryCard
-                title="กำไร/ขาดทุนรวม"
-                value={formatCurrency(data.totalProfitLoss)}
-                change={data.profitLossPercentage}
-                icon={data.totalProfitLoss >= 0 ? <TrendingUp className="w-6 h-6" /> : <TrendingDown className="w-6 h-6" />}
-                color={data.totalProfitLoss >= 0 ? 'green' : 'red'}
-            />
-            <SummaryCard
-                title="จำนวนสินทรัพย์"
-                value={data.totalAssets.toString()}
-                subtitle="รายการ"
-                icon={<BarChart3 className="w-6 h-6" />}
-                color="purple"
-            />
-            <SummaryCard
-                title="ตำแหน่งที่เปิดอยู่"
-                value={data.openPositions.toString()}
-                subtitle="Open Positions"
-                icon={<Target className="w-6 h-6" />}
-                color="orange"
-            />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Hero Card - Total Value */}
+            <Card className="lg:col-span-3 bg-gradient-to-r from-[#1C1C1E] to-[#2C2C2E] border-[#F5C542]/20 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-[#F5C542]/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+                <CardContent className="p-8 relative z-10">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 rounded-lg bg-[#F5C542]/10">
+                                    <Wallet className="w-6 h-6 text-[#F5C542]" />
+                                </div>
+                                <span className="text-gray-300 font-semibold text-lg">มูลค่าพอร์ตทั้งหมด</span>
+                            </div>
+                            <h2 className="text-5xl md:text-6xl font-bold text-white tracking-tight mt-2 text-shadow-sm">
+                                {formatCurrency(data.totalValue)}
+                            </h2>
+                        </div>
+
+                        <div className="flex items-center gap-4 bg-[#151517] p-5 rounded-xl border border-[#FFFFFF]/10 shadow-lg">
+                            <div>
+                                <p className="text-sm text-gray-400 font-medium mb-1">กำไร/ขาดทุน</p>
+                                <div className={`flex items-center gap-3 ${data.totalProfitLoss >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                    <span className="text-2xl font-bold">
+                                        {data.totalProfitLoss >= 0 ? '+' : ''}{formatCurrency(data.totalProfitLoss)}
+                                    </span>
+                                    <div className={`flex items-center text-sm font-semibold px-3 py-1 rounded-full ${data.totalProfitLoss >= 0 ? 'bg-emerald-400/20' : 'bg-rose-400/20'}`}>
+                                        {data.totalProfitLoss >= 0 ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
+                                        {data.profitLossPercentage.toFixed(2)}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Secondary Stats */}
+            <Card className="bg-[#1C1C1E] border-[#2E2C24] hover:border-[#F5C542]/30 transition-colors">
+                <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 rounded-lg bg-blue-500/10">
+                            <PieChart className="w-6 h-6 text-blue-400" />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-400 bg-[#27272A] px-2.5 py-1 rounded">Assets</span>
+                    </div>
+                    <p className="text-gray-400 text-sm font-medium mb-1">จำนวนสินทรัพย์</p>
+                    <h3 className="text-3xl font-bold text-white">{data.totalAssets} <span className="text-lg font-normal text-gray-500">รายการ</span></h3>
+                </CardContent>
+            </Card>
+
+            <Card className="bg-[#1C1C1E] border-[#2E2C24] hover:border-[#F5C542]/30 transition-colors">
+                <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 rounded-lg bg-[#F5C542]/10">
+                            <Activity className="w-6 h-6 text-[#F5C542]" />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-400 bg-[#27272A] px-2.5 py-1 rounded">Active</span>
+                    </div>
+                    <p className="text-gray-400 text-sm font-medium mb-1">สถานะเปิดอยู่</p>
+                    <h3 className="text-3xl font-bold text-white">{data.openPositions} <span className="text-lg font-normal text-gray-500">Positions</span></h3>
+                </CardContent>
+            </Card>
+
+            <Card className="bg-[#1C1C1E] border-[#2E2C24] hover:border-[#F5C542]/30 transition-colors">
+                <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 rounded-lg bg-emerald-500/10">
+                            <DollarSign className="w-6 h-6 text-emerald-400" />
+                        </div>
+                        <span className="text-xs font-semibold text-gray-400 bg-[#27272A] px-2.5 py-1 rounded">Cash Flow</span>
+                    </div>
+                    <p className="text-gray-400 text-sm font-medium mb-1">Cost Basis</p>
+                    <h3 className="text-3xl font-bold text-white max-w-full truncate" title={formatCurrency(data.totalValue - data.totalProfitLoss)}>
+                        {formatCurrency(data.totalValue - data.totalProfitLoss)}
+                    </h3>
+                </CardContent>
+            </Card>
         </div>
     );
 };
