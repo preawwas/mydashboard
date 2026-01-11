@@ -1,18 +1,27 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Button, Input } from '@/components/ui';
+import { Button, Input, Loading } from '@/components/ui';
 import { useAuthStore } from '@/lib/store';
 import { TrendingUp, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
     const [rememberMe, setRememberMe] = useState(false);
+
+    const { setUser, setToken } = useAuthStore();
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+    });
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
         // Check for saved email
@@ -33,15 +42,6 @@ export default function LoginPage() {
             return () => clearTimeout(timer);
         }
     }, [searchParams, router]);
-
-    const { setUser, setToken } = useAuthStore();
-    const [formData, setFormData] = useState({
-        email: '',
-        password: '',
-    });
-    const [errors, setErrors] = useState<Record<string, string>>({});
-    const [isLoading, setIsLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
 
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
@@ -102,119 +102,127 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#0F0F0C] via-[#15140F] to-[#1C1B16] flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
-                {/* Logo */}
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-[#F5C542] to-[#FFD54F] bg-clip-text text-transparent">
-                        เข้าสู่ระบบ
-                    </h1>
-                    <p className="text-[#A1A1AA] mt-2">ระบบบริหารและจัดการข้อมูล</p>
-                </div>
+        <div className="w-full max-w-md">
+            {/* Logo */}
+            <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-[#F5C542] to-[#FFD54F] bg-clip-text text-transparent">
+                    เข้าสู่ระบบ
+                </h1>
+                <p className="text-[#A1A1AA] mt-2">ระบบบริหารและจัดการข้อมูล</p>
+            </div>
 
-                {/* Success Message for Registration */}
-                {showSuccessMessage && (
-                    <div className="mb-6 p-4 rounded-lg bg-[#059669]/10 border border-[#059669]/20 flex items-start gap-3 transition-all duration-500 ease-in-out">
-                        <div className="flex-shrink-0 mt-0.5">
-                            <svg className="w-5 h-5 text-[#059669]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 className="text-sm font-medium text-[#059669]">สมัครสมาชิกสำเร็จ!</h3>
-                            <p className="text-sm text-[#059669]/80 mt-1">
-                                กรุณาตรวจสอบอีเมลของคุณเพื่อยืนยันตัวตนก่อนเข้าสู่ระบบ
-                            </p>
-                        </div>
+            {/* Success Message for Registration */}
+            {showSuccessMessage && (
+                <div className="mb-6 p-4 rounded-lg bg-[#059669]/10 border border-[#059669]/20 flex items-start gap-3 transition-all duration-500 ease-in-out">
+                    <div className="flex-shrink-0 mt-0.5">
+                        <svg className="w-5 h-5 text-[#059669]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                     </div>
-                )}
-
-                {/* Form Card */}
-                <div className="bg-[#1C1B16] border border-[#2E2C24] rounded-2xl shadow-xl shadow-black/20 p-8">
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {errors.submit && (
-                            <div className="p-4 rounded-lg bg-red-900/10 border border-red-900/20">
-                                <p className="text-sm text-red-500">{errors.submit}</p>
-                            </div>
-                        )}
-
-                        <Input
-                            label="อีเมล"
-                            type="email"
-                            placeholder="you@example.com"
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            error={errors.email}
-                            leftIcon={<Mail className="w-4 h-4" />}
-                        />
-
-                        <Input
-                            label="รหัสผ่าน"
-                            type={showPassword ? 'text' : 'password'}
-                            placeholder="••••••••"
-                            value={formData.password}
-                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            error={errors.password}
-                            leftIcon={<Lock className="w-4 h-4" />}
-                            rightIcon={
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="focus:outline-none text-[#71717A] hover:text-[#FAFAFA] transition-colors"
-                                >
-                                    {showPassword ? (
-                                        <EyeOff className="w-4 h-4" />
-                                    ) : (
-                                        <Eye className="w-4 h-4" />
-                                    )}
-                                </button>
-                            }
-                        />
-
-                        <div className="flex items-center justify-between">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={rememberMe}
-                                    onChange={(e) => setRememberMe(e.target.checked)}
-                                    className="w-4 h-4 rounded border-[#3E3C32] bg-[#1C1B16] text-[#F5C542] focus:ring-[#F5C542]"
-                                />
-                                <span className="text-sm text-[#A1A1AA]">จดจำฉัน</span>
-                            </label>
-                            <Link
-                                href="/forgot-password"
-                                className="text-sm text-[#F5C542] hover:text-[#FFC83D] font-medium"
-                            >
-                                ลืมรหัสผ่าน?
-                            </Link>
-                        </div>
-
-                        <Button
-                            type="submit"
-                            className="w-full"
-                            size="lg"
-                            isLoading={isLoading}
-                        >
-                            เข้าสู่ระบบ
-                        </Button>
-                    </form>
-
-                    <div className="mt-6 text-center">
-                        <p className="text-sm text-[#71717A]">
-                            ยังไม่มีบัญชี?{' '}
-                            <Link
-                                href="/register"
-                                className="text-[#F5C542] hover:text-[#FFC83D] font-medium"
-                            >
-                                สมัครสมาชิก
-                            </Link>
+                    <div>
+                        <h3 className="text-sm font-medium text-[#059669]">สมัครสมาชิกสำเร็จ!</h3>
+                        <p className="text-sm text-[#059669]/80 mt-1">
+                            กรุณาตรวจสอบอีเมลของคุณเพื่อยืนยันตัวตนก่อนเข้าสู่ระบบ
                         </p>
                     </div>
-
-                    {/* Demo Credentials */}
-
                 </div>
+            )}
+
+            {/* Form Card */}
+            <div className="bg-[#1C1B16] border border-[#2E2C24] rounded-2xl shadow-xl shadow-black/20 p-8">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {errors.submit && (
+                        <div className="p-4 rounded-lg bg-red-900/10 border border-red-900/20">
+                            <p className="text-sm text-red-500">{errors.submit}</p>
+                        </div>
+                    )}
+
+                    <Input
+                        label="อีเมล"
+                        type="email"
+                        placeholder="you@example.com"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        error={errors.email}
+                        leftIcon={<Mail className="w-4 h-4" />}
+                    />
+
+                    <Input
+                        label="รหัสผ่าน"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        error={errors.password}
+                        leftIcon={<Lock className="w-4 h-4" />}
+                        rightIcon={
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="focus:outline-none text-[#71717A] hover:text-[#FAFAFA] transition-colors"
+                            >
+                                {showPassword ? (
+                                    <EyeOff className="w-4 h-4" />
+                                ) : (
+                                    <Eye className="w-4 h-4" />
+                                )}
+                            </button>
+                        }
+                    />
+
+                    <div className="flex items-center justify-between">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                                className="w-4 h-4 rounded border-[#3E3C32] bg-[#1C1B16] text-[#F5C542] focus:ring-[#F5C542]"
+                            />
+                            <span className="text-sm text-[#A1A1AA]">จดจำฉัน</span>
+                        </label>
+                        <Link
+                            href="/forgot-password"
+                            className="text-sm text-[#F5C542] hover:text-[#FFC83D] font-medium"
+                        >
+                            ลืมรหัสผ่าน?
+                        </Link>
+                    </div>
+
+                    <Button
+                        type="submit"
+                        className="w-full"
+                        size="lg"
+                        isLoading={isLoading}
+                    >
+                        เข้าสู่ระบบ
+                    </Button>
+                </form>
+
+                <div className="mt-6 text-center">
+                    <p className="text-sm text-[#71717A]">
+                        ยังไม่มีบัญชี?{' '}
+                        <Link
+                            href="/register"
+                            className="text-[#F5C542] hover:text-[#FFC83D] font-medium"
+                        >
+                            สมัครสมาชิก
+                        </Link>
+                    </p>
+                </div>
+
+                {/* Demo Credentials */}
+
             </div>
+        </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-[#0F0F0C] via-[#15140F] to-[#1C1B16] flex items-center justify-center p-4">
+            <Suspense fallback={<Loading fullScreen text="Loading..." />}>
+                <LoginForm />
+            </Suspense>
         </div>
     );
 }
