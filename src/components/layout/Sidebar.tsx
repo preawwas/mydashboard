@@ -13,6 +13,7 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
+    Wallet,
 } from 'lucide-react';
 
 interface NavItem {
@@ -31,6 +32,11 @@ const navItems: NavItem[] = [
         label: 'Investment',
         href: '/dashboard/investments',
         icon: <TrendingUp className="w-5 h-5" />,
+    },
+    {
+        label: 'Expense',
+        href: '/expenses',
+        icon: <Wallet className="w-5 h-5" />,
     },
 ];
 
