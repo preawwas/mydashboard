@@ -7,3 +7,4 @@ export { default as Table } from './Table';
 export { default as Badge } from './Badge';
 export { Loading, Skeleton } from './Loading';
 export { default as EmptyState } from './EmptyState';
+export { default as Toast } from './Toast';

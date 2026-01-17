@@ -55,7 +55,10 @@ const Sidebar: React.FC = () => {
             className={cn(
                 'fixed left-0 top-0 z-40 h-screen bg-[#0F0F0C] border-r border-[#2E2C24]',
                 'transition-all duration-300 ease-in-out flex flex-col',
-                sidebarOpen ? 'w-64' : 'w-20'
+                // Mobile behavior: slide in from left
+                sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+                // Desktop behavior: dynamic width
+                sidebarOpen ? 'w-64' : 'lg:w-20'
             )}
         >
             {/* Logo */}
@@ -132,8 +135,9 @@ const Sidebar: React.FC = () => {
                 onClick={toggleSidebar}
                 className={cn(
                     'absolute -right-3 top-20 w-6 h-6 bg-[#2E2C24] rounded-full border border-[#1C1B16]',
-                    'flex items-center justify-center shadow-md hover:shadow-lg transition-shadow',
-                    'text-[#A1A1AA] hover:text-[#FAFAFA]'
+                    'items-center justify-center shadow-md hover:shadow-lg transition-shadow',
+                    'text-[#A1A1AA] hover:text-[#FAFAFA]',
+                    'hidden lg:flex'
                 )}
             >
                 {sidebarOpen ? (

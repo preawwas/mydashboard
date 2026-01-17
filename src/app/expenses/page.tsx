@@ -4,12 +4,13 @@ import React, { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Button, Card, CardHeader, CardTitle, CardContent, Input, Table, Modal } from '@/components/ui';
 import { Plus, Search, Filter, Calendar, Edit, Trash2, Bell, Loader2 } from 'lucide-react';
-import { useAuthStore } from '@/lib/store';
+import { useAuthStore, useToastStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import ExpenseFormModal from '@/components/expenses/ExpenseFormModal';
 
 export default function ExpensesPage() {
     const { token } = useAuthStore();
+    const { addToast } = useToastStore();
     const [expenses, setExpenses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState(false);
@@ -25,6 +26,12 @@ export default function ExpensesPage() {
     const [filterStatus, setFilterStatus] = useState('ALL');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+
+    // Sort and Pagination states
+    const [sortField, setSortField] = useState<'date' | 'amount'>('date');
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     // Filter options
     const [categories, setCategories] = useState<any[]>([]);
@@ -81,12 +88,13 @@ export default function ExpensesPage() {
                 setExpenses(prev => prev.filter(e => e.id !== itemToDelete.id));
                 setIsDeleteModalOpen(false);
                 setItemToDelete(null);
+                addToast('Expense deleted successfully', 'success');
             } else {
-                alert(result.error || 'Failed to delete expense');
+                addToast(result.error || 'Failed to delete expense', 'error');
             }
         } catch (error) {
             console.error('Delete error:', error);
-            alert('An error occurred while deleting.');
+            addToast('An error occurred while deleting.', 'error');
         } finally {
             setDeleting(false);
         }
@@ -118,53 +126,40 @@ export default function ExpensesPage() {
             return matchesSearch && matchesCategory && matchesPayment && matchesStatus && matchesStartDate && matchesEndDate;
         })
         .sort((a, b) => {
-            // Stable sort: by date desc, then by id desc
-            const dateA = new Date(a.transaction_date).getTime();
-            const dateB = new Date(b.transaction_date).getTime();
-            if (dateB !== dateA) return dateB - dateA;
-            return b.id - a.id;
+            if (sortField === 'date') {
+                const dateA = new Date(a.transaction_date).getTime();
+                const dateB = new Date(b.transaction_date).getTime();
+                if (dateB !== dateA) return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+                return b.id - a.id;
+            } else {
+                if (a.amount_total !== b.amount_total) return sortOrder === 'asc' ? a.amount_total - b.amount_total : b.amount_total - a.amount_total;
+                return b.id - a.id;
+            }
         });
 
-    const pendingExpenses = expenses.filter(exp => {
+    // Pagination logic
+    const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
+    const paginatedExpenses = filteredExpenses.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    const getMonthlyPendingAmount = (exp: any) => {
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
 
-        // 1. FULL payment: Must be PENDING and from current month or older
         if (exp.payment_type === 'FULL') {
             const d = new Date(exp.transaction_date);
-            return exp.status === 'PENDING' && (
+            const isPending = exp.status === 'PENDING' && (
                 (d.getFullYear() < currentYear) ||
                 (d.getFullYear() === currentYear && d.getMonth() <= currentMonth)
             );
-        }
-
-        // 2. INSTALLMENT: Must have at least one PENDING installment due this month or earlier
-        if (exp.payment_type === 'INSTALLMENT') {
-            return exp.expense_installments?.some((i: any) => {
-                const due = new Date(i.due_date);
-                return i.status === 'PENDING' && (
-                    (due.getFullYear() < currentYear) ||
-                    (due.getFullYear() === currentYear && due.getMonth() <= currentMonth)
-                );
-            });
-        }
-
-        return false;
-    });
-
-    const totalPending = pendingExpenses.reduce((sum, exp) => {
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-
-        if (exp.payment_type === 'FULL') {
-            return sum + exp.amount_total;
+            return isPending ? exp.amount_total : 0;
         }
 
         if (exp.payment_type === 'INSTALLMENT') {
-            // Only sum installments due this month or earlier that are still PENDING
-            const pendingAmount = exp.expense_installments
+            return exp.expense_installments
                 ?.filter((i: any) => {
                     const due = new Date(i.due_date);
                     return i.status === 'PENDING' && (
@@ -173,11 +168,15 @@ export default function ExpensesPage() {
                     );
                 })
                 .reduce((s: number, i: any) => s + i.amount, 0) || 0;
-            return sum + pendingAmount;
         }
 
-        return sum;
-    }, 0);
+        return 0;
+    };
+
+    const pendingExpenses = expenses.filter(exp => getMonthlyPendingAmount(exp) > 0)
+        .sort((a, b) => getMonthlyPendingAmount(b) - getMonthlyPendingAmount(a));
+
+    const totalPending = pendingExpenses.reduce((sum, exp) => sum + getMonthlyPendingAmount(exp), 0);
 
     const formatDate = (dateString: string) => {
         const [year, month, day] = dateString.split('T')[0].split('-');
@@ -187,7 +186,20 @@ export default function ExpensesPage() {
     const columns = [
         {
             key: 'transaction_date',
-            header: 'Date',
+            header: (
+                <button
+                    onClick={() => {
+                        if (sortField === 'date') setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                        else { setSortField('date'); setSortOrder('desc'); }
+                    }}
+                    className="flex items-center gap-1 hover:text-[#FAFAFA] transition-colors"
+                >
+                    Date
+                    {sortField === 'date' && (
+                        <span className="text-[10px]">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                </button>
+            ),
             render: (item: any) => <span className="text-[#FAFAFA]">{formatDate(item.transaction_date)}</span>
         },
         {
@@ -206,7 +218,20 @@ export default function ExpensesPage() {
         },
         {
             key: 'amount_total',
-            header: 'Amount',
+            header: (
+                <button
+                    onClick={() => {
+                        if (sortField === 'amount') setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                        else { setSortField('amount'); setSortOrder('desc'); }
+                    }}
+                    className="flex items-center gap-1 hover:text-[#FAFAFA] transition-colors"
+                >
+                    Amount
+                    {sortField === 'amount' && (
+                        <span className="text-[10px]">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                </button>
+            ),
             render: (item: any) => (
                 <span className={cn(
                     "font-medium",
@@ -271,12 +296,12 @@ export default function ExpensesPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-[#FAFAFA]">Expense</h1>
-                        <p className="text-[#A1A1AA]">Manage and track your daily expenses.</p>
+                        <h1 className="text-xl sm:text-2xl font-bold text-[#FAFAFA] uppercase tracking-tight">Expense</h1>
+                        <p className="text-xs sm:text-sm text-[#A1A1AA]">Manage and track your daily expenses.</p>
                     </div>
                     <Button
                         onClick={() => { setEditId(null); setIsModalOpen(true); }}
-                        className="bg-[#F5C542] text-[#15140F] hover:bg-[#FFC83D] font-medium"
+                        className="bg-[#F5C542] text-[#15140F] hover:bg-[#FFC83D] font-bold py-2 sm:py-2.5 text-sm"
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Expense
@@ -288,23 +313,27 @@ export default function ExpensesPage() {
                     <Card className="border-[#F5C542]/30 bg-[#F5C542]/5">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-[#F5C542]/10 rounded-lg">
+                                <button
+                                    onClick={fetchExpenses}
+                                    className="p-2 bg-[#F5C542]/10 rounded-lg shrink-0 hover:bg-[#F5C542]/20 transition-all active:scale-95"
+                                    title="Refresh reminders"
+                                >
                                     <Bell className="w-5 h-5 text-[#F5C542]" />
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <CardTitle className="text-lg text-[#FAFAFA]">Monthly Reminders</CardTitle>
-                                        <span className="bg-[#F5C542] text-[#15140F] px-2 py-0.5 rounded-full text-xs font-bold">
+                                </button>
+                                <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <CardTitle className="text-base sm:text-lg font-bold text-[#FAFAFA]">Monthly Reminders</CardTitle>
+                                        <span className="bg-[#F5C542] text-[#15140F] px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black">
                                             ฿{totalPending.toLocaleString()}
                                         </span>
                                     </div>
-                                    <p className="text-sm text-[#A1A1AA]">You have {pendingExpenses.length} pending items to pay this month.</p>
+                                    <p className="text-xs sm:text-sm text-[#A1A1AA] truncate">You have {pendingExpenses.length} pending items.</p>
                                 </div>
                             </div>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-3">
-                                <ul className="space-y-2">
+                                <ul className="space-y-3 sm:space-y-2">
                                     {pendingExpenses.map(exp => {
                                         let progressText = "";
                                         if (exp.payment_type === 'INSTALLMENT' && exp.expense_installments) {
@@ -314,25 +343,19 @@ export default function ExpensesPage() {
                                         }
 
                                         return (
-                                            <li key={exp.id} className="flex items-center justify-between text-sm">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-[#F5C542]" />
-                                                    <span className="text-[#FAFAFA]">{exp.item_name}{progressText}</span>
-                                                    <span className="text-xs text-[#71717A]">({formatDate(exp.transaction_date)})</span>
+                                            <li key={exp.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm border-b border-[#F5C542]/10 pb-2 sm:border-0 sm:pb-0">
+                                                <div className="flex items-center gap-2 min-w-0">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-[#F5C542] shrink-0" />
+                                                    <span className="text-[#FAFAFA] truncate font-medium">{exp.item_name}{progressText}</span>
+                                                    <span className="text-[10px] sm:text-xs text-[#71717A] shrink-0">({formatDate(exp.transaction_date)})</span>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-medium text-[#FAFAFA]">฿{exp.amount_total.toLocaleString()}</span>
+                                                <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto mt-1 sm:mt-0">
+                                                    <span className="font-bold text-[#FAFAFA]">฿{getMonthlyPendingAmount(exp).toLocaleString()}</span>
                                                     <button
                                                         onClick={() => { setEditId(exp.id); setIsModalOpen(true); }}
-                                                        className="p-1.5 text-[#71717A] hover:text-[#F5C542] hover:bg-[#F5C542]/10 rounded-lg transition-colors"
+                                                        className="p-1.5 text-[#71717A] hover:text-[#F5C542] hover:bg-[#F5C542]/10 rounded-lg transition-colors bg-[#15140F]/50 sm:bg-transparent"
                                                     >
                                                         <Edit className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => confirmDelete(exp)}
-                                                        className="p-1.5 text-[#71717A] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
                                             </li>
@@ -348,22 +371,22 @@ export default function ExpensesPage() {
                 <Card>
                     <CardHeader className="pb-0">
                         <div className="flex flex-col space-y-4">
-                            <CardTitle>History</CardTitle>
+                            <CardTitle className="text-lg sm:text-xl font-bold">History</CardTitle>
 
-                            <div className="space-y-4 bg-[#15140F] p-4 rounded-xl border border-[#2E2C24]">
-                                <div className="flex flex-col lg:flex-row gap-4">
+                            <div className="space-y-4 bg-[#15140F] p-3 sm:p-4 rounded-xl border border-[#2E2C24]">
+                                <div className="flex flex-col xl:flex-row gap-4">
                                     <div className="relative flex-1">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
                                         <Input
                                             placeholder="Search expenses..."
-                                            className="pl-9 w-full bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA]"
+                                            className="pl-9 w-full bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] text-sm h-10"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                         />
                                     </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:w-[600px]">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 xl:w-[600px]">
                                         <select
-                                            className="bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] rounded-lg px-3 py-2 text-sm focus:ring-[#F5C542] focus:outline-none"
+                                            className="bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:ring-[#F5C542] focus:outline-none h-10"
                                             value={filterCategory}
                                             onChange={(e) => setFilterCategory(e.target.value)}
                                         >
@@ -373,7 +396,7 @@ export default function ExpensesPage() {
                                             ))}
                                         </select>
                                         <select
-                                            className="bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] rounded-lg px-3 py-2 text-sm focus:ring-[#F5C542] focus:outline-none"
+                                            className="bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:ring-[#F5C542] focus:outline-none h-10"
                                             value={filterPayment}
                                             onChange={(e) => setFilterPayment(e.target.value)}
                                         >
@@ -383,7 +406,7 @@ export default function ExpensesPage() {
                                             ))}
                                         </select>
                                         <select
-                                            className="bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] rounded-lg px-3 py-2 text-sm focus:ring-[#F5C542] focus:outline-none col-span-2 md:col-span-1"
+                                            className="bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:ring-[#F5C542] focus:outline-none col-span-2 md:col-span-1 h-10"
                                             value={filterStatus}
                                             onChange={(e) => setFilterStatus(e.target.value)}
                                         >
@@ -394,54 +417,99 @@ export default function ExpensesPage() {
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col sm:flex-row items-center gap-4 pt-2 border-t border-[#2E2C24]">
-                                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                                <div className="flex flex-col md:flex-row items-start md:items-center gap-4 pt-4 border-t border-[#2E2C24]">
+                                    <div className="flex items-center gap-2 shrink-0">
                                         <Calendar className="w-4 h-4 text-[#71717A]" />
-                                        <span className="text-sm text-[#A1A1AA]">Date Range:</span>
+                                        <span className="text-xs sm:text-sm text-[#A1A1AA] font-medium">Date Range:</span>
                                     </div>
-                                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                                    <div className="flex flex-1 items-center gap-2 w-full">
                                         <Input
                                             type="date"
-                                            className="h-9 py-1 text-xs bg-[#1C1B16]"
+                                            className="flex-1 h-9 py-1 text-xs bg-[#1C1B16] border-[#2E2C24]"
                                             value={startDate}
                                             onChange={(e) => setStartDate(e.target.value)}
                                         />
                                         <span className="text-[#71717A]">-</span>
                                         <Input
                                             type="date"
-                                            className="h-9 py-1 text-xs bg-[#1C1B16]"
+                                            className="flex-1 h-9 py-1 text-xs bg-[#1C1B16] border-[#2E2C24]"
                                             value={endDate}
                                             onChange={(e) => setEndDate(e.target.value)}
                                         />
+                                        {(startDate || endDate || filterCategory !== 'ALL' || filterPayment !== 'ALL' || filterStatus !== 'ALL' || searchTerm) && (
+                                            <Button
+                                                variant="ghost"
+                                                className="text-[10px] sm:text-xs text-[#F5C542] hover:bg-[#F5C542]/10 h-8 px-2 shrink-0"
+                                                onClick={() => {
+                                                    setStartDate('');
+                                                    setEndDate('');
+                                                    setFilterCategory('ALL');
+                                                    setFilterPayment('ALL');
+                                                    setFilterStatus('ALL');
+                                                    setSearchTerm('');
+                                                }}
+                                            >
+                                                Clear
+                                            </Button>
+                                        )}
                                     </div>
-                                    {(startDate || endDate || filterCategory !== 'ALL' || filterPayment !== 'ALL' || filterStatus !== 'ALL') && (
-                                        <Button
-                                            variant="ghost"
-                                            className="text-xs text-[#F5C542] hover:bg-[#F5C542]/10 h-8"
-                                            onClick={() => {
-                                                setStartDate('');
-                                                setEndDate('');
-                                                setFilterCategory('ALL');
-                                                setFilterPayment('ALL');
-                                                setFilterStatus('ALL');
-                                                setSearchTerm('');
-                                            }}
-                                        >
-                                            Clear Filters
-                                        </Button>
-                                    )}
                                 </div>
                             </div>
                         </div>
                     </CardHeader>
-                    <CardContent className="p-0 sm:p-6">
+                    <CardContent className="p-0 sm:p-6 space-y-4">
                         <Table
-                            data={filteredExpenses}
+                            data={paginatedExpenses}
                             columns={columns}
                             keyExtractor={(item) => item.id}
                             isLoading={loading}
                             emptyMessage="No expenses found."
                         />
+
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between px-2 pt-4 border-t border-[#2E2C24]">
+                                <p className="text-sm text-[#71717A]">
+                                    Showing {Math.min(filteredExpenses.length, (currentPage - 1) * itemsPerPage + 1)} to {Math.min(filteredExpenses.length, currentPage * itemsPerPage)} of {filteredExpenses.length} entries
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={currentPage === 1}
+                                        onClick={() => setCurrentPage(prev => prev - 1)}
+                                        className="bg-transparent border-[#2E2C24] text-[#FAFAFA]"
+                                    >
+                                        Previous
+                                    </Button>
+                                    <div className="flex items-center gap-1 mx-2">
+                                        {[...Array(totalPages)].map((_, i) => (
+                                            <button
+                                                key={i + 1}
+                                                onClick={() => setCurrentPage(i + 1)}
+                                                className={cn(
+                                                    "w-8 h-8 rounded-lg text-xs font-medium transition-colors",
+                                                    currentPage === i + 1
+                                                        ? "bg-[#F5C542] text-[#15140F]"
+                                                        : "text-[#71717A] hover:bg-[#2E2C24] hover:text-[#FAFAFA]"
+                                                )}
+                                            >
+                                                {i + 1}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={currentPage === totalPages}
+                                        onClick={() => setCurrentPage(prev => prev + 1)}
+                                        className="bg-transparent border-[#2E2C24] text-[#FAFAFA]"
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
@@ -484,6 +552,6 @@ export default function ExpensesPage() {
                     </div>
                 </div>
             </Modal>
-        </DashboardLayout>
+        </DashboardLayout >
     );
 }

@@ -85,9 +85,9 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                 <CardTitle className="text-white text-lg font-medium">สัดส่วนการลงทุน (Asset Allocation)</CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
-                <div className="flex flex-col md:flex-row items-center gap-12">
+                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
                     {/* Donut Chart */}
-                    <div className="relative w-64 h-64 flex-shrink-0">
+                    <div className="relative w-48 h-48 sm:w-64 sm:h-64 flex-shrink-0">
                         <svg viewBox="0 0 100 100" className="w-full h-full transform drop-shadow-2xl">
                             {/* Background circle */}
                             <circle cx="50" cy="50" r="40" fill="#27272A" />
@@ -123,23 +123,23 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                     </div>
 
                     {/* Legend / List */}
-                    <div className="flex-1 w-full space-y-4">
+                    <div className="flex-1 w-full space-y-3 sm:space-y-4">
                         {processedData.length > 0 ? (
                             processedData.map((item) => (
-                                <div key={item.category} className="group flex items-center justify-between p-3 rounded-xl bg-[#27272A]/50 border border-transparent hover:border-[#F5C542]/20 transition-all">
-                                    <div className="flex items-center gap-4">
+                                <div key={item.category} className="group flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-[#27272A]/50 border border-transparent hover:border-[#F5C542]/20 transition-all">
+                                    <div className="flex items-center gap-3 sm:gap-4">
                                         <div
-                                            className="w-3 h-12 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)]"
+                                            className="w-2 sm:w-3 h-10 sm:h-12 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)]"
                                             style={{ backgroundColor: item.color, boxShadow: `0 0 10px ${item.color}40` }}
                                         />
                                         <div>
-                                            <p className="text-white font-semibold text-lg">{categoryLabels[item.category] || item.category}</p>
-                                            <p className="text-sm text-gray-400 font-medium">{item.percentage.toFixed(1)}% Portfolio</p>
+                                            <p className="text-white font-semibold text-base sm:text-lg">{categoryLabels[item.category] || item.category}</p>
+                                            <p className="text-xs text-gray-400 font-medium">{item.percentage.toFixed(1)}% Portfolio</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-white font-bold tracking-wide text-xl">{formatCurrency(item.value)}</p>
-                                        <div className="w-full bg-gray-800 h-2 rounded-full mt-2 w-28 ml-auto overflow-hidden">
+                                        <p className="text-white font-bold tracking-wide text-lg sm:text-xl">{formatCurrency(item.value)}</p>
+                                        <div className="hidden sm:block w-28 bg-gray-800 h-2 rounded-full mt-2 ml-auto overflow-hidden">
                                             <div
                                                 className="h-full rounded-full"
                                                 style={{ width: `${item.percentage}%`, backgroundColor: item.color }}

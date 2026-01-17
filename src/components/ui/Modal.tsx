@@ -79,10 +79,10 @@ const Modal: React.FC<ModalProps> = ({
                         <div className="flex items-start justify-between p-6 border-b border-[#2E2C24]">
                             <div>
                                 {title && (
-                                    <h2 className="text-xl font-semibold text-[#FAFAFA]">{title}</h2>
+                                    <h2 className="text-lg sm:text-xl font-bold text-[#FAFAFA] uppercase tracking-wide">{title}</h2>
                                 )}
                                 {description && (
-                                    <p className="mt-1 text-sm text-[#A1A1AA]">{description}</p>
+                                    <p className="mt-1 text-xs sm:text-sm text-[#A1A1AA]">{description}</p>
                                 )}
                             </div>
                             {showCloseButton && (

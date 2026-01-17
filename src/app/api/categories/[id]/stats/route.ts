@@ -32,20 +32,29 @@ export async function GET(
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 
-    const monthlyStats: { [key: string]: number } = {};
+    const stats: any[] = [];
     data.forEach((exp: any) => {
         const date = new Date(exp.transaction_date);
-        const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
-        monthlyStats[monthYear] = (monthlyStats[monthYear] || 0) + exp.amount_total;
+        const year = date.getFullYear();
+        const monthIndex = date.getMonth();
+        const monthName = date.toLocaleString('th-TH', { month: 'long' });
+
+        const existing = stats.find(s => s.year === year && s.monthIndex === monthIndex);
+        if (existing) {
+            existing.total_amount += exp.amount_total;
+        } else {
+            stats.push({
+                year,
+                monthIndex,
+                month: monthName,
+                total_amount: exp.amount_total
+            });
+        }
     });
 
-    const result = Object.entries(monthlyStats).map(([month, total_amount]) => ({
-        month,
-        total_amount
-    })).sort((a, b) => {
-        const dateA = new Date(a.month);
-        const dateB = new Date(b.month);
-        return dateB.getTime() - dateA.getTime();
+    const result = stats.sort((a, b) => {
+        if (a.year !== b.year) return b.year - a.year;
+        return a.monthIndex - b.monthIndex;
     });
 
     return NextResponse.json({ success: true, data: result });

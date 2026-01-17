@@ -6,8 +6,14 @@ import {
     Input,
     Modal
 } from '@/components/ui';
-import { Loader2, Plus, Check, X } from 'lucide-react';
-import { useAuthStore } from '@/lib/store';
+import {
+    Loader2, Plus, Check, X,
+    Utensils, Plane, Tv, FileText, Activity,
+    ShoppingBag, GraduationCap, Grid,
+    Landmark, CreditCard, Coins, Smartphone,
+    CheckCircle, CalendarDays, Wallet, GripVertical, Settings2, EyeOff
+} from 'lucide-react';
+import { useAuthStore, useToastStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
 interface ExpenseFormModalProps {
@@ -18,9 +24,11 @@ interface ExpenseFormModalProps {
 }
 
 export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }: ExpenseFormModalProps) {
-    const { token } = useAuthStore();
+    const { token, user } = useAuthStore();
+    const { addToast } = useToastStore();
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     // Dropdown data
     const [categories, setCategories] = useState<any[]>([]);
@@ -33,11 +41,37 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
     const [showAddChannel, setShowAddChannel] = useState(false);
     const [newChannelName, setNewChannelName] = useState('');
 
+    // Reorder & Hiding Mode
+    const [isReorderMode, setIsReorderMode] = useState(false);
+    const [draggedItem, setDraggedItem] = useState<{ id: string; type: 'category' | 'channel' } | null>(null);
+    const [hiddenItems, setHiddenItems] = useState<{ category: string[]; channel: string[] }>({ category: [], channel: [] });
+
+    // Icon mapping
+    const getIcon = (name: string) => {
+        const n = name.toLowerCase();
+        if (n.includes('food')) return <Utensils className="w-5 h-5" />;
+        if (n.includes('travel') || n.includes('trip')) return <Plane className="w-5 h-5" />;
+        if (n.includes('elect') || n.includes('gadget')) return <Tv className="w-5 h-5" />;
+        if (n.includes('bill') || n.includes('utility')) return <FileText className="w-5 h-5" />;
+        if (n.includes('health') || n.includes('medical')) return <Activity className="w-5 h-5" />;
+        if (n.includes('shop')) return <ShoppingBag className="w-5 h-5" />;
+        if (n.includes('edu')) return <GraduationCap className="w-5 h-5" />;
+
+        // Payment Channels
+        if (n.includes('bank') || n.includes('transfer')) return <Landmark className="w-5 h-5" />;
+        if (n.includes('credit') || n.includes('card')) return <CreditCard className="w-5 h-5" />;
+        if (n.includes('cash')) return <Coins className="w-5 h-5" />;
+        if (n.includes('wallet') || n.includes('digital')) return <Smartphone className="w-5 h-5" />;
+
+        return <Grid className="w-5 h-5" />;
+    };
+
     const [formData, setFormData] = useState({
         transactionDate: new Date().toLocaleDateString('sv-SE'),
         categoryId: '',
         itemName: '',
         amount: '',
+        duration: '1',
         paymentChannelId: '',
         paymentType: 'FULL',
         installmentPeriods: '',
@@ -49,6 +83,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
     // Reset form when modal opens
     useEffect(() => {
         if (isOpen) {
+            fetchDropdownData();
             if (editId) {
                 fetchExpenseDetail(editId);
             } else {
@@ -57,6 +92,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     categoryId: '',
                     itemName: '',
                     amount: '',
+                    duration: '1',
                     paymentChannelId: '',
                     paymentType: 'FULL',
                     installmentPeriods: '',
@@ -66,11 +102,34 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                 });
                 setInstallments([]);
             }
-            fetchDropdownData();
+
+            // Load hidden items
+            if (user?.id) {
+                const savedHidden = localStorage.getItem(`expense_hidden_${user.id}`);
+                if (savedHidden) setHiddenItems(JSON.parse(savedHidden));
+            }
+
             setShowAddCategory(false);
             setShowAddChannel(false);
+            setIsReorderMode(false);
         }
-    }, [isOpen, editId]);
+    }, [isOpen, editId, user?.id]);
+
+    const sortData = (items: any[], type: 'category' | 'channel') => {
+        if (!user?.id) return items;
+        const savedOrder = localStorage.getItem(`expense_order_${type}_${user.id}`);
+        if (!savedOrder) return items;
+
+        const orderIds = JSON.parse(savedOrder) as string[];
+        return [...items].sort((a, b) => {
+            const indexA = orderIds.indexOf(a.id.toString());
+            const indexB = orderIds.indexOf(b.id.toString());
+            if (indexA === -1 && indexB === -1) return 0;
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+        });
+    };
 
     const fetchDropdownData = async () => {
         if (!token) return;
@@ -80,11 +139,55 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                 fetch('/api/payment-channels', { headers: { Authorization: `Bearer ${token}` } })
             ]);
             const [catData, chanData] = await Promise.all([catRes.json(), chanRes.json()]);
-            if (catData.success) setCategories(catData.data);
-            if (chanData.success) setPaymentChannels(chanData.data);
+            if (catData.success) {
+                setCategories(sortData(catData.data, 'category'));
+            }
+            if (chanData.success) {
+                setPaymentChannels(sortData(chanData.data, 'channel'));
+            }
         } catch (error) {
             console.error('Failed to fetch dropdown data:', error);
         }
+    };
+
+    const handleDragStart = (id: string, type: 'category' | 'channel') => {
+        if (!isReorderMode) return;
+        setDraggedItem({ id, type });
+    };
+
+    const handleDragOver = (e: React.DragEvent, id: string, type: 'category' | 'channel') => {
+        e.preventDefault();
+        if (!isReorderMode || !draggedItem || draggedItem.type !== type || draggedItem.id === id) return;
+
+        const targetList = type === 'category' ? categories : paymentChannels;
+        const setTargetList = type === 'category' ? setCategories : setPaymentChannels;
+
+        const draggedIdx = targetList.findIndex(item => item.id.toString() === draggedItem.id);
+        const targetIdx = targetList.findIndex(item => item.id.toString() === id);
+
+        const newList = [...targetList];
+        const [removed] = newList.splice(draggedIdx, 1);
+        newList.splice(targetIdx, 0, removed);
+
+        setTargetList(newList);
+    };
+
+    const handleHideItem = (e: React.MouseEvent, id: string, type: 'category' | 'channel') => {
+        e.stopPropagation();
+        setHiddenItems((prev: { category: string[]; channel: string[] }) => ({
+            ...prev,
+            [type]: [...prev[type], id]
+        }));
+    };
+
+    const handleToggleHide = (id: string, type: 'category' | 'channel') => {
+        setHiddenItems((prev: { category: string[]; channel: string[] }) => {
+            const currentHidden = prev[type];
+            const newHidden = currentHidden.includes(id)
+                ? currentHidden.filter(item => item !== id)
+                : [...currentHidden, id];
+            return { ...prev, [type]: newHidden };
+        });
     };
 
     const handleAddCategory = async () => {
@@ -153,7 +256,8 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     note: exp.note || '',
                     status: exp.status,
                     transactionDate: exp.transaction_date.split('T')[0],
-                    categoryId: exp.category_id.toString()
+                    categoryId: exp.category_id.toString(),
+                    duration: '1' // Reset duration to 1 when editing, as we usually store total
                 });
                 if (exp.expense_installments) {
                     setInstallments(exp.expense_installments.sort((a: any, b: any) => a.period_number - b.period_number));
@@ -179,14 +283,32 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!token) return;
+
+        // Validation
+        const newErrors: Record<string, string> = {};
+        if (!formData.categoryId) newErrors.categoryId = 'Category is required';
+        if (!formData.paymentChannelId) newErrors.paymentChannelId = 'Payment channel is required';
+        if (!formData.itemName) newErrors.itemName = 'Item name is required';
+        if (!formData.amount) newErrors.amount = 'Amount is required';
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            addToast('Please fill in all required fields', 'warning');
+            return;
+        }
+
         setLoading(true);
+        setErrors({});
 
         try {
             const url = editId ? `/api/expenses/${editId}` : '/api/expenses';
             const method = editId ? 'PATCH' : 'POST';
 
+            const computedTotal = (parseFloat(formData.amount) || 0) * (parseInt(formData.duration) || 1);
+
             const payload = {
                 ...formData,
+                amount: computedTotal.toString(), // Send calculated total as the "amount"
                 transactionDate: formData.transactionDate,
                 installments: installments
             };
@@ -202,14 +324,15 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
 
             const result = await response.json();
             if (result.success) {
+                addToast(editId ? 'Expense updated successfully' : 'Expense added successfully', 'success');
                 onSuccess();
                 onClose();
             } else {
-                alert(result.error || 'Failed to save expense');
+                addToast(result.error || 'Failed to save expense', 'error');
             }
         } catch (error) {
             console.error('Submit error:', error);
-            alert('An error occurred while saving.');
+            addToast('An error occurred while saving.', 'error');
         } finally {
             setLoading(false);
         }
@@ -220,171 +343,359 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
             isOpen={isOpen}
             onClose={onClose}
             title={`${editId ? 'Edit' : 'Add New'} Expense`}
-            description="Enter the details of your expense below."
+            description="Tell us more about this expense."
         >
             {fetching ? (
                 <div className="flex items-center justify-center p-12">
                     <Loader2 className="w-8 h-8 animate-spin text-[#F5C542]" />
                 </div>
             ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Category Selection */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <label className={cn("text-sm font-medium", errors.categoryId ? "text-red-500" : "text-[#A1A1AA]")}>
+                                Category {errors.categoryId && <span className="text-xs ml-1">(Required)</span>}
+                            </label>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (isReorderMode && user?.id) {
+                                        // Commit changes to localStorage only when clicking "Done"
+                                        localStorage.setItem(`expense_order_category_${user.id}`, JSON.stringify(categories.map(c => c.id.toString())));
+                                        localStorage.setItem(`expense_order_channel_${user.id}`, JSON.stringify(paymentChannels.map(pc => pc.id.toString())));
+                                        localStorage.setItem(`expense_hidden_${user.id}`, JSON.stringify(hiddenItems));
+                                    }
+                                    setIsReorderMode(!isReorderMode);
+                                }}
+                                className={cn(
+                                    "flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all",
+                                    isReorderMode
+                                        ? "bg-[#F5C542] text-[#15140F] shadow-lg shadow-[#F5C542]/20"
+                                        : "bg-[#2E2C24] text-[#A1A1AA] hover:text-[#FAFAFA]"
+                                )}
+                            >
+                                <Settings2 className="w-3 h-3" />
+                                {isReorderMode ? 'Done' : 'Rearrange'}
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                            {categories
+                                .filter(cat => !hiddenItems.category.includes(cat.id.toString()))
+                                .map((cat) => (
+                                    <button
+                                        key={cat.id}
+                                        type="button"
+                                        draggable={isReorderMode}
+                                        onDragStart={() => handleDragStart(cat.id.toString(), 'category')}
+                                        onDragOver={(e) => handleDragOver(e, cat.id.toString(), 'category')}
+                                        onDragEnd={() => setDraggedItem(null)}
+                                        onClick={() => {
+                                            if (isReorderMode) return;
+                                            handleChange('categoryId', cat.id.toString());
+                                            setErrors(prev => ({ ...prev, categoryId: '' }));
+                                        }}
+                                        className={cn(
+                                            "flex flex-col items-center justify-center p-3 rounded-xl border transition-all gap-2 group relative overflow-hidden",
+                                            formData.categoryId === cat.id.toString()
+                                                ? "bg-[#1C1B16] border-[#F5C542] text-[#F5C542] shadow-[0_0_15px_rgba(245,197,66,0.1)]"
+                                                : "bg-[#1C1B16] border-[#2E2C24] text-[#71717A] hover:border-[#F5C542] hover:text-[#FAFAFA]",
+                                            isReorderMode && "cursor-move border-dashed border-[#F5C542]/50 scale-[0.98]",
+                                            draggedItem?.id === cat.id.toString() && "opacity-20"
+                                        )}
+                                    >
+                                        {isReorderMode && (
+                                            <div className="absolute top-1 right-1 flex items-center gap-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => handleHideItem(e, cat.id.toString(), 'category')}
+                                                    className="p-1 rounded-md hover:bg-red-500/20 text-[#71717A] hover:text-red-500 transition-colors"
+                                                >
+                                                    <EyeOff className="w-3 h-3" />
+                                                </button>
+                                                <GripVertical className="w-3 h-3 text-[#F5C542] opacity-40 cursor-move" />
+                                            </div>
+                                        )}
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                                            formData.categoryId === cat.id.toString() ? "bg-[#F5C542] text-[#15140F]" : "bg-[#15140F] text-[#71717A] group-hover:text-[#F5C542]"
+                                        )}>
+                                            {getIcon(cat.name)}
+                                        </div>
+                                        <span className="text-xs font-medium truncate w-full text-center">{cat.name}</span>
+                                    </button>
+                                ))}
+                            <button
+                                type="button"
+                                onClick={() => setShowAddCategory(true)}
+                                className="flex flex-col items-center justify-center p-3 rounded-xl border border-dashed border-[#2E2C24] text-[#71717A] hover:border-[#F5C542] hover:text-[#F5C542] transition-all gap-2 bg-[#1C1B16]/50"
+                            >
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#15140F]">
+                                    <Plus className="w-5 h-5" />
+                                </div>
+                                <span className="text-xs font-medium">Custom</span>
+                            </button>
+                        </div>
+
+                        {showAddCategory && (
+                            <div className="flex items-center gap-2 mt-2 animate-in fade-in slide-in-from-top-2">
+                                <Input
+                                    value={newCategoryName}
+                                    onChange={(e) => setNewCategoryName(e.target.value)}
+                                    placeholder="Enter category name..."
+                                    className="h-9 text-sm bg-[#1C1B16] border-[#2E2C24]"
+                                    autoFocus
+                                />
+                                <button type="button" onClick={handleAddCategory} className="p-2 text-[#F5C542] hover:bg-[#F5C542]/10 rounded-lg">
+                                    <Check className="w-5 h-5" />
+                                </button>
+                                <button type="button" onClick={() => setShowAddCategory(false)} className="p-2 text-[#71717A] hover:bg-white/5 rounded-lg">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Main Input Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2 col-span-1 md:col-span-2">
+                            <label className={cn("text-sm font-medium", errors.itemName ? "text-red-500" : "text-[#A1A1AA]")}>
+                                Item Name {errors.itemName && <span className="text-xs ml-1">*</span>}
+                            </label>
+                            <Input
+                                value={formData.itemName}
+                                onChange={(e) => {
+                                    handleChange('itemName', e.target.value);
+                                    setErrors(prev => ({ ...prev, itemName: '' }));
+                                }}
+                                className={cn("bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] focus:ring-[#F5C542]", errors.itemName && "border-red-500/50")}
+                                placeholder="e.g. Weekly Groceries"
+                            />
+                        </div>
+
+                        {/* Row: Date & Amount (Equal Width) */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-[#A1A1AA]">Date</label>
-                            <Input
-                                type="date"
-                                value={formData.transactionDate}
-                                onChange={(e) => handleChange('transactionDate', e.target.value)}
-                                className="bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] focus:ring-[#F5C542]"
-                                required
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium text-[#A1A1AA]">Category</label>
-                                {!showAddCategory && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowAddCategory(true)}
-                                        className="text-[10px] text-[#F5C542] hover:underline flex items-center gap-0.5"
-                                    >
-                                        <Plus className="w-2.5 h-2.5" /> Add New
-                                    </button>
-                                )}
+                            <div className="relative group">
+                                <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 text-[#71717A] w-4 h-4 pointer-events-none group-focus-within:text-[#F5C542] transition-colors" />
+                                <Input
+                                    type="date"
+                                    value={formData.transactionDate}
+                                    onChange={(e) => handleChange('transactionDate', e.target.value)}
+                                    className="bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] focus:ring-[#F5C542] pl-10 h-10 w-full"
+                                />
                             </div>
-                            {showAddCategory ? (
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        value={newCategoryName}
-                                        onChange={(e) => setNewCategoryName(e.target.value)}
-                                        placeholder="Name..."
-                                        className="h-8 text-xs bg-[#1C1B16] border-[#2E2C24]"
-                                        autoFocus
-                                    />
-                                    <button type="button" onClick={handleAddCategory} className="text-[#F5C542]">
-                                        <Check className="w-4 h-4" />
-                                    </button>
-                                    <button type="button" onClick={() => setShowAddCategory(false)} className="text-[#71717A]">
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            ) : (
-                                <select
-                                    value={formData.categoryId}
-                                    onChange={(e) => handleChange('categoryId', e.target.value)}
-                                    className="w-full h-10 bg-[#1C1B16] border border-[#2E2C24] text-[#FAFAFA] rounded-xl px-3 text-sm focus:ring-1 focus:ring-[#F5C542] appearance-none"
-                                    required
-                                >
-                                    <option value="">Select Category</option>
-                                    {categories.map(cat => (
-                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                    ))}
-                                </select>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#A1A1AA]">Item Name</label>
-                        <Input
-                            value={formData.itemName}
-                            onChange={(e) => handleChange('itemName', e.target.value)}
-                            className="bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] focus:ring-[#F5C542]"
-                            placeholder="e.g. Lunch, Rent, New Laptop"
-                            required
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-[#A1A1AA]">Amount (THB)</label>
-                            <Input
-                                type="number"
-                                step="0.01"
-                                value={formData.amount}
-                                onChange={(e) => handleChange('amount', e.target.value)}
-                                className="bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] focus:ring-[#F5C542]"
-                                placeholder="0.00"
-                                required
-                            />
                         </div>
                         <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium text-[#A1A1AA]">Payment Channel</label>
-                                {!showAddChannel && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowAddChannel(true)}
-                                        className="text-[10px] text-[#F5C542] hover:underline flex items-center gap-0.5"
-                                    >
-                                        <Plus className="w-2.5 h-2.5" /> Add New
-                                    </button>
-                                )}
+                            <label className={cn("text-sm font-medium", errors.amount ? "text-red-500" : "text-[#A1A1AA]")}>
+                                Amount {errors.amount && <span className="text-xs ml-1">*</span>}
+                            </label>
+                            <div className="relative">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#71717A] text-sm">฿</span>
+                                <Input
+                                    type="number"
+                                    step="0.01"
+                                    value={formData.amount}
+                                    onChange={(e) => {
+                                        handleChange('amount', e.target.value);
+                                        setErrors(prev => ({ ...prev, amount: '' }));
+                                    }}
+                                    className={cn("bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] focus:ring-[#F5C542] pl-8 h-10 w-full", errors.amount && "border-red-500/50")}
+                                    placeholder="0.00"
+                                />
                             </div>
-                            {showAddChannel ? (
-                                <div className="flex items-center gap-2">
-                                    <Input
-                                        value={newChannelName}
-                                        onChange={(e) => setNewChannelName(e.target.value)}
-                                        placeholder="Name..."
-                                        className="h-8 text-xs bg-[#1C1B16] border-[#2E2C24]"
-                                        autoFocus
-                                    />
-                                    <button type="button" onClick={handleAddChannel} className="text-[#F5C542]">
-                                        <Check className="w-4 h-4" />
-                                    </button>
-                                    <button type="button" onClick={() => setShowAddChannel(false)} className="text-[#71717A]">
-                                        <X className="w-4 h-4" />
-                                    </button>
+                        </div>
+
+                        {/* Row: Qty & Total */}
+                        <div className="grid grid-cols-2 md:grid-cols-2 gap-4 col-span-1 md:col-span-2">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-[#A1A1AA]">Qty</label>
+                                <Input
+                                    type="number"
+                                    min="1"
+                                    value={formData.duration}
+                                    onChange={(e) => handleChange('duration', e.target.value)}
+                                    className="bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] focus:ring-[#F5C542]"
+                                    placeholder="1"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-[#F5C542]">Total Amount</label>
+                                <div className="h-10 px-3 flex items-center bg-[#1C1B16] border border-[#F5C542]/30 rounded-lg text-[#F5C542] font-black">
+                                    ฿{((parseFloat(formData.amount) || 0) * (parseInt(formData.duration) || 1)).toLocaleString()}
                                 </div>
-                            ) : (
-                                <select
-                                    value={formData.paymentChannelId}
-                                    onChange={(e) => handleChange('paymentChannelId', e.target.value)}
-                                    className="w-full h-10 bg-[#1C1B16] border border-[#2E2C24] text-[#FAFAFA] rounded-xl px-3 text-sm focus:ring-1 focus:ring-[#F5C542] appearance-none"
-                                    required
-                                >
-                                    <option value="">Select Payment</option>
-                                    {paymentChannels.map(chan => (
-                                        <option key={chan.id} value={chan.id}>{chan.name}</option>
-                                    ))}
-                                </select>
-                            )}
+                            </div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-[#A1A1AA]">Payment Type</label>
-                            <select
-                                value={formData.paymentType}
-                                onChange={(e) => handleChange('paymentType', e.target.value)}
-                                className="w-full h-10 bg-[#1C1B16] border border-[#2E2C24] text-[#FAFAFA] rounded-xl px-3 text-sm focus:ring-1 focus:ring-[#F5C542] appearance-none"
-                                disabled={!!editId}
+                    {/* Payment Channel Selection */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                            <label className={cn("text-sm font-medium", errors.paymentChannelId ? "text-red-500" : "text-[#A1A1AA]")}>
+                                Payment Channel {errors.paymentChannelId && <span className="text-xs ml-1">(Required)</span>}
+                            </label>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+                            {paymentChannels
+                                .filter(chan => !hiddenItems.channel.includes(chan.id.toString()))
+                                .map((chan) => (
+                                    <button
+                                        key={chan.id}
+                                        type="button"
+                                        draggable={isReorderMode}
+                                        onDragStart={() => handleDragStart(chan.id.toString(), 'channel')}
+                                        onDragOver={(e) => handleDragOver(e, chan.id.toString(), 'channel')}
+                                        onDragEnd={() => setDraggedItem(null)}
+                                        onClick={() => {
+                                            if (isReorderMode) return;
+                                            handleChange('paymentChannelId', chan.id.toString());
+                                            setErrors(prev => ({ ...prev, paymentChannelId: '' }));
+                                        }}
+                                        className={cn(
+                                            "flex flex-col items-center justify-center p-3 rounded-xl border transition-all gap-2 group relative overflow-hidden",
+                                            formData.paymentChannelId === chan.id.toString()
+                                                ? "bg-[#1C1B16] border-[#F5C542] text-[#F5C542] shadow-[0_0_15px_rgba(245,197,66,0.1)]"
+                                                : "bg-[#1C1B16] border-[#2E2C24] text-[#71717A] hover:border-[#F5C542] hover:text-[#FAFAFA]",
+                                            isReorderMode && "cursor-move border-dashed border-[#F5C542]/50 scale-[0.98]",
+                                            draggedItem?.id === chan.id.toString() && "opacity-20"
+                                        )}
+                                    >
+                                        {isReorderMode && (
+                                            <div className="absolute top-1 right-1 flex items-center gap-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => handleHideItem(e, chan.id.toString(), 'channel')}
+                                                    className="p-1 rounded-md hover:bg-red-500/20 text-[#71717A] hover:text-red-500 transition-colors"
+                                                >
+                                                    <EyeOff className="w-3 h-3" />
+                                                </button>
+                                                <GripVertical className="w-3 h-3 text-[#F5C542] opacity-40 cursor-move" />
+                                            </div>
+                                        )}
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                                            formData.paymentChannelId === chan.id.toString() ? "bg-[#F5C542] text-[#15140F]" : "bg-[#15140F] text-[#71717A] group-hover:text-[#F5C542]"
+                                        )}>
+                                            {getIcon(chan.name)}
+                                        </div>
+                                        <span className="text-xs font-medium truncate w-full text-center">{chan.name}</span>
+                                    </button>
+                                ))}
+                            <button
+                                type="button"
+                                onClick={() => setShowAddChannel(true)}
+                                className="flex flex-col items-center justify-center p-3 rounded-xl border border-dashed border-[#2E2C24] text-[#71717A] hover:border-[#F5C542] hover:text-[#F5C542] transition-all gap-2 bg-[#1C1B16]/50"
                             >
-                                <option value="FULL">Full Payment</option>
-                                <option value="INSTALLMENT">Installment</option>
-                            </select>
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-[#15140F]">
+                                    <Plus className="w-5 h-5" />
+                                </div>
+                                <span className="text-xs font-medium">Add Channel</span>
+                            </button>
                         </div>
+
+                        {showAddChannel && (
+                            <div className="flex items-center gap-2 mt-2 animate-in fade-in slide-in-from-top-2">
+                                <Input
+                                    value={newChannelName}
+                                    onChange={(e) => setNewChannelName(e.target.value)}
+                                    placeholder="Enter channel name..."
+                                    className="h-9 text-sm bg-[#1C1B16] border-[#2E2C24]"
+                                    autoFocus
+                                />
+                                <button type="button" onClick={handleAddChannel} className="p-2 text-[#F5C542] hover:bg-[#F5C542]/10 rounded-lg">
+                                    <Check className="w-5 h-5" />
+                                </button>
+                                <button type="button" onClick={() => setShowAddChannel(false)} className="p-2 text-[#71717A] hover:bg-white/5 rounded-lg">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Payment Type Grid Selection */}
+                    <div className="space-y-3">
+                        <label className="text-sm font-medium text-[#A1A1AA]">Payment Type</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <button
+                                type="button"
+                                disabled={!!editId}
+                                onClick={() => handleChange('paymentType', 'FULL')}
+                                className={cn(
+                                    "flex items-center gap-4 p-4 rounded-2xl border transition-all text-left group",
+                                    formData.paymentType === 'FULL'
+                                        ? "bg-[#1C1B16] border-[#F5C542] text-[#F5C542] shadow-[0_0_15px_rgba(245,197,66,0.1)]"
+                                        : "bg-[#1C1B16] border-[#2E2C24] text-[#71717A] hover:border-[#F5C542] hover:text-[#FAFAFA]",
+                                    editId && "opacity-50 cursor-not-allowed"
+                                )}
+                            >
+                                <div className={cn(
+                                    "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
+                                    formData.paymentType === 'FULL' ? "bg-[#F5C542] text-[#15140F]" : "bg-[#15140F] text-[#71717A]"
+                                )}>
+                                    <CheckCircle className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <p className="font-bold uppercase tracking-wide">Full Payment</p>
+                                    <p className="text-[10px] opacity-60">Pay the entire amount at once</p>
+                                </div>
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled={!!editId}
+                                onClick={() => handleChange('paymentType', 'INSTALLMENT')}
+                                className={cn(
+                                    "flex items-center gap-4 p-4 rounded-2xl border transition-all text-left group",
+                                    formData.paymentType === 'INSTALLMENT'
+                                        ? "bg-[#1C1B16] border-[#F5C542] text-[#F5C542] shadow-[0_0_15px_rgba(245,197,66,0.1)]"
+                                        : "bg-[#1C1B16] border-[#2E2C24] text-[#71717A] hover:border-[#F5C542] hover:text-[#FAFAFA]",
+                                    editId && "opacity-50 cursor-not-allowed"
+                                )}
+                            >
+                                <div className={cn(
+                                    "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
+                                    formData.paymentType === 'INSTALLMENT' ? "bg-[#F5C542] text-[#15140F]" : "bg-[#15140F] text-[#71717A]"
+                                )}>
+                                    <CalendarDays className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <p className="font-bold uppercase tracking-wide">Installment</p>
+                                    <p className="text-[10px] opacity-60">Split payment into monthly periods</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Installment Periods & Note Row */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {formData.paymentType === 'INSTALLMENT' && (
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-[#A1A1AA]">Periods (Months)</label>
+                                <label className="text-sm font-medium text-[#A1A1AA]">Installment Periods</label>
                                 <Input
                                     type="number"
                                     value={formData.installmentPeriods}
                                     onChange={(e) => handleChange('installmentPeriods', e.target.value)}
                                     className="bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] focus:ring-[#F5C542]"
-                                    placeholder="Months"
+                                    placeholder="Enter months (e.g. 12)"
                                     disabled={!!editId}
-                                    required
                                 />
                             </div>
                         )}
                     </div>
+                    {/* Note Selection */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-[#A1A1AA]">Notes</label>
+                        <textarea
+                            value={formData.note}
+                            onChange={(e) => handleChange('note', e.target.value)}
+                            className="w-full bg-[#1C1B16] border border-[#2E2C24] rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-[#F5C542] min-h-[80px] outline-none resize-none"
+                            placeholder="Add additional details here..."
+                        />
+                    </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-[#A1A1AA]">Necessity</label>
+                            <label className="text-sm font-medium text-[#A1A1AA]">Necessity Type</label>
                             <div className="flex bg-[#1C1B16] p-1 rounded-xl border border-[#2E2C24]">
                                 {['NEED', 'WANT'].map((type) => (
                                     <button
@@ -398,41 +709,41 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                                 : "text-[#71717A] hover:text-[#FAFAFA]"
                                         )}
                                     >
-                                        {type.charAt(0) + type.slice(1).toLowerCase()}
+                                        {type}
                                     </button>
                                 ))}
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-[#A1A1AA]">Status</label>
-                            <div className="flex bg-[#1C1B16] p-1 rounded-xl border border-[#2E2C24]">
+                            <label className="text-sm font-medium text-[#A1A1AA]">Current Status</label>
+                            <div className={cn(
+                                "flex p-1 rounded-xl border border-[#2E2C24]",
+                                formData.paymentType === 'INSTALLMENT' ? "bg-black/20 opacity-60" : "bg-[#1C1B16]"
+                            )}>
                                 {['PAID', 'PENDING'].map((s) => (
                                     <button
                                         key={s}
                                         type="button"
+                                        disabled={formData.paymentType === 'INSTALLMENT'}
                                         onClick={() => handleChange('status', s)}
                                         className={cn(
-                                            "flex-1 py-1.5 text-xs font-medium rounded-lg transition-all",
+                                            "flex-1 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center justify-center gap-1.5",
                                             formData.status === s
-                                                ? "bg-[#2E2C24] text-[#F5C542] shadow-sm"
-                                                : "text-[#71717A] hover:text-[#FAFAFA]"
+                                                ? (s === 'PAID' ? "bg-green-500/20 text-green-500 border border-green-500/30" : "bg-yellow-500/20 text-yellow-500 border border-yellow-500/30")
+                                                : "text-[#71717A]"
                                         )}
                                     >
-                                        {s.charAt(0) + s.slice(1).toLowerCase()}
+                                        {s === 'PAID' && <CheckCircle className="w-3.5 h-3.5" />}
+                                        {s === 'PAID' ? 'PAID IN FULL' : 'PENDING'}
                                     </button>
                                 ))}
                             </div>
+                            {formData.paymentType === 'INSTALLMENT' && (
+                                <p className="text-[10px] text-[#71717A] mt-1 italic">
+                                    * Status will be updated based on installments
+                                </p>
+                            )}
                         </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#A1A1AA]">Note</label>
-                        <textarea
-                            value={formData.note}
-                            onChange={(e) => handleChange('note', e.target.value)}
-                            className="w-full bg-[#1C1B16] border border-[#2E2C24] text-[#FAFAFA] rounded-xl px-3 py-2 text-sm focus:ring-1 focus:ring-[#F5C542] min-h-[80px] outline-none"
-                            placeholder="Add any details..."
-                        />
                     </div>
 
                     {editId && formData.paymentType === 'INSTALLMENT' && installments.length > 0 && (
@@ -452,7 +763,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                         {installments.map((inst, index) => (
                                             <tr key={inst.id}>
                                                 <td className="py-3">{inst.period_number}</td>
-                                                <td className="py-3">{inst.due_date}</td>
+                                                <td className="py-3">{new Date(inst.due_date).toLocaleDateString('en-GB')}</td>
                                                 <td className="py-3 text-[#FAFAFA] text-right">฿{inst.amount.toLocaleString()}</td>
                                                 <td className="py-3 pl-4">
                                                     <select
@@ -494,9 +805,9 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="bg-[#F5C542] text-[#15140F] hover:bg-[#FFC83D] min-w-[100px]"
+                            className="bg-[#F5C542] text-[#15140F] hover:bg-[#FFC83D] min-w-[160px] h-12 rounded-xl font-bold uppercase tracking-wider shadow-lg shadow-[#F5C542]/10"
                         >
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (editId ? 'Save Changes' : 'Add Expense')}
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (editId ? 'Save Changes' : 'Add Expense')}
                         </Button>
                     </div>
                 </form>

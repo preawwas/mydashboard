@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-r
 
 interface Column<T> {
     key: string;
-    header: string;
+    header: React.ReactNode;
     render?: (item: T) => React.ReactNode;
     className?: string;
     sortable?: boolean;
@@ -72,7 +72,7 @@ function Table<T>({
 
     return (
         <div className="bg-[#1C1B16] rounded-xl border border-[#2E2C24] overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full">
                     <thead className="bg-[#15140F] border-b border-[#2E2C24]">
                         <tr>

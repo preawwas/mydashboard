@@ -6,7 +6,7 @@ import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { useAuthStore, useUIStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
-import { Loading } from '@/components/ui';
+import { Loading, Toast } from '@/components/ui';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -15,7 +15,7 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const router = useRouter();
     const { user, token, isLoading, setLoading } = useAuthStore();
-    const { sidebarOpen } = useUIStore();
+    const { sidebarOpen, toggleSidebar } = useUIStore();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -52,14 +52,27 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         <div className="min-h-screen bg-[#0F0F0C]">
             <Sidebar />
             <Topbar />
+
+            {/* Mobile Sidebar Overlay */}
+            {sidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+                    onClick={() => toggleSidebar()}
+                />
+            )}
+
             <main
                 className={cn(
-                    'pt-16 min-h-screen transition-all duration-300',
-                    sidebarOpen ? 'pl-64' : 'pl-20'
+                    'pt-16 min-h-screen transition-all duration-300 ease-in-out',
+                    // On mobile (less than lg), padding left is 0. 
+                    // On desktop (lg+), padding left follows sidebar state.
+                    'pl-0 lg:pl-20',
+                    sidebarOpen && 'lg:pl-64'
                 )}
             >
-                <div className="p-6">{children}</div>
+                <div className="p-3 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">{children}</div>
             </main>
+            <Toast />
         </div>
     );
 };
