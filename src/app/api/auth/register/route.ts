@@ -21,8 +21,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Calculate redirect URL based on current origin
+        const origin = request.nextUrl.origin;
+        const redirectTo = `${origin}/auth/callback`;
+
         // Register user
-        const user = await registerUser(email, password, name);
+        const user = await registerUser(email, password, name, redirectTo);
 
         if (!user) {
             return NextResponse.json(

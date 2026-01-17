@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 interface CategoryDetailModalProps {
     isOpen: boolean;
     onClose: () => void;
-    categoryId: number | null;
+    categoryId: string | null;
     categoryName: string;
 }
 

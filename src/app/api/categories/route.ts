@@ -21,10 +21,12 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase
         .from('categories')
         .select('*')
+        .or(`user_id.eq.${user.id},user_id.is.null`)
         .order('name');
 
     if (error) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        console.error('Fetch categories error:', error);
+        return NextResponse.json({ success: false, error: error.message, details: error }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, data });
@@ -46,12 +48,17 @@ export async function POST(request: NextRequest) {
 
     const { data, error } = await supabase
         .from('categories')
-        .insert({ name, color: color || '#808080' })
+        .insert({
+            user_id: user.id,
+            name,
+            color: color || '#808080'
+        })
         .select()
         .single();
 
     if (error) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        console.error('Create category error:', error);
+        return NextResponse.json({ success: false, error: error.message, details: error }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, data });

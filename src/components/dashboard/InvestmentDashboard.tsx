@@ -6,9 +6,11 @@ import { TrendingUp, BarChart3, PieChart, Target, ArrowRight } from 'lucide-reac
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import { PortfolioSummary } from '@/types';
+import { useTranslation } from '@/lib/useTranslation';
 
 export default function InvestmentDashboard() {
     const { token } = useAuthStore();
+    const { t } = useTranslation();
     const [stats, setStats] = useState<PortfolioSummary | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -48,14 +50,14 @@ export default function InvestmentDashboard() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div>
-                <h2 className="text-xl font-semibold text-[#FAFAFA] mb-2">Investment Overview</h2>
-                <p className="text-[#A1A1AA]">ภาพรวมพอร์ตการลงทุนของคุณ</p>
+                <h2 className="text-xl font-semibold text-[#FAFAFA] mb-2">{t('common.investment')}</h2>
+                <p className="text-[#A1A1AA]">{t('dashboard.welcome')}</p>
             </div>
 
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <QuickStatCard
-                    title="มูลค่าพอร์ต"
+                    title={t('common.totalBalance')}
                     value={loading ? "..." : formatCurrency(stats?.totalValue || 0)}
                     change={!loading && stats?.totalProfitLoss ? `${stats.totalProfitLoss > 0 ? '+' : ''}${formatCurrency(stats.totalProfitLoss)}` : undefined}
                     icon={<BarChart3 className="w-6 h-6" />}
@@ -63,7 +65,7 @@ export default function InvestmentDashboard() {
                     loading={loading}
                 />
                 <QuickStatCard
-                    title="กำไร/ขาดทุน (Realized)"
+                    title={t('common.totalProfit')}
                     value={loading ? "..." : formatCurrency(stats?.totalProfitLoss || 0)}
                     change={!loading && stats?.profitLossPercentage ? `${stats.profitLossPercentage > 0 ? '+' : ''}${stats.profitLossPercentage.toFixed(2)}%` : undefined}
                     icon={<TrendingUp className="w-6 h-6" />}
@@ -71,17 +73,17 @@ export default function InvestmentDashboard() {
                     loading={loading}
                 />
                 <QuickStatCard
-                    title="สินทรัพย์ทั้งหมด"
+                    title={t('common.totalAssets')}
                     value={loading ? "..." : (stats?.totalAssets || 0).toString()}
-                    subtitle="รายการ"
+                    subtitle={t('common.items')}
                     icon={<PieChart className="w-6 h-6" />}
                     color="purple"
                     loading={loading}
                 />
                 <QuickStatCard
-                    title="ตำแหน่งที่เปิด"
+                    title={t('common.openPositions')}
                     value={loading ? "..." : (stats?.openPositions || 0).toString()}
-                    subtitle="รายการ"
+                    subtitle={t('common.items')}
                     icon={<Target className="w-6 h-6" />}
                     color="orange"
                     loading={loading}
@@ -92,17 +94,17 @@ export default function InvestmentDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card variant="gradient">
                     <CardHeader>
-                        <CardTitle>เริ่มต้นใช้งาน</CardTitle>
+                        <CardTitle>{t('common.started')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <p className="text-[#A1A1AA]">
-                            เริ่มต้นจัดการพอร์ตการลงทุนของคุณได้ที่หน้า Investment
+                            {t('dashboard.investmentIntro')}
                         </p>
                         <Link
                             href="/dashboard/investments"
                             className="inline-flex items-center gap-2 text-[#F5C542] hover:text-[#FFC83D] font-medium"
                         >
-                            ไปที่ Investment
+                            {t('dashboard.goToInvestment')}
                             <ArrowRight className="w-4 h-4" />
                         </Link>
                     </CardContent>
@@ -110,25 +112,25 @@ export default function InvestmentDashboard() {
 
                 <Card variant="gradient">
                     <CardHeader>
-                        <CardTitle>คุณสมบัติหลัก</CardTitle>
+                        <CardTitle>{t('dashboard.mainFeatures')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <ul className="space-y-2 text-[#A1A1AA]">
                             <li className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-blue-500" />
-                                ติดตามการลงทุน GOLD, CRYPTO, STOCK
+                                {t('dashboard.trackAssets')}
                             </li>
                             <li className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                                บันทึกประวัติการซื้อ/ขาย
+                                {t('dashboard.recordHistory')}
                             </li>
                             <li className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-purple-500" />
-                                วิเคราะห์สัดส่วนการลงทุน
+                                {t('dashboard.analyzePortfolio')}
                             </li>
                             <li className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-amber-500" />
-                                คำนวณกำไร/ขาดทุนอัตโนมัติ
+                                {t('dashboard.calculateProfit')}
                             </li>
                         </ul>
                     </CardContent>

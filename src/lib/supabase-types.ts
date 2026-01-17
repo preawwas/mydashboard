@@ -36,3 +36,52 @@ export interface SellRecord {
     currency: string;
     fee: number;
 }
+
+export interface DbCategory {
+    id: string;
+    user_id: string;
+    name: string;
+    icon: string | null;
+    color: string | null;
+    is_system: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface DbPaymentChannel {
+    id: string;
+    user_id: string;
+    name: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface DbExpense {
+    id: string;
+    user_id: string;
+    transaction_date: string;
+    item_name: string;
+    amount_total: number;
+    category_id: string | null;
+    payment_channel_id: string | null;
+    payment_type: 'FULL' | 'INSTALLMENT';
+    necessity: 'NEED' | 'WANT';
+    note: string | null;
+    status: 'PAID' | 'PENDING';
+    created_at: string;
+    updated_at: string;
+}
+
+export interface DbExpenseInstallment {
+    id: string;
+    user_id: string;
+    expense_id: string;
+    period_number: number;
+    due_date: string;
+    amount: number;
+    status: 'PAID' | 'PENDING';
+    paid_at: string | null;
+    created_at: string;
+    updated_at: string;
+}

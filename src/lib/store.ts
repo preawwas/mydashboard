@@ -144,3 +144,48 @@ export const useToastStore = create<ToastState>((set) => ({
     removeToast: (id) =>
         set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 }));
+
+// Settings Store
+interface SettingsState {
+    enableInvestment: boolean;
+    enableExpense: boolean;
+    toggleInvestment: () => void;
+    toggleExpense: () => void;
+}
+
+export const useSettingsStore = create<SettingsState>()(
+    persist(
+        (set) => ({
+            enableInvestment: true,
+            enableExpense: true,
+            toggleInvestment: () => set((state) => ({ enableInvestment: !state.enableInvestment })),
+            toggleExpense: () => set((state) => ({ enableExpense: !state.enableExpense })),
+        }),
+        {
+            name: 'settings-storage',
+            partialize: (state) => ({
+                enableInvestment: state.enableInvestment,
+                enableExpense: state.enableExpense
+            }),
+        }
+    )
+);
+
+// Language Store
+interface LanguageState {
+    language: 'en' | 'th';
+    setLanguage: (lang: 'en' | 'th') => void;
+}
+
+export const useLanguageStore = create<LanguageState>()(
+    persist(
+        (set) => ({
+            language: 'en',
+            setLanguage: (language) => set({ language }),
+        }),
+        {
+            name: 'language-storage',
+            partialize: (state) => ({ language: state.language }),
+        }
+    )
+);

@@ -2,6 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { useTranslation } from '@/lib/useTranslation';
 
 interface AllocationItem {
     category: string;
@@ -14,12 +15,6 @@ interface AssetAllocationProps {
     data: AllocationItem[];
 }
 
-const categoryLabels: Record<string, string> = {
-    GOLD: 'ทองคำ',
-    CRYPTO: 'คริปโต',
-    STOCK: 'หุ้น',
-};
-
 const categoryColors: Record<string, string> = {
     GOLD: '#F5C542',  // Gold
     CRYPTO: '#9F7AEA', // Soft Purple
@@ -27,6 +22,7 @@ const categoryColors: Record<string, string> = {
 };
 
 const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
+    const { t } = useTranslation();
     const total = data.reduce((sum, item) => sum + item.value, 0);
 
     // Override colors for consistency
@@ -82,7 +78,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
     return (
         <Card className="bg-[#1C1C1E] border-[#2E2C24]">
             <CardHeader className="border-b border-white/5 pb-4">
-                <CardTitle className="text-white text-lg font-medium">สัดส่วนการลงทุน (Asset Allocation)</CardTitle>
+                <CardTitle className="text-white text-lg font-medium">{t('dashboard.assetAllocation')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
                 <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
@@ -113,7 +109,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                             {/* Center Text */}
                             <foreignObject x="15" y="32" width="70" height="36">
                                 <div className="flex flex-col items-center justify-center h-full text-center">
-                                    <span className="text-[0.4rem] text-gray-300 mb-0.5 tracking-wide uppercase">Total Value</span>
+                                    <span className="text-[0.4rem] text-gray-300 mb-0.5 tracking-wide uppercase">{t('common.totalValue')}</span>
                                     <span className="text-[0.6rem] font-bold text-white truncate w-full px-1 drop-shadow-md">
                                         {formatCurrency(total).replace('฿', '')}
                                     </span>
@@ -133,8 +129,14 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                                             style={{ backgroundColor: item.color, boxShadow: `0 0 10px ${item.color}40` }}
                                         />
                                         <div>
-                                            <p className="text-white font-semibold text-base sm:text-lg">{categoryLabels[item.category] || item.category}</p>
-                                            <p className="text-xs text-gray-400 font-medium">{item.percentage.toFixed(1)}% Portfolio</p>
+                                            <p className="text-white font-semibold text-base sm:text-lg">
+                                                {item.category === 'GOLD' ? t('investment.type.gold') :
+                                                    item.category === 'CRYPTO' ? t('investment.type.crypto') :
+                                                        item.category === 'STOCK' ? t('investment.type.stock') :
+                                                            item.category === 'USD' ? 'USD' :
+                                                                t('common.others')}
+                                            </p>
+                                            <p className="text-xs text-gray-400 font-medium">{item.percentage.toFixed(1)}%</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
@@ -150,8 +152,8 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                             ))
                         ) : (
                             <div className="text-center py-8 text-gray-500 bg-[#27272A]/30 rounded-xl border border-dashed border-gray-700">
-                                <p>ยังไม่มีข้อมูลการลงทุน</p>
-                                <p className="text-sm mt-2">เริ่มเพิ่มการลงทุนของคุณเพื่อดูสัดส่วน</p>
+                                <p>{t('investment.noItems')}</p>
+                                <p className="text-sm mt-2">{t('dashboard.investmentIntro')}</p>
                             </div>
                         )}
                     </div>

@@ -3,14 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Button, Card, CardHeader, CardTitle, CardContent, Input, Table, Modal } from '@/components/ui';
-import { Plus, Search, Filter, Calendar, Edit, Trash2, Bell, Loader2 } from 'lucide-react';
-import { useAuthStore, useToastStore } from '@/lib/store';
+import { Plus, Search, Filter, Calendar, Edit, Trash2, Bell, Loader2, RefreshCw } from 'lucide-react';
+import { useAuthStore, useToastStore, useLanguageStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/useTranslation';
 import ExpenseFormModal from '@/components/expenses/ExpenseFormModal';
 
 export default function ExpensesPage() {
     const { token } = useAuthStore();
     const { addToast } = useToastStore();
+    const { language } = useLanguageStore();
+    const { t } = useTranslation();
     const [expenses, setExpenses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState(false);
@@ -20,12 +23,18 @@ export default function ExpensesPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<any>(null);
 
-    // Filter states
+    // Filter Popup State
+    const [isAmountFilterOpen, setIsAmountFilterOpen] = useState(false);
+
+    // Filter states (Inputs)
     const [filterCategory, setFilterCategory] = useState('ALL');
     const [filterPayment, setFilterPayment] = useState('ALL');
     const [filterStatus, setFilterStatus] = useState('ALL');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [minAmount, setMinAmount] = useState('');
+    const [maxAmount, setMaxAmount] = useState('');
+
 
     // Sort and Pagination states
     const [sortField, setSortField] = useState<'date' | 'amount'>('date');
@@ -115,6 +124,8 @@ export default function ExpensesPage() {
             const matchesSearch = expense.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 expense.categories?.name.toLowerCase().includes(searchTerm.toLowerCase());
 
+            expense.categories?.name.toLowerCase().includes(searchTerm.toLowerCase());
+
             const matchesCategory = filterCategory === 'ALL' || expense.category_id.toString() === filterCategory;
             const matchesPayment = filterPayment === 'ALL' || expense.payment_channel_id.toString() === filterPayment;
             const matchesStatus = filterStatus === 'ALL' || expense.status === filterStatus;
@@ -123,7 +134,10 @@ export default function ExpensesPage() {
             const matchesStartDate = !startDate || expenseDate >= startDate;
             const matchesEndDate = !endDate || expenseDate <= endDate;
 
-            return matchesSearch && matchesCategory && matchesPayment && matchesStatus && matchesStartDate && matchesEndDate;
+            const matchesMinAmount = !minAmount || expense.amount_total >= parseFloat(minAmount);
+            const matchesMaxAmount = !maxAmount || expense.amount_total <= parseFloat(maxAmount);
+
+            return matchesSearch && matchesCategory && matchesPayment && matchesStatus && matchesStartDate && matchesEndDate && matchesMinAmount && matchesMaxAmount;
         })
         .sort((a, b) => {
             if (sortField === 'date') {
@@ -194,7 +208,7 @@ export default function ExpensesPage() {
                     }}
                     className="flex items-center gap-1 hover:text-[#FAFAFA] transition-colors"
                 >
-                    Date
+                    {t('common.dateRange').split(' ')[0]} {/* Hacky, but works for "Date" */}
                     {sortField === 'date' && (
                         <span className="text-[10px]">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
@@ -204,12 +218,12 @@ export default function ExpensesPage() {
         },
         {
             key: 'item_name',
-            header: 'Item',
+            header: t('common.item'),
             render: (item: any) => <span className="font-medium text-[#FAFAFA]">{item.item_name}</span>
         },
         {
             key: 'category',
-            header: 'Category',
+            header: t('common.category'),
             render: (item: any) => (
                 <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium bg-[#2E2C24] text-[#FAFAFA]">
                     {item.categories?.name || 'Uncategorized'}
@@ -219,18 +233,91 @@ export default function ExpensesPage() {
         {
             key: 'amount_total',
             header: (
-                <button
-                    onClick={() => {
-                        if (sortField === 'amount') setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                        else { setSortField('amount'); setSortOrder('desc'); }
-                    }}
-                    className="flex items-center gap-1 hover:text-[#FAFAFA] transition-colors"
-                >
-                    Amount
-                    {sortField === 'amount' && (
-                        <span className="text-[10px]">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => {
+                            if (sortField === 'amount') setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                            else { setSortField('amount'); setSortOrder('desc'); }
+                        }}
+                        className="flex items-center gap-1 hover:text-[#FAFAFA] transition-colors"
+                    >
+                        {t('expenses.amount')}
+                        {sortField === 'amount' && (
+                            <span className="text-[10px]">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                    </button>
+                    <div className="relative">
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsAmountFilterOpen(!isAmountFilterOpen);
+                            }}
+                            className={cn(
+                                "p-1 rounded hover:bg-[#2E2C24] transition-colors",
+                                (minAmount || maxAmount) ? "text-[#F5C542]" : "text-[#71717A]"
+                            )}
+                        >
+                            <Filter className="w-3 h-3" />
+                        </button>
+                        {isAmountFilterOpen && (
+                            <div className="absolute right-0 top-full mt-2 w-64 bg-[#1C1B16] border border-[#2E2C24] rounded-xl shadow-xl z-50 p-4" onClick={e => e.stopPropagation()}>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-xs text-[#A1A1AA] font-medium">{t('common.min')} {t('expenses.amount')}</label>
+                                        <Input
+                                            type="number"
+                                            placeholder="0"
+                                            className="h-8 text-xs bg-[#15140F] border-[#2E2C24]"
+                                            value={minAmount}
+                                            onChange={(e) => setMinAmount(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-xs text-[#A1A1AA] font-medium">{t('common.max')} {t('expenses.amount')}</label>
+                                        <Input
+                                            type="number"
+                                            placeholder="Unlimited"
+                                            className="h-8 text-xs bg-[#15140F] border-[#2E2C24]"
+                                            value={maxAmount}
+                                            onChange={(e) => setMaxAmount(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between pt-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                setMinAmount('');
+                                                setMaxAmount('');
+                                                setIsAmountFilterOpen(false);
+                                            }}
+                                            className="h-7 text-xs text-[#71717A] hover:text-[#FAFAFA]"
+                                        >
+                                            {t('common.reset')}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                setIsAmountFilterOpen(false);
+                                                setCurrentPage(1);
+                                            }}
+                                            className="h-7 text-xs bg-[#F5C542] text-[#15140F] hover:bg-[#FFC83D]"
+                                        >
+                                            {t('common.done')}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {/* Overlay to close on click outside */}
+                        {isAmountFilterOpen && (
+                            <div
+                                className="fixed inset-0 z-40"
+                                onClick={() => setIsAmountFilterOpen(false)}
+                            />
+                        )}
+                    </div>
+                </div>
             ),
             render: (item: any) => (
                 <span className={cn(
@@ -243,7 +330,7 @@ export default function ExpensesPage() {
         },
         {
             key: 'payment',
-            header: 'Payment',
+            header: t('common.payment'),
             render: (item: any) => (
                 <span className="text-[#A1A1AA]">
                     {item.payment_channels?.name}
@@ -253,7 +340,7 @@ export default function ExpensesPage() {
         },
         {
             key: 'status',
-            header: 'Status',
+            header: t('common.status'),
             render: (item: any) => (
                 <span className={cn(
                     "px-2 py-1 rounded text-xs font-medium",
@@ -261,13 +348,13 @@ export default function ExpensesPage() {
                         ? "bg-green-500/10 text-green-500"
                         : "bg-orange-500/10 text-orange-500"
                 )}>
-                    {item.status}
+                    {item.status === 'PAID' ? t('expenses.filters.paid') : t('expenses.filters.pending')}
                 </span>
             )
         },
         {
             key: 'manage',
-            header: 'Manage',
+            header: t('common.manage'),
             render: (item: any) => (
                 <div className="flex items-center gap-2">
                     <button
@@ -296,15 +383,15 @@ export default function ExpensesPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-[#FAFAFA] uppercase tracking-tight">Expense</h1>
-                        <p className="text-xs sm:text-sm text-[#A1A1AA]">Manage and track your daily expenses.</p>
+                        <h1 className="text-xl sm:text-2xl font-bold text-[#FAFAFA] uppercase tracking-tight">{t('expenses.title')}</h1>
+                        <p className="text-xs sm:text-sm text-[#A1A1AA]">{t('expenses.subtitle')}</p>
                     </div>
                     <Button
                         onClick={() => { setEditId(null); setIsModalOpen(true); }}
                         className="bg-[#F5C542] text-[#15140F] hover:bg-[#FFC83D] font-bold py-2 sm:py-2.5 text-sm"
                     >
                         <Plus className="w-4 h-4 mr-2" />
-                        Add Expense
+                        {t('expenses.addExpense')}
                     </Button>
                 </div>
 
@@ -322,12 +409,14 @@ export default function ExpensesPage() {
                                 </button>
                                 <div className="min-w-0">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <CardTitle className="text-base sm:text-lg font-bold text-[#FAFAFA]">Monthly Reminders</CardTitle>
+                                        <CardTitle className="text-base sm:text-lg font-bold text-[#FAFAFA]">{t('expenses.monthlyReminders')}</CardTitle>
                                         <span className="bg-[#F5C542] text-[#15140F] px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black">
                                             ฿{totalPending.toLocaleString()}
                                         </span>
                                     </div>
-                                    <p className="text-xs sm:text-sm text-[#A1A1AA] truncate">You have {pendingExpenses.length} pending items.</p>
+                                    <p className="text-xs sm:text-sm text-[#A1A1AA] truncate">
+                                        {t('expenses.pendingItems').replace('{count}', pendingExpenses.length.toString())}
+                                    </p>
                                 </div>
                             </div>
                         </CardHeader>
@@ -371,14 +460,14 @@ export default function ExpensesPage() {
                 <Card>
                     <CardHeader className="pb-0">
                         <div className="flex flex-col space-y-4">
-                            <CardTitle className="text-lg sm:text-xl font-bold">History</CardTitle>
+                            <CardTitle className="text-lg sm:text-xl font-bold">{t('expenses.history')}</CardTitle>
 
                             <div className="space-y-4 bg-[#15140F] p-3 sm:p-4 rounded-xl border border-[#2E2C24]">
                                 <div className="flex flex-col xl:flex-row gap-4">
                                     <div className="relative flex-1">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717A]" />
                                         <Input
-                                            placeholder="Search expenses..."
+                                            placeholder={t('common.search')}
                                             className="pl-9 w-full bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] text-sm h-10"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -390,7 +479,7 @@ export default function ExpensesPage() {
                                             value={filterCategory}
                                             onChange={(e) => setFilterCategory(e.target.value)}
                                         >
-                                            <option value="ALL">All Categories</option>
+                                            <option value="ALL">{t('expenses.filters.allCategories')}</option>
                                             {categories.map(cat => (
                                                 <option key={cat.id} value={cat.id}>{cat.name}</option>
                                             ))}
@@ -400,7 +489,7 @@ export default function ExpensesPage() {
                                             value={filterPayment}
                                             onChange={(e) => setFilterPayment(e.target.value)}
                                         >
-                                            <option value="ALL">All Payments</option>
+                                            <option value="ALL">{t('expenses.filters.allPayments')}</option>
                                             {paymentChannels.map(chan => (
                                                 <option key={chan.id} value={chan.id}>{chan.name}</option>
                                             ))}
@@ -410,9 +499,9 @@ export default function ExpensesPage() {
                                             value={filterStatus}
                                             onChange={(e) => setFilterStatus(e.target.value)}
                                         >
-                                            <option value="ALL">All Status</option>
-                                            <option value="PAID">Paid</option>
-                                            <option value="PENDING">Pending</option>
+                                            <option value="ALL">{t('expenses.filters.allStatus')}</option>
+                                            <option value="PAID">{t('expenses.filters.paid')}</option>
+                                            <option value="PENDING">{t('expenses.filters.pending')}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -420,7 +509,7 @@ export default function ExpensesPage() {
                                 <div className="flex flex-col md:flex-row items-start md:items-center gap-4 pt-4 border-t border-[#2E2C24]">
                                     <div className="flex items-center gap-2 shrink-0">
                                         <Calendar className="w-4 h-4 text-[#71717A]" />
-                                        <span className="text-xs sm:text-sm text-[#A1A1AA] font-medium">Date Range:</span>
+                                        <span className="text-xs sm:text-sm text-[#A1A1AA] font-medium">{t('common.dateRange')}:</span>
                                     </div>
                                     <div className="flex flex-1 items-center gap-2 w-full">
                                         <Input
@@ -436,7 +525,7 @@ export default function ExpensesPage() {
                                             value={endDate}
                                             onChange={(e) => setEndDate(e.target.value)}
                                         />
-                                        {(startDate || endDate || filterCategory !== 'ALL' || filterPayment !== 'ALL' || filterStatus !== 'ALL' || searchTerm) && (
+                                        {(startDate || endDate || filterCategory !== 'ALL' || filterPayment !== 'ALL' || filterStatus !== 'ALL' || searchTerm || minAmount || maxAmount) && (
                                             <Button
                                                 variant="ghost"
                                                 className="text-[10px] sm:text-xs text-[#F5C542] hover:bg-[#F5C542]/10 h-8 px-2 shrink-0"
@@ -447,9 +536,11 @@ export default function ExpensesPage() {
                                                     setFilterPayment('ALL');
                                                     setFilterStatus('ALL');
                                                     setSearchTerm('');
+                                                    setMinAmount('');
+                                                    setMaxAmount('');
                                                 }}
                                             >
-                                                Clear
+                                                {t('common.clear')}
                                             </Button>
                                         )}
                                     </div>
@@ -463,7 +554,7 @@ export default function ExpensesPage() {
                             columns={columns}
                             keyExtractor={(item) => item.id}
                             isLoading={loading}
-                            emptyMessage="No expenses found."
+                            emptyMessage={t('expenses.noExpenses')}
                         />
 
                         {/* Pagination Controls */}
@@ -524,8 +615,8 @@ export default function ExpensesPage() {
             <Modal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
-                title="Delete Expense"
-                description="Are you sure you want to delete this expense? This action cannot be undone."
+                title={t('common.deleteTitle')}
+                description={t('common.confirmDelete')}
             >
                 <div className="space-y-4">
                     {itemToDelete && (
@@ -540,14 +631,14 @@ export default function ExpensesPage() {
                             onClick={() => setIsDeleteModalOpen(false)}
                             className="bg-transparent border-[#2E2C24]"
                         >
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             onClick={handleDelete}
                             disabled={deleting}
                             className="bg-red-500 text-white hover:bg-red-600 border-none min-w-[80px]"
                         >
-                            {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Delete'}
+                            {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.delete')}
                         </Button>
                     </div>
                 </div>

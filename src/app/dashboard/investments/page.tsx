@@ -4,12 +4,14 @@ import React, { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { SummaryCards, AssetAllocation, InvestmentTable, InvestmentForm } from '@/components/investments';
 import { Button, Input, Select, Modal, Badge, Loading, EmptyState } from '@/components/ui';
-import { useAuthStore, useInvestmentStore, useUIStore } from '@/lib/store';
+import { useAuthStore, useInvestmentStore, useUIStore, useToastStore } from '@/lib/store';
+import { useTranslation } from '@/lib/useTranslation';
 import { Investment, InvestmentFormData, InvestmentFilters } from '@/types';
 import { Plus, Search, Filter, X, TrendingUp } from 'lucide-react';
 
 export default function InvestmentsPage() {
     const { token, user } = useAuthStore();
+    const { t } = useTranslation();
     const {
         investments,
         pagination,
@@ -27,6 +29,7 @@ export default function InvestmentsPage() {
         removeInvestment,
     } = useInvestmentStore();
     const { modalOpen, modalType, openModal, closeModal } = useUIStore();
+    const { addToast } = useToastStore();
 
     const [activeTab, setActiveTab] = useState<'overview' | 'list'>('overview');
     const [searchQuery, setSearchQuery] = useState('');
@@ -152,13 +155,14 @@ export default function InvestmentsPage() {
                 addInvestment(result.data);
                 fetchInvestments();
                 closeModal(); // Ensure modal is closed on success
+                addToast(t('investment.addSuccess'), 'success');
             } else {
                 console.error('Failed to add investment:', result.error);
-                alert(`เกิดข้อผิดพลาด: ${result.error}`); // Temporary user feedback
+                addToast(result.error || t('common.error'), 'error');
             }
         } catch (error) {
             console.error('Add investment network error:', error);
-            alert('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง');
+            addToast(t('common.error'), 'error');
         }
     };
 
@@ -181,6 +185,7 @@ export default function InvestmentsPage() {
             fetchInvestments();
             closeModal();
             setSelectedInvestment(null);
+            addToast(t('investment.updateSuccess'), 'success');
         }
     };
 
@@ -200,6 +205,7 @@ export default function InvestmentsPage() {
             removeInvestment(deleteConfirm.id);
             setDeleteConfirm(null);
             fetchInvestments();
+            addToast(t('investment.deleteSuccess'), 'success');
         }
     };
 
@@ -224,8 +230,8 @@ export default function InvestmentsPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-[#FAFAFA]">Investment</h1>
-                        <p className="text-gray-500">จัดการพอร์ตการลงทุนของคุณ</p>
+                        <h1 className="text-2xl font-bold text-[#FAFAFA]">{t('common.investment')}</h1>
+                        <p className="text-gray-500">{t('investment.managePortfolio')}</p>
                     </div>
                     <Button
                         onClick={() => {
@@ -234,7 +240,7 @@ export default function InvestmentsPage() {
                         }}
                         leftIcon={<Plus className="w-4 h-4" />}
                     >
-                        เพิ่มการลงทุน
+                        {t('investment.addInvestment')}
                     </Button>
                 </div>
 
@@ -248,7 +254,7 @@ export default function InvestmentsPage() {
                                 : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
                                 }`}
                         >
-                            Overview
+                            {t('common.overview')}
                         </button>
                         <button
                             onClick={() => setActiveTab('list')}
@@ -257,7 +263,7 @@ export default function InvestmentsPage() {
                                 : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
                                 }`}
                         >
-                            รายการลงทุน
+                            {t('investment.investmentList')}
                         </button>
                     </nav>
                 </div>
@@ -274,7 +280,7 @@ export default function InvestmentsPage() {
                         <div className="flex flex-col md:flex-row gap-4">
                             <div className="flex-1">
                                 <Input
-                                    placeholder="ค้นหารหัสหรือชื่อสินทรัพย์..."
+                                    placeholder={t('investment.searchPlaceholder')}
                                     value={searchQuery}
                                     onChange={(e) => handleSearch(e.target.value)}
                                     leftIcon={<Search className="w-4 h-4" />}
@@ -297,14 +303,14 @@ export default function InvestmentsPage() {
                                         : 'bg-transparent border-[#2E2C24] text-[#A1A1AA] hover:text-[#F5C542] hover:border-[#F5C542] hover:bg-[#2E2C24]/50'
                                     }
                                 >
-                                    ตัวกรอง
+                                    {t('common.filter')}
                                     {hasActiveFilters && (
                                         <span className="ml-1.5 w-2 h-2 rounded-full bg-[#15140F]" />
                                     )}
                                 </Button>
                                 {hasActiveFilters && (
                                     <Button variant="ghost" onClick={clearFilters} className="text-[#A1A1AA] hover:text-[#FAFAFA] hover:bg-[#2E2C24]">
-                                        ล้าง
+                                        {t('common.clear')}
                                     </Button>
                                 )}
                             </div>
@@ -314,12 +320,12 @@ export default function InvestmentsPage() {
                         {showFilters && (
                             <div className="p-4 rounded-xl bg-[#1C1B16] border border-[#2E2C24] grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                 <Select
-                                    label="ประเภทสินทรัพย์"
-                                    placeholder="ทั้งหมด"
+                                    label={t('investment.assetType')}
+                                    placeholder={t('common.all')}
                                     options={[
-                                        { value: 'GOLD', label: 'ทองคำ' },
-                                        { value: 'CRYPTO', label: 'คริปโต' },
-                                        { value: 'STOCK', label: 'หุ้น' },
+                                        { value: 'GOLD', label: t('investment.type.gold') },
+                                        { value: 'CRYPTO', label: t('investment.type.crypto') },
+                                        { value: 'STOCK', label: t('investment.type.stock') },
                                     ]}
                                     value={filters.asset_category || ''}
                                     onChange={(value) =>
@@ -327,8 +333,8 @@ export default function InvestmentsPage() {
                                     }
                                 />
                                 <Select
-                                    label="กลยุทธ์"
-                                    placeholder="ทั้งหมด"
+                                    label={t('investment.strategy')}
+                                    placeholder={t('common.all')}
                                     options={[
                                         { value: 'DCA', label: 'DCA' },
                                         { value: 'LONG_TERM', label: 'Long Term' },
@@ -340,11 +346,11 @@ export default function InvestmentsPage() {
                                     }
                                 />
                                 <Select
-                                    label="สถานะ"
-                                    placeholder="ทั้งหมด"
+                                    label={t('common.status')}
+                                    placeholder={t('common.all')}
                                     options={[
-                                        { value: 'OPEN', label: 'เปิดอยู่' },
-                                        { value: 'CLOSED', label: 'ปิดแล้ว' },
+                                        { value: 'OPEN', label: t('investment.status.open') },
+                                        { value: 'CLOSED', label: t('investment.status.closed') },
                                     ]}
                                     value={filters.status || ''}
                                     onChange={(value) =>
@@ -394,20 +400,20 @@ export default function InvestmentsPage() {
                     <Modal
                         isOpen={!!deleteConfirm}
                         onClose={() => setDeleteConfirm(null)}
-                        title="ยืนยันการลบ"
+                        title={t('common.deleteTitle')}
                         size="sm"
                     >
                         <div className="space-y-4">
                             <p className="text-[#A1A1AA]">
-                                คุณต้องการลบ <strong>{deleteConfirm.asset_code}</strong> ({deleteConfirm.asset_name}) หรือไม่?
+                                {t('common.deleteMessage').replace('{item}', `${deleteConfirm.asset_code} (${deleteConfirm.asset_name})`)}
                             </p>
-                            <p className="text-sm text-red-600">การดำเนินการนี้ไม่สามารถยกเลิกได้</p>
+                            <p className="text-sm text-red-600">{t('common.cannotUndo')}</p>
                             <div className="flex justify-end gap-3 pt-4">
                                 <Button variant="secondary" onClick={() => setDeleteConfirm(null)}>
-                                    ยกเลิก
+                                    {t('common.cancel')}
                                 </Button>
                                 <Button variant="danger" onClick={handleDeleteInvestment}>
-                                    ลบ
+                                    {t('common.delete')}
                                 </Button>
                             </div>
                         </div>

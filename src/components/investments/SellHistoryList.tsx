@@ -2,7 +2,7 @@ import React, { memo, useCallback } from 'react';
 import { Button, Input, Select } from '@/components/ui';
 import { SellRecordWithId } from '@/types';
 import { Plus, Trash2 } from 'lucide-react';
-import { currencyOptions } from '@/components/investments/options';
+import { useTranslation } from '@/lib/useTranslation';
 
 interface SellHistoryListProps {
     sellHistory: SellRecordWithId[];
@@ -19,10 +19,16 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
     onRemove,
     onUpdate,
 }) => {
+    const { t } = useTranslation();
+    const currencyOptions = [
+        { value: 'THB', label: 'THB' },
+        { value: 'USD', label: 'USD' },
+    ];
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-[#A1A1AA]">บันทึกการขายสินทรัพย์เพื่อคำนวณกำไร/ขาดทุนจริง</p>
+                <p className="text-sm text-[#A1A1AA]">{t('investment.sellHistoryDesc')}</p>
                 <Button
                     type="button"
                     variant="primary"
@@ -30,7 +36,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                     onClick={onAdd}
                     leftIcon={<Plus className="w-4 h-4" />}
                 >
-                    เพิ่มรายการขาย
+                    {t('investment.addSell')}
                 </Button>
             </div>
 
@@ -53,7 +59,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                             <div className="grid grid-cols-12 gap-3">
                                 <div className="col-span-12 md:col-span-4">
                                     <Input
-                                        label="วันที่ขาย"
+                                        label={t('investment.sellDate')}
                                         type="datetime-local"
                                         value={sell.datetime}
                                         onChange={(e) => onUpdate(index, 'datetime', e.target.value)}
@@ -61,7 +67,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                                 </div>
                                 <div className="col-span-4 md:col-span-2">
                                     <Input
-                                        label="จำนวน"
+                                        label={t('investment.qty')}
                                         type="number"
                                         step="0.00000001"
                                         placeholder="0.00"
@@ -73,7 +79,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                                 </div>
                                 <div className="col-span-4 md:col-span-2">
                                     <Input
-                                        label="ราคาขาย"
+                                        label={t('investment.sellPrice')}
                                         type="number"
                                         step="0.01"
                                         placeholder="0.00"
@@ -85,7 +91,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                                 </div>
                                 <div className="col-span-4 md:col-span-2">
                                     <Input
-                                        label="ค่าธรรมเนียม"
+                                        label={t('investment.fee')}
                                         type="number"
                                         step="0.01"
                                         placeholder="0.00"
@@ -96,7 +102,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                                 </div>
                                 <div className="col-span-12 md:col-span-2">
                                     <Select
-                                        label="สกุลเงิน"
+                                        label={t('investment.currency')}
                                         options={currencyOptions}
                                         value={sell.currency}
                                         onChange={(value) => onUpdate(index, 'currency', value)}
@@ -108,8 +114,8 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center min-h-[320px] border-2 border-dashed border-[#2E2C24] rounded-xl">
-                    <p className="text-[#A1A1AA]">ยังไม่มีประวัติการขาย</p>
-                    <p className="text-xs text-[#71717A] mt-1">กดปุ่ม "เพิ่มรายการขาย" ด้านบนเพื่อเริ่มบันทึก</p>
+                    <p className="text-[#A1A1AA]">{t('investment.noSellHistory')}</p>
+                    <p className="text-xs text-[#71717A] mt-1">{t('investment.addSellHint')}</p>
                 </div>
             )}
         </div>

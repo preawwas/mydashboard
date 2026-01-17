@@ -6,6 +6,7 @@ import { InvestmentFormData, SellRecord, SellRecordWithId } from '@/types';
 import { getCurrentLocalDateTime } from '@/lib/utils';
 import InvestmentDetails from './InvestmentDetails';
 import SellHistoryList from './SellHistoryList';
+import { useTranslation } from '@/lib/useTranslation';
 
 interface InvestmentFormProps {
     isOpen: boolean;
@@ -22,6 +23,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
     initialData,
     mode,
 }) => {
+    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<'details' | 'sell_history'>('details');
     const idCounterRef = useRef(0);
 
@@ -78,21 +80,21 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.asset_code) newErrors.asset_code = 'กรุณากรอกรหัสสินทรัพย์';
-        if (!formData.asset_name) newErrors.asset_name = 'กรุณากรอกชื่อสินทรัพย์';
-        if (formData.buy_quantity <= 0) newErrors.buy_quantity = 'กรุณากรอกจำนวน';
-        if (formData.buy_price_per_unit <= 0) newErrors.buy_price_per_unit = 'กรุณากรอกราคา';
+        if (!formData.asset_code) newErrors.asset_code = t('investment.errors.assetCodeRequired');
+        if (!formData.asset_name) newErrors.asset_name = t('investment.errors.assetNameRequired');
+        if (formData.buy_quantity <= 0) newErrors.buy_quantity = t('investment.errors.qtyRequired');
+        if (formData.buy_price_per_unit <= 0) newErrors.buy_price_per_unit = t('investment.errors.priceRequired');
 
         // Validate Sell History
         formData.sell_history.forEach((sell, index) => {
             if (sell.qty <= 0) {
-                newErrors[`sell_history_${index}_qty`] = 'กรุณากรอกจำนวน';
+                newErrors[`sell_history_${index}_qty`] = t('investment.errors.qtyRequired');
             }
             if (sell.price <= 0) {
-                newErrors[`sell_history_${index}_price`] = 'กรุณากรอกราคา';
+                newErrors[`sell_history_${index}_price`] = t('investment.errors.priceRequired');
             }
             if (sell.fee < 0) {
-                newErrors[`sell_history_${index}_fee`] = 'กรุณากรอกค่าธรรมเนียม';
+                newErrors[`sell_history_${index}_fee`] = t('investment.errors.feeRequired');
             }
         });
 
@@ -173,7 +175,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={mode === 'add' ? 'เพิ่มการลงทุนใหม่' : 'แก้ไขการลงทุน'}
+            title={mode === 'add' ? t('investment.addNew') : t('investment.edit')}
             size="xl"
             className="max-w-[950px]"
         >
@@ -188,7 +190,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                             : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
                             }`}
                     >
-                        รายละเอียดการลงทุน
+                        {t('investment.details')}
                     </button>
                     <button
                         type="button"
@@ -198,7 +200,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                             : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
                             }`}
                     >
-                        ประวัติการขาย
+                        {t('investment.sellHistory')}
                         {formData.sell_history.length > 0 && (
                             <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-[#2E2C24] text-[#F5C542]">
                                 {formData.sell_history.length}
@@ -231,10 +233,10 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 {/* Actions */}
                 <div className="flex justify-end gap-3 pt-4 border-t border-[#2E2C24]">
                     <Button type="button" variant="secondary" onClick={onClose} className="bg-[#2E2C24] text-[#FAFAFA] hover:bg-[#3E3C32] hover:text-[#FAFAFA] border border-transparent transition-all">
-                        ยกเลิก
+                        {t('common.cancel')}
                     </Button>
                     <Button type="submit" isLoading={isLoading} className="bg-gradient-to-r from-[#F5C542] to-[#FFD54F] text-[#15140F] hover:opacity-90 border-none font-bold focus:ring-2 focus:ring-[#F5C542] focus:ring-offset-2 focus:ring-offset-[#1C1B16]">
-                        {mode === 'add' ? 'บันทึก' : 'บันทึก'}
+                        {mode === 'add' ? t('common.save') : t('common.save')}
                     </Button>
                 </div>
             </form>

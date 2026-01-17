@@ -5,6 +5,7 @@ import { Table, Badge, Button } from '@/components/ui';
 import { Investment, InvestmentFilters } from '@/types';
 import { formatCurrency, formatDateTime, getCategoryColor, getStrategyColor, getStatusColor, calculateProfitLoss } from '@/lib/utils';
 import { Eye, Edit, Trash2 } from 'lucide-react';
+import { useTranslation } from '@/lib/useTranslation';
 
 interface InvestmentTableProps {
     investments: Investment[];
@@ -30,10 +31,11 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
     onEdit,
     onDelete,
 }) => {
+    const { t } = useTranslation();
     const columns = [
         {
             key: 'asset',
-            header: 'สินทรัพย์',
+            header: t('investment.asset'),
             render: (item: Investment) => (
                 <div className="flex items-center gap-3">
                     <div>
@@ -45,14 +47,14 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         },
         {
             key: 'market',
-            header: 'ตลาด',
+            header: t('investment.market'),
             render: (item: Investment) => (
                 <span className="text-[#FAFAFA]">{item.market}</span>
             ),
         },
         {
             key: 'category',
-            header: 'ประเภท',
+            header: t('investment.type.label'),
             render: (item: Investment) => (
                 <Badge className={getCategoryColor(item.asset_category)}>
                     {item.asset_category}
@@ -61,7 +63,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         },
         {
             key: 'strategy',
-            header: 'กลยุทธ์',
+            header: t('investment.strategy'),
             render: (item: Investment) => (
                 <Badge className={getStrategyColor(item.strategy_type)}>
                     {item.strategy_type}
@@ -70,7 +72,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         },
         {
             key: 'buy_info',
-            header: 'ซื้อ',
+            header: t('investment.buy'),
             render: (item: Investment) => (
                 <div>
                     <p className="font-medium text-[#FAFAFA]">
@@ -82,7 +84,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         },
         {
             key: 'total_cost',
-            header: 'ต้นทุนรวม',
+            header: t('investment.totalCost'),
             render: (item: Investment) => {
                 const totalCost = item.buy_quantity * item.buy_price_per_unit + item.buy_fee;
                 return (
@@ -94,7 +96,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         },
         {
             key: 'profit_loss',
-            header: 'กำไร/ขาดทุน',
+            header: t('common.profit'),
             render: (item: Investment) => {
                 if (item.sell_history.length === 0) {
                     return <span className="text-gray-400">-</span>;
@@ -120,10 +122,10 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         },
         {
             key: 'status',
-            header: 'สถานะ',
+            header: t('common.status'),
             render: (item: Investment) => (
                 <Badge className={getStatusColor(item.status)}>
-                    {item.status === 'OPEN' ? 'เปิด' : 'ปิด'}
+                    {item.status === 'OPEN' ? t('investment.status.open') : t('investment.status.closed')}
                 </Badge>
             ),
         },
@@ -139,7 +141,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                             onEdit(item);
                         }}
                         className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                        title="แก้ไข"
+                        title={t('common.edit')}
                     >
                         <Edit className="w-4 h-4" />
                     </button>
@@ -149,7 +151,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                             onDelete(item);
                         }}
                         className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="ลบ"
+                        title={t('common.delete')}
                     >
                         <Trash2 className="w-4 h-4" />
                     </button>
@@ -164,7 +166,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
             columns={columns}
             keyExtractor={(item) => item.id}
             isLoading={isLoading}
-            emptyMessage="ยังไม่มีรายการลงทุน เริ่มต้นเพิ่มการลงทุนใหม่"
+            emptyMessage={t('investment.noItems')}
             pagination={{
                 ...pagination,
                 onPageChange,

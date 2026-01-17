@@ -4,7 +4,8 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useUIStore, useAuthStore } from '@/lib/store';
+import { useUIStore, useAuthStore, useSettingsStore } from '@/lib/store';
+import { useTranslation } from '@/lib/useTranslation';
 import {
     LayoutDashboard,
     TrendingUp,
@@ -38,12 +39,25 @@ const navItems: NavItem[] = [
         href: '/expenses',
         icon: <Wallet className="w-5 h-5" />,
     },
+    {
+        label: 'Settings',
+        href: '/settings',
+        icon: <Settings className="w-5 h-5" />,
+    }
 ];
 
 const Sidebar: React.FC = () => {
     const pathname = usePathname();
     const { sidebarOpen, toggleSidebar } = useUIStore();
     const { logout } = useAuthStore();
+    const { enableInvestment, enableExpense } = useSettingsStore();
+    const { t } = useTranslation();
+
+    // Hydration fix
+    const [mounted, setMounted] = React.useState(false);
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleLogout = () => {
         logout();
@@ -69,7 +83,7 @@ const Sidebar: React.FC = () => {
                     </div>
                     {sidebarOpen && (
                         <span className="font-bold text-xl bg-gradient-to-r from-[#F5C542] to-[#FFD54F] bg-clip-text text-transparent">
-                            InvestPro
+                            Memo
                         </span>
                     )}
                 </div>
@@ -77,7 +91,18 @@ const Sidebar: React.FC = () => {
 
             {/* Navigation */}
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-                {navItems.map((item) => {
+                {mounted && navItems.map((item) => {
+                    // Feature Toggle Logic
+                    if (item.label === 'Investment' && !enableInvestment) return null;
+                    if (item.label === 'Expense' && !enableExpense) return null;
+
+                    // Translate Label
+                    let label = item.label;
+                    if (item.label === 'Dashboard') label = t('common.dashboard');
+                    if (item.label === 'Investment') label = t('common.investment');
+                    if (item.label === 'Expense') label = t('common.expense');
+                    if (item.label === 'Settings') label = t('common.settings');
+
                     const isActive = item.href === '/dashboard'
                         ? pathname === '/dashboard'
                         : pathname === item.href || pathname.startsWith(item.href + '/');
@@ -102,7 +127,7 @@ const Sidebar: React.FC = () => {
                             >
                                 {item.icon}
                             </span>
-                            {sidebarOpen && <span>{item.label}</span>}
+                            {sidebarOpen && <span>{label}</span>}
                         </Link>
                     );
                 })}
@@ -119,7 +144,7 @@ const Sidebar: React.FC = () => {
                     )}
                 >
                     <LogOut className="w-5 h-5 text-[#71717A] group-hover:text-red-500 transition-colors" />
-                    {sidebarOpen && <span>Logout</span>}
+                    {sidebarOpen && <span>{t('common.logout')}</span>}
                 </button>
 
                 <div className={cn(

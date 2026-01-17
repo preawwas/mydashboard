@@ -16,7 +16,7 @@ const prompt = Prompt({
 });
 
 export const metadata: Metadata = {
-  title: "InvestPro - Premium Fintech Dashboard",
+  title: "Memo - Premium Fintech Dashboard",
   description: "Manage your investments with style",
 };
 

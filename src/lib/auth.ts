@@ -84,7 +84,8 @@ export async function authenticateUser(email: string, password: string): Promise
 export async function registerUser(
     email: string,
     password: string,
-    name: string
+    name: string,
+    redirectTo?: string
 ): Promise<AuthUser | null> {
     const supabase = createSupabaseAdminClient();
 
@@ -127,7 +128,8 @@ export async function registerUser(
         email,
         password: password,
         options: {
-            data: { name }
+            data: { name },
+            emailRedirectTo: redirectTo
         }
     });
 
@@ -149,7 +151,8 @@ export async function registerUser(
                 email,
                 password: password,
                 options: {
-                    data: { name }
+                    data: { name },
+                    emailRedirectTo: redirectTo
                 }
             });
         }

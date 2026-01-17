@@ -43,11 +43,12 @@ export async function POST(request: NextRequest) {
         const { data: expense, error: expenseError } = await supabase
             .from('expenses')
             .insert({
-                transaction_date: transactionDate, // Store as is (YYYY-MM-DD or ISO)
+                user_id: user.id,
+                transaction_date: transactionDate,
                 item_name: itemName,
                 amount_total: parseFloat(amount),
-                category_id: parseInt(categoryId),
-                payment_channel_id: parseInt(paymentChannelId),
+                category_id: categoryId,
+                payment_channel_id: paymentChannelId,
                 payment_type: paymentType,
                 necessity: necessity,
                 note: note,
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
 
         if (expenseError) {
             console.error('Error creating expense:', expenseError);
-            return NextResponse.json({ error: expenseError.message }, { status: 500 });
+            return NextResponse.json({ error: expenseError.message, details: expenseError }, { status: 500 });
         }
 
         // 2. If Installment, create installment periods
@@ -78,6 +79,7 @@ export async function POST(request: NextRequest) {
                 // Let's stick to Month + (i-1) if they want 1st installment in the same month.
 
                 installments.push({
+                    user_id: user.id,
                     expense_id: expense.id,
                     period_number: i,
                     due_date: dueDate.toISOString().split('T')[0],
@@ -118,14 +120,15 @@ export async function GET(request: NextRequest) {
             .select(`
                 *,
                 categories (id, name, color, icon),
-                payment_channels (id, name, type),
+                payment_channels (id, name),
                 expense_installments (*)
             `)
+            .eq('user_id', user.id)
             .order('transaction_date', { ascending: false });
 
         if (error) {
             console.error('Error fetching expenses:', error);
-            return NextResponse.json({ error: error.message }, { status: 500 });
+            return NextResponse.json({ error: error.message, details: error }, { status: 500 });
         }
 
         return NextResponse.json({ success: true, data: expenses });

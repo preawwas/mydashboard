@@ -32,6 +32,7 @@ export async function GET(
             expense_installments (*)
         `)
         .eq('id', id)
+        .eq('user_id', user.id)
         .single();
 
     if (error) {
@@ -58,11 +59,12 @@ export async function DELETE(
 
     const supabase = createSupabaseAdminClient();
 
-    // 1. Delete installments first
+    // 1. Delete installments first (optional if cascade is on, but good to be explicit/safe with user_id)
     const { error: instError } = await supabase
         .from('expense_installments')
         .delete()
-        .eq('expense_id', id);
+        .eq('expense_id', id)
+        .eq('user_id', user.id);
 
     if (instError) {
         return NextResponse.json({ success: false, error: instError.message }, { status: 500 });
@@ -72,7 +74,8 @@ export async function DELETE(
     const { error: expError } = await supabase
         .from('expenses')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .eq('user_id', user.id);
 
     if (expError) {
         return NextResponse.json({ success: false, error: expError.message }, { status: 500 });
@@ -115,14 +118,15 @@ export async function PATCH(
                 transaction_date: transactionDate,
                 item_name: itemName,
                 amount_total: parseFloat(amount),
-                category_id: parseInt(categoryId),
-                payment_channel_id: parseInt(paymentChannelId),
+                category_id: categoryId,
+                payment_channel_id: paymentChannelId,
                 payment_type: paymentType,
                 necessity: necessity,
                 note: note,
                 status: status
             })
             .eq('id', id)
+            .eq('user_id', user.id)
             .select()
             .single();
 

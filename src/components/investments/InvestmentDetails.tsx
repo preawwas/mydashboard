@@ -1,7 +1,7 @@
 import React, { memo, useCallback } from 'react';
 import { Input, Select } from '@/components/ui';
 import { InvestmentFormData } from '@/types';
-import { assetCategoryOptions, marketOptions, strategyOptions, statusOptions, currencyOptions } from '@/components/investments/options';
+import { useTranslation } from '@/lib/useTranslation';
 
 interface InvestmentDetailsProps {
     formData: InvestmentFormData;
@@ -16,7 +16,40 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
     onChange,
     clearError,
 }) => {
-    // Memoized handlers to prevent unnecessary re-renders
+    const { t } = useTranslation();
+
+    const assetCategoryOptions = [
+        { value: 'GOLD', label: t('investment.type.gold') },
+        { value: 'CRYPTO', label: t('investment.type.crypto') },
+        { value: 'STOCK', label: t('investment.type.stock') },
+        { value: 'USD', label: 'USD' },
+        { value: 'OTHER', label: t('common.others') },
+    ];
+
+    const marketOptions = [
+        { value: 'GOLDNOW', label: 'Gold Now' },
+        { value: 'PAOTANG', label: 'Paotang' },
+        { value: 'BINANCE TH', label: 'Binance TH' },
+        { value: 'DIME', label: 'DIME' },
+        { value: 'SET', label: 'SET' },
+        { value: 'OTHER', label: t('common.others') },
+    ];
+
+    const strategyOptions = [
+        { value: 'DCA', label: 'DCA' },
+        { value: 'LONG_TERM', label: 'Long Term' },
+        { value: 'TRADE', label: 'Trade' },
+    ];
+
+    const statusOptions = [
+        { value: 'OPEN', label: t('investment.status.open') },
+        { value: 'CLOSED', label: t('investment.status.closed') },
+    ];
+
+    const currencyOptions = [
+        { value: 'THB', label: 'THB' },
+        { value: 'USD', label: 'USD' },
+    ];
     const handleAssetCodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         onChange('asset_code', e.target.value.toUpperCase());
         clearError('asset_code');
@@ -75,8 +108,8 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 {/* Row 1: Identity & Classification */}
                 <div className="col-span-12 md:col-span-3">
                     <Input
-                        label="รหัสสินทรัพย์"
-                        placeholder="ระบุรหัสสินทรัพย์"
+                        label={t('investment.assetCode')}
+                        placeholder={t('investment.enterAssetCode')}
                         value={formData.asset_code}
                         onChange={handleAssetCodeChange}
                         error={errors.asset_code}
@@ -85,8 +118,8 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 md:col-span-6">
                     <Input
-                        label="ชื่อสินทรัพย์"
-                        placeholder="ระบุชื่อสินทรัพย์"
+                        label={t('investment.assetName')}
+                        placeholder={t('investment.enterAssetName')}
                         value={formData.asset_name}
                         onChange={handleAssetNameChange}
                         error={errors.asset_name}
@@ -95,7 +128,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 md:col-span-3">
                     <Select
-                        label="ประเภท"
+                        label={t('investment.type.label')}
                         options={assetCategoryOptions}
                         value={formData.asset_category}
                         onChange={handleAssetCategoryChange}
@@ -105,7 +138,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 {/* Row 2: Market & Strategy Setup */}
                 <div className="col-span-12 md:col-span-3">
                     <Select
-                        label="ตลาด"
+                        label={t('investment.market')}
                         options={marketOptions}
                         value={formData.market}
                         onChange={handleMarketChange}
@@ -113,7 +146,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 md:col-span-3">
                     <Select
-                        label="กลยุทธ์"
+                        label={t('investment.strategy')}
                         options={strategyOptions}
                         value={formData.strategy_type}
                         onChange={handleStrategyChange}
@@ -121,7 +154,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 md:col-span-3">
                     <Select
-                        label="สถานะ"
+                        label={t('common.status')}
                         options={statusOptions}
                         value={formData.status}
                         onChange={handleStatusChange}
@@ -129,7 +162,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 md:col-span-3">
                     <Input
-                        label="วันที่ซื้อ"
+                        label={t('investment.buyDate')}
                         type="datetime-local"
                         value={formData.buy_datetime}
                         onChange={handleBuyDatetimeChange}
@@ -139,7 +172,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 {/* Row 3: Transaction Numbers */}
                 <div className="col-span-12 md:col-span-3">
                     <Input
-                        label="จำนวนที่ซื้อ"
+                        label={t('investment.buyQty')}
                         type="number"
                         step="0.00000001"
                         placeholder="0.00"
@@ -151,7 +184,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 md:col-span-3">
                     <Input
-                        label="ราคาต่อหน่วย"
+                        label={t('investment.buyPrice')}
                         type="number"
                         step="0.01"
                         placeholder="0.00"
@@ -163,7 +196,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 md:col-span-3">
                     <Select
-                        label="สกุลเงิน"
+                        label={t('investment.currency')}
                         options={currencyOptions}
                         value={formData.buy_currency}
                         onChange={handleBuyCurrencyChange}
@@ -171,7 +204,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 md:col-span-3">
                     <Input
-                        label="ค่าธรรมเนียม"
+                        label={t('investment.fee')}
                         type="number"
                         step="0.01"
                         placeholder="0.00"
@@ -183,12 +216,12 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 {/* Row 4: Note */}
                 <div className="col-span-12">
                     <label className="block text-sm font-medium text-[#A1A1AA] mb-1.5">
-                        หมายเหตุ
+                        {t('common.notes')}
                     </label>
                     <textarea
                         className="w-full px-4 py-2.5 bg-[#1C1B16] border border-[#2E2C24] rounded-lg text-[#FAFAFA] placeholder-[#71717A] focus:outline-none focus:ring-1 focus:ring-[#F5C542]/50 focus:border-[#F5C542]/50 resize-none"
                         rows={3}
-                        placeholder="บันทึกเพิ่มเติม..."
+                        placeholder={t('investment.notesPlaceholder')}
                         value={formData.note}
                         onChange={handleNoteChange}
                     />

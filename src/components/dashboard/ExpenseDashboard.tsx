@@ -12,7 +12,7 @@ export default function ExpenseDashboard() {
     const [loading, setLoading] = useState(true);
     const [categories, setCategories] = useState<any[]>([]);
     const [monthlyData, setMonthlyData] = useState<any[]>([]);
-    const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState<{ id: string; name: string } | null>(null);
 
     useEffect(() => {
         if (token) {

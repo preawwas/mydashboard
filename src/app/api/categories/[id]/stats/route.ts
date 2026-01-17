@@ -26,7 +26,8 @@ export async function GET(
     const { data, error } = await supabase
         .from('expenses')
         .select('transaction_date, amount_total')
-        .eq('category_id', categoryId);
+        .eq('category_id', categoryId)
+        .eq('user_id', user.id);
 
     if (error) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });

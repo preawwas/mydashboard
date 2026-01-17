@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
         if (error) {
             console.error('Get investments error:', error);
             return NextResponse.json(
-                { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+                { error: error.message, details: error },
                 { status: 500 }
             );
         }
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
         if (error) {
             console.error('Create investment error:', error);
             return NextResponse.json(
-                { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+                { error: error.message, details: error },
                 { status: 500 }
             );
         }

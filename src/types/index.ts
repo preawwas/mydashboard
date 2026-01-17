@@ -15,6 +15,27 @@ export interface AuthUser {
     role: 'user' | 'admin';
 }
 
+export interface Category {
+    id: string;
+    user_id: string | null;
+    name: string;
+    icon: string | null;
+    color: string | null;
+    is_system: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface PaymentChannel {
+    id: string;
+    user_id: string | null;
+    name: string;
+    is_active: boolean;
+    is_system: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
 // Investment Types
 export type AssetCategory = 'GOLD' | 'CRYPTO' | 'STOCK';
 export type StrategyType = 'DCA' | 'LONG_TERM' | 'TRADE';

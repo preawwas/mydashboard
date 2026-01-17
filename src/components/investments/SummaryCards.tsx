@@ -3,6 +3,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui';
 import { TrendingUp, TrendingDown, Wallet, PieChart, Activity, DollarSign } from 'lucide-react';
+import { useTranslation } from '@/lib/useTranslation';
 
 interface SummaryCardsProps {
     data: {
@@ -15,6 +16,7 @@ interface SummaryCardsProps {
 }
 
 const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
+    const { t } = useTranslation();
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('th-TH', {
             style: 'currency',
@@ -36,7 +38,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                                 <div className="p-2 rounded-lg bg-[#F5C542]/10">
                                     <Wallet className="w-6 h-6 text-[#F5C542]" />
                                 </div>
-                                <span className="text-gray-300 font-semibold text-base sm:text-lg">มูลค่าพอร์ตทั้งหมด</span>
+                                <span className="text-gray-300 font-semibold text-base sm:text-lg">{t('common.totalBalance')}</span>
                             </div>
                             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight mt-2 text-shadow-sm">
                                 {formatCurrency(data.totalValue)}
@@ -45,7 +47,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
 
                         <div className="flex items-center gap-4 bg-[#151517] p-4 sm:p-5 rounded-xl border border-[#FFFFFF]/10 shadow-lg shrink-0">
                             <div>
-                                <p className="text-xs sm:text-sm text-gray-400 font-medium mb-1">กำไร/ขาดทุน</p>
+                                <p className="text-xs sm:text-sm text-gray-400 font-medium mb-1">{t('common.totalProfit')}</p>
                                 <div className={`flex items-center gap-2 sm:gap-3 ${data.totalProfitLoss >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                                     <span className="text-xl sm:text-2xl font-bold">
                                         {data.totalProfitLoss >= 0 ? '+' : ''}{formatCurrency(data.totalProfitLoss)}
@@ -70,9 +72,9 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                         </div>
                         <span className="text-[10px] sm:text-xs font-semibold text-gray-400 bg-[#27272A] px-2.5 py-1 rounded uppercase tracking-wider">Assets</span>
                     </div>
-                    <p className="text-gray-400 text-xs sm:text-sm font-medium mb-1">จำนวนสินทรัพย์</p>
+                    <p className="text-gray-400 text-xs sm:text-sm font-medium mb-1">{t('common.totalAssets')}</p>
                     <h3 className="text-2xl sm:text-3xl font-bold text-white truncate">
-                        {data.totalAssets} <span className="text-sm sm:text-lg font-normal text-gray-500">รายการ</span>
+                        {data.totalAssets} <span className="text-sm sm:text-lg font-normal text-gray-500">{t('common.items')}</span>
                     </h3>
                 </CardContent>
             </Card>
@@ -85,7 +87,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                         </div>
                         <span className="text-[10px] sm:text-xs font-semibold text-gray-400 bg-[#27272A] px-2.5 py-1 rounded uppercase tracking-wider">Active</span>
                     </div>
-                    <p className="text-gray-400 text-xs sm:text-sm font-medium mb-1">สถานะเปิดอยู่</p>
+                    <p className="text-gray-400 text-xs sm:text-sm font-medium mb-1">{t('common.statusOpen')}</p>
                     <h3 className="text-2xl sm:text-3xl font-bold text-white truncate">
                         {data.openPositions} <span className="text-sm sm:text-lg font-normal text-gray-500">Positions</span>
                     </h3>
