@@ -166,7 +166,7 @@ const Topbar: React.FC = () => {
 
                     {/* User Profile */}
                     <div className="flex items-center gap-3 pl-3 border-l border-[#2E2C24]">
-                        <Link href="/dashboard/settings" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                        <Link href="/settings" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                             <div className="text-right hidden sm:block">
                                 <p className="text-sm font-medium text-[#FAFAFA]">{user?.name || 'User'}</p>
                                 <p className="text-xs text-[#A1A1AA]">{user?.role || 'user'}</p>

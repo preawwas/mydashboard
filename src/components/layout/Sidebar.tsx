@@ -31,18 +31,13 @@ const navItems: NavItem[] = [
     },
     {
         label: 'Investment',
-        href: '/dashboard/investments',
+        href: '/investments',
         icon: <TrendingUp className="w-5 h-5" />,
     },
     {
         label: 'Expense',
         href: '/expenses',
         icon: <Wallet className="w-5 h-5" />,
-    },
-    {
-        label: 'Settings',
-        href: '/settings',
-        icon: <Settings className="w-5 h-5" />,
     }
 ];
 
@@ -134,11 +129,29 @@ const Sidebar: React.FC = () => {
             </nav>
 
             {/* Bottom Section */}
-            <div className="p-4 border-t border-[#2E2C24] bg-[#0F0F0C]">
+            <div className="p-4 border-t border-[#2E2C24] bg-[#0F0F0C] space-y-2">
+                {/* Settings Link */}
+                <Link
+                    href="/settings"
+                    className={cn(
+                        'w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group',
+                        pathname === '/settings'
+                            ? 'bg-[#2E2C24] text-[#FAFAFA] border border-[#3E3C32]'
+                            : 'text-[#A1A1AA] hover:bg-[#1C1B16] hover:text-[#FAFAFA]',
+                        !sidebarOpen && 'justify-center px-3'
+                    )}
+                >
+                    <Settings className={cn(
+                        "w-5 h-5 transition-colors",
+                        pathname === '/settings' ? "text-[#FAFAFA]" : "text-[#71717A] group-hover:text-[#FAFAFA]"
+                    )} />
+                    {sidebarOpen && <span>{t('common.settings')}</span>}
+                </Link>
+
                 <button
                     onClick={handleLogout}
                     className={cn(
-                        'w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium mb-4',
+                        'w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium',
                         'transition-all duration-200 text-[#A1A1AA] hover:bg-red-900/10 hover:text-red-500 group',
                         !sidebarOpen && 'justify-center px-3'
                     )}
@@ -151,7 +164,7 @@ const Sidebar: React.FC = () => {
                     "text-xs text-[#71717A] px-4 font-mono",
                     !sidebarOpen && "hidden"
                 )}>
-                    v1.0.0
+                    v2.0.0
                 </div>
             </div>
 
