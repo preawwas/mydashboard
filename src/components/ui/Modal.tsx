@@ -12,6 +12,8 @@ interface ModalProps {
     children: React.ReactNode;
     size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
     showCloseButton?: boolean;
+    closeOnBackdropClick?: boolean;
+    closeOnEscape?: boolean;
     className?: string;
 }
 
@@ -23,15 +25,17 @@ const Modal: React.FC<ModalProps> = ({
     children,
     size = 'md',
     showCloseButton = true,
+    closeOnBackdropClick = false,
+    closeOnEscape = false,
     className,
 }) => {
     const handleEscape = useCallback(
         (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
+            if (e.key === 'Escape' && closeOnEscape) {
                 onClose();
             }
         },
-        [onClose]
+        [onClose, closeOnEscape]
     );
 
     useEffect(() => {
@@ -61,7 +65,9 @@ const Modal: React.FC<ModalProps> = ({
             {/* Backdrop - removed backdrop-blur for performance */}
             <div
                 className="fixed inset-0 bg-black/70"
-                onClick={onClose}
+                onClick={() => {
+                    if (closeOnBackdropClick) onClose();
+                }}
             />
 
             {/* Modal */}

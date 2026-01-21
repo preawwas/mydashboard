@@ -23,8 +23,6 @@ export default function ExpensesPage() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<any>(null);
 
-    // Filter Popup State
-    const [isAmountFilterOpen, setIsAmountFilterOpen] = useState(false);
 
     // Filter states (Inputs)
     const [filterCategory, setFilterCategory] = useState('ALL');
@@ -141,10 +139,10 @@ export default function ExpensesPage() {
         })
         .sort((a, b) => {
             if (sortField === 'date') {
-                const dateA = new Date(a.transaction_date).getTime();
-                const dateB = new Date(b.transaction_date).getTime();
-                if (dateB !== dateA) return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-                return b.id - a.id;
+                const dateA = new Date(a.created_at || a.transaction_date).getTime();
+                const dateB = new Date(b.created_at || b.transaction_date).getTime();
+
+                return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
             } else {
                 if (a.amount_total !== b.amount_total) return sortOrder === 'asc' ? a.amount_total - b.amount_total : b.amount_total - a.amount_total;
                 return b.id - a.id;
@@ -233,91 +231,21 @@ export default function ExpensesPage() {
         {
             key: 'amount_total',
             header: (
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => {
-                            if (sortField === 'amount') setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-                            else { setSortField('amount'); setSortOrder('desc'); }
-                        }}
-                        className="flex items-center gap-1 hover:text-[#FAFAFA] transition-colors"
-                    >
-                        {t('expenses.amount')}
-                        {sortField === 'amount' && (
-                            <span className="text-[10px]">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                    </button>
-                    <div className="relative">
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsAmountFilterOpen(!isAmountFilterOpen);
-                            }}
-                            className={cn(
-                                "p-1 rounded hover:bg-[#2E2C24] transition-colors",
-                                (minAmount || maxAmount) ? "text-[#F5C542]" : "text-[#71717A]"
-                            )}
-                        >
-                            <Filter className="w-3 h-3" />
-                        </button>
-                        {isAmountFilterOpen && (
-                            <div className="absolute right-0 top-full mt-2 w-64 bg-[#1C1B16] border border-[#2E2C24] rounded-xl shadow-xl z-50 p-4" onClick={e => e.stopPropagation()}>
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs text-[#A1A1AA] font-medium">{t('common.min')} {t('expenses.amount')}</label>
-                                        <Input
-                                            type="number"
-                                            placeholder="0"
-                                            className="h-8 text-xs bg-[#15140F] border-[#2E2C24]"
-                                            value={minAmount}
-                                            onChange={(e) => setMinAmount(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs text-[#A1A1AA] font-medium">{t('common.max')} {t('expenses.amount')}</label>
-                                        <Input
-                                            type="number"
-                                            placeholder="Unlimited"
-                                            className="h-8 text-xs bg-[#15140F] border-[#2E2C24]"
-                                            value={maxAmount}
-                                            onChange={(e) => setMaxAmount(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="flex items-center justify-between pt-2">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => {
-                                                setMinAmount('');
-                                                setMaxAmount('');
-                                                setIsAmountFilterOpen(false);
-                                            }}
-                                            className="h-7 text-xs text-[#71717A] hover:text-[#FAFAFA]"
-                                        >
-                                            {t('common.reset')}
-                                        </Button>
-                                        <Button
-                                            size="sm"
-                                            onClick={() => {
-                                                setIsAmountFilterOpen(false);
-                                                setCurrentPage(1);
-                                            }}
-                                            className="h-7 text-xs bg-[#F5C542] text-[#15140F] hover:bg-[#FFC83D]"
-                                        >
-                                            {t('common.done')}
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        {/* Overlay to close on click outside */}
-                        {isAmountFilterOpen && (
-                            <div
-                                className="fixed inset-0 z-40"
-                                onClick={() => setIsAmountFilterOpen(false)}
-                            />
-                        )}
-                    </div>
-                </div>
+                <button
+                    onClick={() => {
+                        if (sortField === 'amount') setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                        else { setSortField('amount'); setSortOrder('desc'); }
+                    }}
+                    className={cn(
+                        "flex items-center gap-1 hover:text-[#FAFAFA] transition-colors",
+                        (minAmount || maxAmount) && "text-[#F5C542]"
+                    )}
+                >
+                    {t('expenses.amount')}
+                    {sortField === 'amount' && (
+                        <span className="text-[10px]">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                </button>
             ),
             render: (item: any) => (
                 <span className={cn(
@@ -507,11 +435,9 @@ export default function ExpensesPage() {
                                 </div>
 
                                 <div className="flex flex-col md:flex-row items-start md:items-center gap-4 pt-4 border-t border-[#2E2C24]">
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <Calendar className="w-4 h-4 text-[#71717A]" />
-                                        <span className="text-xs sm:text-sm text-[#A1A1AA] font-medium">{t('common.dateRange')}:</span>
-                                    </div>
-                                    <div className="flex flex-1 items-center gap-2 w-full">
+                                    {/* Date Range */}
+                                    <div className="flex items-center gap-2 flex-1 w-full">
+                                        <Calendar className="w-4 h-4 text-[#71717A] shrink-0" />
                                         <Input
                                             type="date"
                                             className="flex-1 h-9 py-1 text-xs bg-[#1C1B16] border-[#2E2C24]"
@@ -525,25 +451,54 @@ export default function ExpensesPage() {
                                             value={endDate}
                                             onChange={(e) => setEndDate(e.target.value)}
                                         />
-                                        {(startDate || endDate || filterCategory !== 'ALL' || filterPayment !== 'ALL' || filterStatus !== 'ALL' || searchTerm || minAmount || maxAmount) && (
-                                            <Button
-                                                variant="ghost"
-                                                className="text-[10px] sm:text-xs text-[#F5C542] hover:bg-[#F5C542]/10 h-8 px-2 shrink-0"
-                                                onClick={() => {
-                                                    setStartDate('');
-                                                    setEndDate('');
-                                                    setFilterCategory('ALL');
-                                                    setFilterPayment('ALL');
-                                                    setFilterStatus('ALL');
-                                                    setSearchTerm('');
-                                                    setMinAmount('');
-                                                    setMaxAmount('');
-                                                }}
-                                            >
-                                                {t('common.clear')}
-                                            </Button>
-                                        )}
                                     </div>
+
+                                    {/* Amount Range */}
+                                    <div className="flex items-center gap-2 flex-1 w-full">
+                                        <Filter className={cn("w-4 h-4 shrink-0", (minAmount || maxAmount) ? "text-[#F5C542]" : "text-[#71717A]")} />
+                                        <div className="relative flex-1">
+                                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[#71717A] text-xs">฿</span>
+                                            <Input
+                                                type="number"
+                                                inputMode="decimal"
+                                                placeholder={t('common.min')}
+                                                className="h-9 py-1 text-xs bg-[#1C1B16] border-[#2E2C24] pl-6 w-full"
+                                                value={minAmount}
+                                                onChange={(e) => setMinAmount(e.target.value)}
+                                            />
+                                        </div>
+                                        <span className="text-[#71717A]">-</span>
+                                        <div className="relative flex-1">
+                                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[#71717A] text-xs">฿</span>
+                                            <Input
+                                                type="number"
+                                                inputMode="decimal"
+                                                placeholder={t('common.max')}
+                                                className="h-9 py-1 text-xs bg-[#1C1B16] border-[#2E2C24] pl-6 w-full"
+                                                value={maxAmount}
+                                                onChange={(e) => setMaxAmount(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {(startDate || endDate || filterCategory !== 'ALL' || filterPayment !== 'ALL' || filterStatus !== 'ALL' || searchTerm || minAmount || maxAmount) && (
+                                        <Button
+                                            variant="ghost"
+                                            className="text-[10px] sm:text-xs text-[#F5C542] hover:bg-[#F5C542]/10 h-8 px-2 shrink-0"
+                                            onClick={() => {
+                                                setStartDate('');
+                                                setEndDate('');
+                                                setFilterCategory('ALL');
+                                                setFilterPayment('ALL');
+                                                setFilterStatus('ALL');
+                                                setSearchTerm('');
+                                                setMinAmount('');
+                                                setMaxAmount('');
+                                            }}
+                                        >
+                                            {t('common.clear')}
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -608,7 +563,13 @@ export default function ExpensesPage() {
             <ExpenseFormModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onSuccess={fetchExpenses}
+                onSuccess={() => {
+                    // Reset to page 1 and sort by date descending to show newest first
+                    setCurrentPage(1);
+                    setSortField('date');
+                    setSortOrder('desc');
+                    fetchExpenses();
+                }}
                 editId={editId}
             />
 

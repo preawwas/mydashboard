@@ -123,8 +123,7 @@ export async function GET(request: NextRequest) {
                 payment_channels (id, name),
                 expense_installments (*)
             `)
-            .eq('user_id', user.id)
-            .order('transaction_date', { ascending: false });
+            .order('created_at', { ascending: false });
 
         if (error) {
             console.error('Error fetching expenses:', error);
