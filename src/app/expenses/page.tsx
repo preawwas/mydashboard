@@ -10,7 +10,7 @@ import { useTranslation } from '@/lib/useTranslation';
 import ExpenseFormModal from '@/components/expenses/ExpenseFormModal';
 
 export default function ExpensesPage() {
-    const { token } = useAuthStore();
+    const { token, user } = useAuthStore();
     const { addToast } = useToastStore();
     const { language } = useLanguageStore();
     const { t } = useTranslation();
@@ -41,18 +41,38 @@ export default function ExpensesPage() {
     const itemsPerPage = 10;
 
     // Filter options
+    const [totalItems, setTotalItems] = useState(0);
+
+    // Filter options
     const [categories, setCategories] = useState<any[]>([]);
     const [paymentChannels, setPaymentChannels] = useState<any[]>([]);
 
     const fetchExpenses = async () => {
-        if (!token) return;
+        if (!token || !user) return;
+        setLoading(true);
         try {
-            const response = await fetch('/api/expenses', {
+            const params = new URLSearchParams({
+                page: currentPage.toString(),
+                limit: itemsPerPage.toString(),
+                sortField,
+                sortOrder,
+                search: searchTerm,
+                category: filterCategory,
+                payment: filterPayment,
+                status: filterStatus,
+                startDate,
+                endDate
+            });
+
+            const response = await fetch(`/api/expenses/user/${user.id}?${params.toString()}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const data = await response.json();
             if (data.success) {
                 setExpenses(data.data);
+                if (data.pagination) {
+                    setTotalItems(data.pagination.total);
+                }
             }
         } catch (error) {
             console.error('Failed to fetch expenses:', error);
@@ -62,12 +82,14 @@ export default function ExpensesPage() {
     };
 
     const fetchFilterData = async () => {
+        // ... (keep existing)
         if (!token) return;
         try {
             const [catRes, chanRes] = await Promise.all([
                 fetch('/api/categories', { headers: { Authorization: `Bearer ${token}` } }),
                 fetch('/api/payment-channels', { headers: { Authorization: `Bearer ${token}` } })
             ]);
+            // ... (keep rest)
             const [catData, chanData] = await Promise.all([catRes.json(), chanRes.json()]);
             if (catData.success) {
                 setCategories(catData.data);
@@ -92,7 +114,8 @@ export default function ExpensesPage() {
 
             const result = await response.json();
             if (result.success) {
-                setExpenses(prev => prev.filter(e => e.id !== itemToDelete.id));
+                // Refresh data instead of client-side filter to ensure correct pagination
+                fetchExpenses();
                 setIsDeleteModalOpen(false);
                 setItemToDelete(null);
                 addToast('Expense deleted successfully', 'success');
@@ -114,47 +137,26 @@ export default function ExpensesPage() {
 
     useEffect(() => {
         fetchExpenses();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [token, currentPage, sortField, sortOrder, filterCategory, filterPayment, filterStatus, startDate, endDate]);
+
+    // Debounce search
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (token) fetchExpenses();
+        }, 500);
+        return () => clearTimeout(timeoutId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchTerm]);
+
+    useEffect(() => {
         fetchFilterData();
     }, [token]);
 
-    const filteredExpenses = expenses
-        .filter(expense => {
-            const matchesSearch = expense.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                expense.categories?.name.toLowerCase().includes(searchTerm.toLowerCase());
-
-            expense.categories?.name.toLowerCase().includes(searchTerm.toLowerCase());
-
-            const matchesCategory = filterCategory === 'ALL' || expense.category_id.toString() === filterCategory;
-            const matchesPayment = filterPayment === 'ALL' || expense.payment_channel_id.toString() === filterPayment;
-            const matchesStatus = filterStatus === 'ALL' || expense.status === filterStatus;
-
-            const expenseDate = expense.transaction_date.split('T')[0];
-            const matchesStartDate = !startDate || expenseDate >= startDate;
-            const matchesEndDate = !endDate || expenseDate <= endDate;
-
-            const matchesMinAmount = !minAmount || expense.amount_total >= parseFloat(minAmount);
-            const matchesMaxAmount = !maxAmount || expense.amount_total <= parseFloat(maxAmount);
-
-            return matchesSearch && matchesCategory && matchesPayment && matchesStatus && matchesStartDate && matchesEndDate && matchesMinAmount && matchesMaxAmount;
-        })
-        .sort((a, b) => {
-            if (sortField === 'date') {
-                const dateA = new Date(a.created_at || a.transaction_date).getTime();
-                const dateB = new Date(b.created_at || b.transaction_date).getTime();
-
-                return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
-            } else {
-                if (a.amount_total !== b.amount_total) return sortOrder === 'asc' ? a.amount_total - b.amount_total : b.amount_total - a.amount_total;
-                return b.id - a.id;
-            }
-        });
 
     // Pagination logic
-    const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
-    const paginatedExpenses = filteredExpenses.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const paginatedExpenses = expenses; // expenses is now the page data
 
     const getMonthlyPendingAmount = (exp: any) => {
         const now = new Date();
@@ -516,7 +518,7 @@ export default function ExpensesPage() {
                         {totalPages > 1 && (
                             <div className="flex items-center justify-between px-2 pt-4 border-t border-[#2E2C24]">
                                 <p className="text-sm text-[#71717A]">
-                                    Showing {Math.min(filteredExpenses.length, (currentPage - 1) * itemsPerPage + 1)} to {Math.min(filteredExpenses.length, currentPage * itemsPerPage)} of {filteredExpenses.length} entries
+                                    Showing {Math.min(totalItems, (currentPage - 1) * itemsPerPage + 1)} to {Math.min(totalItems, currentPage * itemsPerPage)} of {totalItems} entries
                                 </p>
                                 <div className="flex items-center gap-2">
                                     <Button

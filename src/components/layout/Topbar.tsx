@@ -15,8 +15,8 @@ const Topbar: React.FC = () => {
     const [pendingItems, setPendingItems] = useState<any[]>([]);
 
     React.useEffect(() => {
-        if (!token) return;
-        fetch('/api/expenses', { headers: { Authorization: `Bearer ${token}` } })
+        if (!token || !user) return;
+        fetch(`/api/expenses/user/${user.id}`, { headers: { Authorization: `Bearer ${token}` } })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {

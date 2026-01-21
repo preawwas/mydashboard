@@ -123,6 +123,7 @@ export async function GET(request: NextRequest) {
                 payment_channels (id, name),
                 expense_installments (*)
             `)
+            .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 
         if (error) {

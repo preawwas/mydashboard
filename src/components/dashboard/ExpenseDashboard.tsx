@@ -8,17 +8,17 @@ import { useAuthStore } from '@/lib/store';
 import CategoryDetailModal from './CategoryDetailModal';
 
 export default function ExpenseDashboard() {
-    const { token } = useAuthStore();
+    const { token, user } = useAuthStore();
     const [loading, setLoading] = useState(true);
     const [categories, setCategories] = useState<any[]>([]);
     const [monthlyData, setMonthlyData] = useState<any[]>([]);
     const [selectedCategory, setSelectedCategory] = useState<{ id: string; name: string } | null>(null);
 
     useEffect(() => {
-        if (token) {
+        if (token && user) {
             fetchDashboardData();
         }
-    }, [token]);
+    }, [token, user]);
 
     const fetchDashboardData = async () => {
         setLoading(true);
@@ -29,33 +29,27 @@ export default function ExpenseDashboard() {
             });
             const catData = await catRes.json();
 
-            // Fetch recent expenses to calculate totals
-            const expRes = await fetch('/api/expenses', {
+            // Fetch stats (limit=1 because we only want the stats object)
+            const expRes = await fetch(`/api/expenses/user/${user?.id}?limit=1`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             const expData = await expRes.json();
 
-            if (catData.success && expData.success) {
-                const expenses = expData.data;
+            if (catData.success && expData.success && expData.stats) {
+                const { totalAmount, byCategory, byMonth } = expData.stats;
+
+                // Merge category stats
+                // Ensure we have an entry for every category even if 0
                 const cats = catData.data.map((cat: any) => {
-                    const total = expenses
-                        .filter((e: any) => e.category_id === cat.id)
-                        .reduce((sum: number, e: any) => sum + e.amount_total, 0);
-                    return { ...cat, amount: total };
+                    const amount = byCategory[cat.id] || 0;
+                    return { ...cat, amount };
                 }).sort((a: any, b: any) => b.amount - a.amount);
 
                 setCategories(cats);
 
-                // Calculate monthly data for chart
-                const monthlyMap: { [key: string]: number } = {};
-                expenses.forEach((e: any) => {
-                    const date = new Date(e.transaction_date);
-                    const name = date.toLocaleString('default', { month: 'short' });
-                    monthlyMap[name] = (monthlyMap[name] || 0) + e.amount_total;
-                });
-
+                // Format monthly data for chart
                 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const chartData = months.map(m => ({ name: m, amount: monthlyMap[m] || 0 }));
+                const chartData = months.map(m => ({ name: m, amount: byMonth[m] || 0 }));
                 setMonthlyData(chartData);
             }
         } catch (error) {
