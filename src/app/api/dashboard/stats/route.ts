@@ -46,6 +46,13 @@ export async function GET(request: NextRequest) {
 
         const assetAllocationMap = new Map<string, number>();
 
+        // Exchange rate USD -> THB
+        const USD_TO_THB = 31.00;
+        const convertToTHB = (amount: number, currency: string) => {
+            if (currency === 'USD') return amount * USD_TO_THB;
+            return amount; // Already THB
+        };
+
         items.forEach(item => {
             // Count positions
             if (item.status === 'OPEN') {
@@ -54,7 +61,8 @@ export async function GET(request: NextRequest) {
                 // Calculate Portfolio Value (Cost Basis for now)
                 // In a real app with market data, this would be: current_price * quantity
                 // We include fee to match the existing frontend logic for 'Total Value' (Total Cost)
-                const value = (item.buy_quantity * item.buy_price_per_unit) + (item.buy_fee || 0);
+                const valueInOriginal = (item.buy_quantity * item.buy_price_per_unit) + (item.buy_fee || 0);
+                const value = convertToTHB(valueInOriginal, item.buy_currency);
                 totalValue += value;
 
                 // Asset Allocation
@@ -70,9 +78,11 @@ export async function GET(request: NextRequest) {
                     // Logic: (Sell Price - Buy Price) * Sell Quantity - Sell Fee
                     // Note: This assumes buy_price_per_unit is constant average cost. 
                     // FIFO/LIFO is more complex but sticking to avg cost for simplicity.
-                    const cost = sell.qty * item.buy_price_per_unit;
-                    const revenue = sell.qty * sell.price;
-                    const profit = revenue - cost - (sell.fee || 0);
+                    const costInOriginal = sell.qty * item.buy_price_per_unit;
+                    const cost = convertToTHB(costInOriginal, item.buy_currency);
+                    const revenueInOriginal = sell.qty * sell.price - (sell.fee || 0);
+                    const revenue = convertToTHB(revenueInOriginal, sell.currency);
+                    const profit = revenue - cost;
                     totalProfitLoss += profit;
                 });
             }

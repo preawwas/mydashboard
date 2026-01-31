@@ -86,8 +86,16 @@ export default function InvestmentsPage() {
                 let closedPositions = 0;
                 const categoryValues: Record<string, number> = {};
 
+                // Exchange rate USD -> THB
+                const USD_TO_THB = 31.00;
+                const convertToTHB = (amount: number, currency: string) => {
+                    if (currency === 'USD') return amount * USD_TO_THB;
+                    return amount; // Already THB
+                };
+
                 for (const inv of data.data as Investment[]) {
-                    const cost = inv.buy_quantity * inv.buy_price_per_unit + inv.buy_fee;
+                    const costInOriginal = inv.buy_quantity * inv.buy_price_per_unit + inv.buy_fee;
+                    const cost = convertToTHB(costInOriginal, inv.buy_currency);
                     totalValue += cost;
 
                     if (inv.status === 'OPEN') openPositions++;
@@ -97,7 +105,8 @@ export default function InvestmentsPage() {
 
                     // Calculate profit/loss from sell history
                     for (const sell of inv.sell_history) {
-                        const sellValue = sell.qty * sell.price - sell.fee;
+                        const sellValueInOriginal = sell.qty * sell.price - sell.fee;
+                        const sellValue = convertToTHB(sellValueInOriginal, sell.currency);
                         const sellCost = (sell.qty / inv.buy_quantity) * cost;
                         totalProfitLoss += sellValue - sellCost;
                     }
