@@ -6,6 +6,7 @@ import { Wallet, TrendingDown, LayoutGrid, Calendar, Loader2 } from 'lucide-reac
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar } from 'recharts';
 import { useAuthStore } from '@/lib/store';
 import CategoryDetailModal from './CategoryDetailModal';
+import { apiClient } from '@/lib/api-client';
 
 export default function ExpenseDashboard() {
     const { token, user } = useAuthStore();
@@ -24,15 +25,11 @@ export default function ExpenseDashboard() {
         setLoading(true);
         try {
             // Fetch categories for the "Top Layers"
-            const catRes = await fetch('/api/categories', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const catRes = await apiClient.fetch('/api/categories');
             const catData = await catRes.json();
 
             // Fetch stats (limit=1 because we only want the stats object)
-            const expRes = await fetch(`/api/expenses/user/${user?.id}?limit=1`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const expRes = await apiClient.fetch(`/api/expenses/user/${user?.id}?limit=1`);
             const expData = await expRes.json();
 
             if (catData.success && expData.success && expData.stats) {

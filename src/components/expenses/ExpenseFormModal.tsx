@@ -18,6 +18,7 @@ import { useAuthStore, useToastStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Category, PaymentChannel } from '@/types';
 import { useTranslation } from '@/lib/useTranslation';
+import { apiClient } from '@/lib/api-client';
 
 interface ExpenseFormModalProps {
     isOpen: boolean;
@@ -145,8 +146,8 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
         if (!token) return;
         try {
             const [catRes, chanRes] = await Promise.all([
-                fetch('/api/categories', { headers: { Authorization: `Bearer ${token}` } }),
-                fetch('/api/payment-channels', { headers: { Authorization: `Bearer ${token}` } })
+                apiClient.fetch('/api/categories'),
+                apiClient.fetch('/api/payment-channels')
             ]);
             const [catData, chanData] = await Promise.all([catRes.json(), chanRes.json()]);
             if (catData.success) setCategories(sortData(catData.data, 'category'));
@@ -190,9 +191,8 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
     const handleAddCategory = async () => {
         if (!newCategoryName.trim() || !token) return;
         try {
-            const response = await fetch('/api/categories', {
+            const response = await apiClient.fetch('/api/categories', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ name: newCategoryName })
             });
             const result = await response.json();
@@ -210,9 +210,8 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
     const handleAddChannel = async () => {
         if (!newChannelName.trim() || !token) return;
         try {
-            const response = await fetch('/api/payment-channels', {
+            const response = await apiClient.fetch('/api/payment-channels', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ name: newChannelName })
             });
             const result = await response.json();
@@ -231,7 +230,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
         if (!token) return;
         setFetching(true);
         try {
-            const response = await fetch(`/api/expenses/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+            const response = await apiClient.fetch(`/api/expenses/${id}`);
             const result = await response.json();
             if (result.success) {
                 const exp = result.data;
@@ -299,9 +298,8 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                 installments: installments
             };
 
-            const response = await fetch(url, {
+            const response = await apiClient.fetch(url, {
                 method,
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify(payload)
             });
 

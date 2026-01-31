@@ -8,6 +8,7 @@ import { useAuthStore, useToastStore, useLanguageStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/lib/useTranslation';
 import ExpenseFormModal from '@/components/expenses/ExpenseFormModal';
+import { apiClient } from '@/lib/api-client';
 
 export default function ExpensesPage() {
     const { token, user } = useAuthStore();
@@ -64,9 +65,7 @@ export default function ExpensesPage() {
                 endDate
             });
 
-            const response = await fetch(`/api/expenses/user/${user.id}?${params.toString()}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await apiClient.fetch(`/api/expenses/user/${user.id}?${params.toString()}`);
             const data = await response.json();
             if (data.success) {
                 setExpenses(data.data);
@@ -86,8 +85,8 @@ export default function ExpensesPage() {
         if (!token) return;
         try {
             const [catRes, chanRes] = await Promise.all([
-                fetch('/api/categories', { headers: { Authorization: `Bearer ${token}` } }),
-                fetch('/api/payment-channels', { headers: { Authorization: `Bearer ${token}` } })
+                apiClient.fetch('/api/categories'),
+                apiClient.fetch('/api/payment-channels')
             ]);
             // ... (keep rest)
             const [catData, chanData] = await Promise.all([catRes.json(), chanRes.json()]);
@@ -107,9 +106,8 @@ export default function ExpensesPage() {
         setDeleting(true);
 
         try {
-            const response = await fetch(`/api/expenses/${itemToDelete.id}`, {
-                method: 'DELETE',
-                headers: { Authorization: `Bearer ${token}` }
+            const response = await apiClient.fetch(`/api/expenses/${itemToDelete.id}`, {
+                method: 'DELETE'
             });
 
             const result = await response.json();

@@ -8,6 +8,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
+import { apiClient } from '@/lib/api-client';
 
 interface CategoryDetailModalProps {
     isOpen: boolean;
@@ -32,9 +33,7 @@ export default function CategoryDetailModal({ isOpen, onClose, categoryId, categ
     const fetchStats = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`/api/categories/${categoryId}/stats`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await apiClient.fetch(`/api/categories/${categoryId}/stats`);
             const result = await response.json();
             if (result.success) {
                 setStats(result.data);

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import { PortfolioSummary } from '@/types';
 import { useTranslation } from '@/lib/useTranslation';
+import { apiClient } from '@/lib/api-client';
 
 export default function InvestmentDashboard() {
     const { token } = useAuthStore();
@@ -19,11 +20,7 @@ export default function InvestmentDashboard() {
             if (!token) return;
 
             try {
-                const response = await fetch('/api/dashboard/stats', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const response = await apiClient.fetch('/api/dashboard/stats');
                 const data = await response.json();
                 if (data.success) {
                     setStats(data.data);

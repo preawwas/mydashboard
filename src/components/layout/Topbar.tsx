@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuthStore, useUIStore } from '@/lib/store';
 import { Bell, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { apiClient } from '@/lib/api-client';
 
 const Topbar: React.FC = () => {
     const { token, user } = useAuthStore();
@@ -16,7 +17,7 @@ const Topbar: React.FC = () => {
 
     React.useEffect(() => {
         if (!token || !user) return;
-        fetch(`/api/expenses/user/${user.id}`, { headers: { Authorization: `Bearer ${token}` } })
+        apiClient.fetch(`/api/expenses/user/${user.id}`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {

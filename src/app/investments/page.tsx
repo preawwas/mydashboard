@@ -8,6 +8,7 @@ import { useAuthStore, useInvestmentStore, useUIStore, useToastStore } from '@/l
 import { useTranslation } from '@/lib/useTranslation';
 import { Investment, InvestmentFormData, InvestmentFilters } from '@/types';
 import { Plus, Search, Filter, X, TrendingUp } from 'lucide-react';
+import { apiClient } from '@/lib/api-client';
 
 export default function InvestmentsPage() {
     const { token, user } = useAuthStore();
@@ -72,11 +73,7 @@ export default function InvestmentsPage() {
             if (filters.status) params.set('status', filters.status);
             if (searchQuery) params.set('search', searchQuery);
 
-            const response = await fetch(`/api/investments?${params}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+            const response = await apiClient.fetch(`/api/investments?${params}`);
 
             const data = await response.json();
             if (data.success) {
@@ -141,12 +138,8 @@ export default function InvestmentsPage() {
         if (!token) return;
 
         try {
-            const response = await fetch('/api/investments', {
+            const response = await apiClient.fetch('/api/investments', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
                 body: JSON.stringify(data),
             });
 
@@ -170,12 +163,8 @@ export default function InvestmentsPage() {
     const handleEditInvestment = async (data: InvestmentFormData) => {
         if (!token || !selectedInvestment) return;
 
-        const response = await fetch(`/api/investments/${selectedInvestment.id}`, {
+        const response = await apiClient.fetch(`/api/investments/${selectedInvestment.id}`, {
             method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
             body: JSON.stringify(data),
         });
 
@@ -193,11 +182,8 @@ export default function InvestmentsPage() {
     const handleDeleteInvestment = async () => {
         if (!token || !deleteConfirm) return;
 
-        const response = await fetch(`/api/investments/${deleteConfirm.id}`, {
+        const response = await apiClient.fetch(`/api/investments/${deleteConfirm.id}`, {
             method: 'DELETE',
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
         });
 
         const result = await response.json();
