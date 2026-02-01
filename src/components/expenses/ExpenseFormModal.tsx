@@ -639,7 +639,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                             className={cn(
                                                 "flex-1 flex items-center justify-center gap-1 py-2 rounded-md transition-all text-xs font-medium",
                                                 formData.status === s
-                                                    ? (s === 'PAID' ? "bg-green-500/20 text-green-400 border border-green-500/30" : "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30")
+                                                    ? (s === 'PAID' ? "bg-green-500/20 text-green-400 border border-green-500/30" : "bg-orange-500/20 text-orange-400 border border-orange-500/30")
                                                     : "text-[#71717A]"
                                             )}
                                         >

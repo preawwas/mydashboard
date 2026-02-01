@@ -61,20 +61,22 @@ const Modal: React.FC<ModalProps> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-            {/* Backdrop - removed backdrop-blur for performance */}
+        <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" style={{ overscrollBehavior: 'contain' }}>
+            {/* Backdrop with fade animation */}
             <div
-                className="fixed inset-0 bg-black/70"
+                className="fixed inset-0 bg-black/70 animate-in fade-in duration-200"
                 onClick={() => {
                     if (closeOnBackdropClick) onClose();
                 }}
             />
 
-            {/* Modal */}
+            {/* Modal with scale and slide animation */}
             <div className="flex min-h-full items-center justify-center p-4">
                 <div
                     className={cn(
                         'relative w-full bg-[#1C1B16] border border-[#2E2C24] rounded-2xl shadow-2xl shadow-black/50',
+                        'animate-in zoom-in-95 fade-in duration-200',
+                        'motion-reduce:animate-none',
                         sizes[size],
                         className
                     )}
@@ -82,7 +84,9 @@ const Modal: React.FC<ModalProps> = ({
                 >
                     {/* Header */}
                     {(title || showCloseButton) && (
-                        <div className="flex items-start justify-between p-6 border-b border-[#2E2C24]">
+                        <div className="flex items-start justify-between p-6 border-b border-[#2E2C24] relative">
+                            {/* Subtle golden gradient line at bottom */}
+                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[#F5C542]/30 to-transparent" />
                             <div>
                                 {title && (
                                     <h2 className="text-lg sm:text-xl font-bold text-[#FAFAFA] uppercase tracking-wide">{title}</h2>
@@ -95,8 +99,9 @@ const Modal: React.FC<ModalProps> = ({
                                 <button
                                     onClick={onClose}
                                     className="p-2 text-[#71717A] hover:text-[#FAFAFA] hover:bg-[#2E2C24] rounded-lg transition-colors"
+                                    aria-label="Close"
                                 >
-                                    <X className="w-5 h-5" />
+                                    <X className="w-5 h-5" aria-hidden="true" />
                                 </button>
                             )}
                         </div>

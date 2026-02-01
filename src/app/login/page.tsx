@@ -114,7 +114,7 @@ function LoginForm() {
             {/* Success Message for Registration */}
             {showSuccessMessage && (
                 <div className="mb-6 p-4 rounded-lg bg-[#059669]/10 border border-[#059669]/20 flex items-start gap-3 transition-all duration-500 ease-in-out">
-                    <div className="flex-shrink-0 mt-0.5">
+                    <div className="flex-shrink-0 mt-0.5" aria-hidden="true">
                         <svg className="w-5 h-5 text-[#059669]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -159,12 +159,13 @@ function LoginForm() {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="focus:outline-none text-[#71717A] hover:text-[#FAFAFA] transition-colors"
+                                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F5C542] rounded text-[#71717A] hover:text-[#FAFAFA] transition-colors"
+                                aria-label={showPassword ? 'Hide password' : 'Show password'}
                             >
                                 {showPassword ? (
-                                    <EyeOff className="w-4 h-4" />
+                                    <EyeOff className="w-4 h-4" aria-hidden="true" />
                                 ) : (
-                                    <Eye className="w-4 h-4" />
+                                    <Eye className="w-4 h-4" aria-hidden="true" />
                                 )}
                             </button>
                         }
@@ -220,7 +221,7 @@ function LoginForm() {
 export default function LoginPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0F0F0C] via-[#15140F] to-[#1C1B16] flex items-center justify-center p-4">
-            <Suspense fallback={<Loading fullScreen text="Loading..." />}>
+            <Suspense fallback={<Loading fullScreen text="Loading…" />}>
                 <LoginForm />
             </Suspense>
         </div>

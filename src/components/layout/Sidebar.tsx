@@ -63,7 +63,7 @@ const Sidebar: React.FC = () => {
         <aside
             className={cn(
                 'fixed left-0 top-0 z-40 h-screen bg-[#0F0F0C] border-r border-[#2E2C24]',
-                'transition-all duration-300 ease-in-out flex flex-col',
+                'transition-[width,transform] duration-300 ease-in-out flex flex-col',
                 // Mobile behavior: slide in from left
                 sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
                 // Desktop behavior: dynamic width
@@ -177,11 +177,12 @@ const Sidebar: React.FC = () => {
                     'text-[#A1A1AA] hover:text-[#FAFAFA]',
                     'hidden lg:flex'
                 )}
+                aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
             >
                 {sidebarOpen ? (
-                    <ChevronLeft className="w-4 h-4" />
+                    <ChevronLeft className="w-4 h-4" aria-hidden="true" />
                 ) : (
-                    <ChevronRight className="w-4 h-4" />
+                    <ChevronRight className="w-4 h-4" aria-hidden="true" />
                 )}
             </button>
         </aside>

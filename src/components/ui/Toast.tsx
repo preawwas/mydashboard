@@ -11,7 +11,7 @@ const Toast: React.FC = () => {
     if (toasts.length === 0) return null;
 
     return (
-        <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3">
+        <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3" role="status" aria-live="polite">
             {toasts.map((toast) => (
                 <div
                     key={toast.id}
@@ -23,7 +23,7 @@ const Toast: React.FC = () => {
                         toast.type === 'warning' && "bg-[#F59E0B] border-[#D97706] text-white"
                     )}
                 >
-                    <div className="shrink-0 text-white">
+                    <div className="shrink-0 text-white" aria-hidden="true">
                         {toast.type === 'success' && <CheckCircle2 className="w-5 h-5" />}
                         {toast.type === 'error' && <XCircle className="w-5 h-5" />}
                         {toast.type === 'info' && <Info className="w-5 h-5" />}
@@ -33,8 +33,9 @@ const Toast: React.FC = () => {
                     <button
                         onClick={() => removeToast(toast.id)}
                         className="p-1 hover:bg-white/20 rounded-lg transition-colors text-white"
+                        aria-label="Dismiss"
                     >
-                        <X className="w-4 h-4" />
+                        <X className="w-4 h-4" aria-hidden="true" />
                     </button>
                 </div>
             ))}

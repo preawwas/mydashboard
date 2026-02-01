@@ -16,9 +16,10 @@ const Loading: React.FC<LoadingProps> = ({ size = 'md', text, fullScreen = false
     };
 
     const content = (
-        <div className="flex flex-col items-center justify-center gap-3">
-            <Loader2 className={cn('animate-spin text-[#F5C542]', sizes[size])} />
-            {text && <p className="text-sm text-[#71717A] animate-pulse">{text}</p>}
+        <div className="flex flex-col items-center justify-center gap-3" role="status">
+            <Loader2 className={cn('animate-spin text-[#F5C542] motion-reduce:animate-none', sizes[size])} aria-hidden="true" />
+            {text && <p className="text-sm text-[#71717A] animate-pulse motion-reduce:animate-none">{text}</p>}
+            <span className="sr-only">{text || 'Loading'}</span>
         </div>
     );
 
