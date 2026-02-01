@@ -16,6 +16,7 @@ export default function ExpensesPage() {
     const { language } = useLanguageStore();
     const { t } = useTranslation();
     const [expenses, setExpenses] = useState<any[]>([]);
+    const [allPendingExpenses, setAllPendingExpenses] = useState<any[]>([]); // Separate state for reminders
     const [loading, setLoading] = useState(true);
     const [deleting, setDeleting] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -47,6 +48,26 @@ export default function ExpensesPage() {
     // Filter options
     const [categories, setCategories] = useState<any[]>([]);
     const [paymentChannels, setPaymentChannels] = useState<any[]>([]);
+
+    // Fetch all pending expenses for Monthly Reminders (no pagination limit)
+    const fetchPendingReminders = async () => {
+        if (!token || !user) return;
+        try {
+            const params = new URLSearchParams({
+                page: '1',
+                limit: '100', // High limit to get all pending items
+                status: 'PENDING'
+            });
+
+            const response = await apiClient.fetch(`/api/expenses/user/${user.id}?${params.toString()}`);
+            const data = await response.json();
+            if (data.success) {
+                setAllPendingExpenses(data.data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch pending reminders:', error);
+        }
+    };
 
     const fetchExpenses = async () => {
         if (!token || !user) return;
@@ -149,6 +170,8 @@ export default function ExpensesPage() {
 
     useEffect(() => {
         fetchFilterData();
+        fetchPendingReminders();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
 
 
@@ -185,7 +208,8 @@ export default function ExpensesPage() {
         return 0;
     };
 
-    const pendingExpenses = expenses.filter(exp => getMonthlyPendingAmount(exp) > 0)
+    // Use allPendingExpenses for reminders (not limited by pagination)
+    const pendingExpenses = allPendingExpenses.filter(exp => getMonthlyPendingAmount(exp) > 0)
         .sort((a, b) => getMonthlyPendingAmount(b) - getMonthlyPendingAmount(a));
 
     const totalPending = pendingExpenses.reduce((sum, exp) => sum + getMonthlyPendingAmount(exp), 0);
@@ -329,7 +353,7 @@ export default function ExpensesPage() {
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <div className="flex items-center gap-3">
                                 <button
-                                    onClick={fetchExpenses}
+                                    onClick={() => { fetchExpenses(); fetchPendingReminders(); }}
                                     className="p-2 bg-[#F5C542]/10 rounded-lg shrink-0 hover:bg-[#F5C542]/20 transition-all active:scale-95"
                                     title="Refresh reminders"
                                 >
@@ -569,6 +593,7 @@ export default function ExpensesPage() {
                     setSortField('date');
                     setSortOrder('desc');
                     fetchExpenses();
+                    fetchPendingReminders();
                 }}
                 editId={editId}
             />
