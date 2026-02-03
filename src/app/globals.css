@@ -224,3 +224,113 @@ body {
   opacity: 1;
   animation: gradient-shift 2s ease infinite;
 }
+
+/* ===== Moderately Cute Animations 🌸 ===== */
+
+/* Gentle bounce for icons */
+@keyframes bounce-gentle {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Soft pulse for highlights */
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Wave animation for greeting */
+@keyframes wave {
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(15deg);
+  }
+
+  75% {
+    transform: rotate(-10deg);
+  }
+}
+
+/* Shimmer effect */
+@keyframes shimmer-soft {
+  0% {
+    background-position: -100% 0;
+  }
+
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+/* ===== Utility Classes ===== */
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+.animate-wave {
+  animation: wave 1.5s ease-in-out infinite;
+  transform-origin: 70% 70%;
+  display: inline-block;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+/* Hover scale effect */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Smooth card hover */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  border-color: rgba(245, 197, 66, 0.5);
+  box-shadow: 0 0 20px rgba(245, 197, 66, 0.1);
+}
+
+/* Icon hover bounce */
+.icon-bounce:hover {
+  animation: bounce-gentle 0.5s ease;
+}
+
+/* Gradient text */
+.text-gradient-gold {
+  background: linear-gradient(135deg, #F5C542 0%, #FFC83D 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Subtle glow on active elements */
+.glow-active {
+  box-shadow: 0 0 15px rgba(245, 197, 66, 0.3);
+}

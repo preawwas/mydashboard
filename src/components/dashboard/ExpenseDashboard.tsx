@@ -70,25 +70,31 @@ export default function ExpenseDashboard() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div>
-                <h2 className="text-lg sm:text-xl font-bold text-[#FAFAFA] mb-1 sm:mb-2 uppercase tracking-wide">Expense Analytics</h2>
-                <p className="text-xs sm:text-sm text-[#A1A1AA]">วิเคราะห์ค่าใช้จ่ายของคุณ</p>
+                <div className="flex items-center gap-2">
+                    <h2 className="text-lg sm:text-xl font-bold text-[#FAFAFA] uppercase tracking-wide">Expense Analytics</h2>
+                    <span className="text-lg">💸</span>
+                </div>
+                <p className="text-xs sm:text-sm text-[#A1A1AA]">วิเคราะห์ค่าใช้จ่ายของคุณ ✨</p>
             </div>
 
             {/* Top Categories */}
             <div className="space-y-4">
-                <h3 className="text-base sm:text-lg font-semibold text-[#FAFAFA]">Top Layers</h3>
+                <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-semibold text-[#FAFAFA]">Top Layers</h3>
+                    <span className="text-sm">🏆</span>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                     {categories.slice(0, 5).map((cat, index) => (
                         <div
                             key={index}
                             onClick={() => setSelectedCategory({ id: cat.id, name: cat.name })}
-                            className="bg-[#1C1B16] border border-[#2E2C24] p-3 sm:p-4 rounded-xl flex flex-col items-center justify-center gap-2 sm:gap-3 hover:border-[#F5C542] transition-colors cursor-pointer group"
+                            className="bg-[#1C1B16] border border-[#2E2C24] p-3 sm:p-4 rounded-xl flex flex-col items-center justify-center gap-2 sm:gap-3 hover:border-[#F5C542] transition-all hover-lift cursor-pointer group"
                         >
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#15140F] flex items-center justify-center border border-[#2E2C24] group-hover:border-[#F5C542]">
-                                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full" style={{ backgroundColor: cat.color }} />
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#15140F] flex items-center justify-center border border-[#2E2C24] group-hover:border-[#F5C542] transition-all group-hover:scale-105">
+                                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full transition-transform group-hover:scale-110" style={{ backgroundColor: cat.color }} />
                             </div>
                             <div className="text-center">
-                                <p className="text-xs sm:text-sm text-[#FAFAFA] font-medium truncate w-full max-w-[80px] sm:max-w-none">{cat.name}</p>
+                                <p className="text-xs sm:text-sm text-[#FAFAFA] font-medium truncate w-full max-w-[80px] sm:max-w-none group-hover:text-[#F5C542] transition-colors">{cat.name}</p>
                                 <p className="text-[10px] sm:text-xs text-[#A1A1AA]">฿{cat.amount.toLocaleString()}</p>
                             </div>
                         </div>
@@ -99,10 +105,13 @@ export default function ExpenseDashboard() {
             {/* Charts Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                 {/* Monthly Expenses Chart */}
-                <Card>
+                <Card className="card-hover">
                     <CardHeader>
-                        <CardTitle className="text-base sm:text-lg font-bold">Total Monthly Expenses</CardTitle>
-                        <p className="text-xl sm:text-2xl font-black text-[#F5C542]">฿{totalStats.toLocaleString()}</p>
+                        <div className="flex items-center gap-2">
+                            <CardTitle className="text-base sm:text-lg font-bold">Total Monthly Expenses</CardTitle>
+                            <span>📈</span>
+                        </div>
+                        <p className="text-xl sm:text-2xl font-black text-[#F5C542]">฿{totalStats.toLocaleString()} 💰</p>
                     </CardHeader>
                     <CardContent>
                         <div className="h-[250px] sm:h-[300px] w-full">
@@ -147,9 +156,12 @@ export default function ExpenseDashboard() {
                 </Card>
 
                 {/* Categories Bar Chart */}
-                <Card>
+                <Card className="card-hover">
                     <CardHeader>
-                        <CardTitle className="text-base sm:text-lg font-bold">Expenses by Category</CardTitle>
+                        <div className="flex items-center gap-2">
+                            <CardTitle className="text-base sm:text-lg font-bold">Expenses by Category</CardTitle>
+                            <span>🎯</span>
+                        </div>
                         <p className="text-sm sm:text-base font-medium text-[#A1A1AA]">Top Spending Breakdown</p>
                     </CardHeader>
                     <CardContent>

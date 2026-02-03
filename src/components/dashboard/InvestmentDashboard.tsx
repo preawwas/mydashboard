@@ -47,8 +47,11 @@ export default function InvestmentDashboard() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div>
-                <h2 className="text-xl font-semibold text-[#FAFAFA] mb-2">{t('common.investment')}</h2>
-                <p className="text-[#A1A1AA]">{t('dashboard.welcome')}</p>
+                <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-semibold text-[#FAFAFA]">{t('common.investment')}</h2>
+                    <span className="text-lg">📊</span>
+                </div>
+                <p className="text-[#A1A1AA] text-sm">Track your portfolio performance</p>
             </div>
 
             {/* Quick Stats */}
@@ -59,6 +62,7 @@ export default function InvestmentDashboard() {
                     change={!loading && stats?.totalProfitLoss ? `${stats.totalProfitLoss > 0 ? '+' : ''}${formatCurrency(stats.totalProfitLoss)}` : undefined}
                     icon={<BarChart3 className="w-6 h-6" />}
                     color="blue"
+                    emoji="💎"
                     loading={loading}
                 />
                 <QuickStatCard
@@ -67,6 +71,7 @@ export default function InvestmentDashboard() {
                     change={!loading && stats?.profitLossPercentage ? `${stats.profitLossPercentage > 0 ? '+' : ''}${stats.profitLossPercentage.toFixed(2)}%` : undefined}
                     icon={<TrendingUp className="w-6 h-6" />}
                     color="green"
+                    emoji="📈"
                     loading={loading}
                 />
                 <QuickStatCard
@@ -75,6 +80,7 @@ export default function InvestmentDashboard() {
                     subtitle={t('common.items')}
                     icon={<PieChart className="w-6 h-6" />}
                     color="purple"
+                    emoji="✨"
                     loading={loading}
                 />
                 <QuickStatCard
@@ -83,15 +89,19 @@ export default function InvestmentDashboard() {
                     subtitle={t('common.items')}
                     icon={<Target className="w-6 h-6" />}
                     color="orange"
+                    emoji="🎯"
                     loading={loading}
                 />
             </div>
 
             {/* Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card variant="gradient">
+                <Card variant="gradient" className="card-hover">
                     <CardHeader>
-                        <CardTitle>{t('common.started')}</CardTitle>
+                        <div className="flex items-center gap-2">
+                            <CardTitle>{t('common.started')}</CardTitle>
+                            <span>🚀</span>
+                        </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <p className="text-[#A1A1AA]">
@@ -99,17 +109,20 @@ export default function InvestmentDashboard() {
                         </p>
                         <Link
                             href="/dashboard/investments"
-                            className="inline-flex items-center gap-2 text-[#F5C542] hover:text-[#FFC83D] font-medium"
+                            className="inline-flex items-center gap-2 text-[#F5C542] hover:text-[#FFC83D] font-medium group"
                         >
                             {t('dashboard.goToInvestment')}
-                            <ArrowRight className="w-4 h-4" />
+                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </CardContent>
                 </Card>
 
-                <Card variant="gradient">
+                <Card variant="gradient" className="card-hover">
                     <CardHeader>
-                        <CardTitle>{t('dashboard.mainFeatures')}</CardTitle>
+                        <div className="flex items-center gap-2">
+                            <CardTitle>{t('dashboard.mainFeatures')}</CardTitle>
+                            <span>💡</span>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <ul className="space-y-2 text-[#A1A1AA]">
@@ -144,10 +157,11 @@ interface QuickStatCardProps {
     subtitle?: string;
     icon: React.ReactNode;
     color: 'blue' | 'green' | 'purple' | 'orange';
+    emoji?: string;
     loading?: boolean;
 }
 
-function QuickStatCard({ title, value, change, subtitle, icon, color, loading }: QuickStatCardProps) {
+function QuickStatCard({ title, value, change, subtitle, icon, color, emoji, loading }: QuickStatCardProps) {
     const colorMap = {
         blue: 'from-blue-600 to-blue-700 shadow-blue-500/20 text-white',
         green: 'from-emerald-600 to-emerald-700 shadow-emerald-500/20 text-white',
@@ -156,24 +170,27 @@ function QuickStatCard({ title, value, change, subtitle, icon, color, loading }:
     };
 
     return (
-        <Card className="relative overflow-hidden">
+        <Card className="relative overflow-hidden hover-lift card-hover group">
             <CardContent className="flex items-center gap-4">
                 <div
-                    className={`p-3 rounded-xl bg-gradient-to-br ${colorMap[color]} shadow-lg`}
+                    className={`p-3 rounded-xl bg-gradient-to-br ${colorMap[color]} shadow-lg transition-transform group-hover:scale-105`}
                 >
                     {icon}
                 </div>
-                <div>
+                <div className="flex-1">
                     <p className="text-sm text-[#A1A1AA]">{title}</p>
                     {loading ? (
                         <div className="h-8 w-24 bg-[#2E2C24] animate-pulse rounded mt-1"></div>
                     ) : (
-                        <p className="text-2xl font-bold text-[#FAFAFA]">{value}</p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-2xl font-bold text-[#FAFAFA]">{value}</p>
+                            {emoji && <span className="text-lg opacity-0 group-hover:opacity-100 transition-opacity">{emoji}</span>}
+                        </div>
                     )}
 
                     {!loading && change && (
                         <p className={`text-sm ${change.startsWith('+') ? 'text-[#059669]' : change.startsWith('-') ? 'text-red-500' : 'text-[#A1A1AA]'}`}>
-                            {change}
+                            {change} {change.startsWith('+') && '🎉'}
                         </p>
                     )}
                     {!loading && subtitle && <p className="text-sm text-[#A1A1AA]">{subtitle}</p>}
