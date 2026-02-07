@@ -134,7 +134,7 @@ export async function sendExpenseReminderEmail(
         const mailOptions = {
             from: process.env.EMAIL_FROM || `PWSN Dashboard <${process.env.SMTP_USER}>`,
             to: recipient.email,
-            subject: `📋 แจ้งเตือน: มี ${pendingItems.length} รายการรอชำระ (฿${totalAmount.toLocaleString()})`,
+            subject: `[PWSN] แจ้งเตือน: มี ${pendingItems.length} รายการรอชำระ (฿${totalAmount.toLocaleString()})`,
             html: generateEmailTemplate(
                 recipient.name || '',
                 pendingItems,

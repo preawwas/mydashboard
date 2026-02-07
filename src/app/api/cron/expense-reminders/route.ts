@@ -96,7 +96,10 @@ export async function GET(request: NextRequest) {
         }
 
         const results: { userId: string; email: string; success: boolean; itemCount: number; error?: string }[] = [];
-        const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        // Use VERCEL_URL for Vercel deployments, fallback to NEXT_PUBLIC_APP_URL, then localhost
+        const dashboardUrl = process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
 
         for (const user of users || []) {
             // Fetch expenses with installments for this user
