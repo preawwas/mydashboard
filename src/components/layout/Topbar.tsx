@@ -2,25 +2,20 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useAuthStore, useUIStore, useThemeStore } from '@/lib/store';
-import { Bell, Menu, Moon, Sun } from 'lucide-react';
+import { useAuthStore, useUIStore } from '@/lib/store';
+import { Bell, Menu } from 'lucide-react';
 import { cn, getMonthlyPendingAmount } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
 
 const Topbar: React.FC = () => {
     const { token, user } = useAuthStore();
-    const { theme, toggleTheme } = useThemeStore();
     const { sidebarOpen, toggleSidebar } = useUIStore();
     const [pendingCount, setPendingCount] = useState(0);
     const [pendingTotal, setPendingTotal] = useState(0);
     const [showNotifications, setShowNotifications] = useState(false);
     const [pendingItems, setPendingItems] = useState<any[]>([]);
 
-    // Hydration fix for theme
-    const [mounted, setMounted] = useState(false);
-    React.useEffect(() => {
-        setMounted(true);
-    }, []);
+
 
     React.useEffect(() => {
         if (!token || !user) return;
@@ -48,7 +43,7 @@ const Topbar: React.FC = () => {
         <header
             className={cn(
                 'fixed top-0 right-0 z-30 h-16 border-b border-border',
-                'bg-background/40 backdrop-blur-md',
+                'bg-card border-b border-border',
                 'transition-all duration-300',
                 'left-0 lg:left-20',
                 sidebarOpen && 'lg:left-64'
@@ -69,20 +64,6 @@ const Topbar: React.FC = () => {
 
                 {/* Right Section */}
                 <div className="flex items-center gap-3">
-                    {/* Theme Toggle */}
-                    {mounted && (
-                        <button
-                            onClick={toggleTheme}
-                            className="p-2 text-muted-foreground hover:text-primary hover:bg-muted/10 rounded-lg transition-all duration-300"
-                            aria-label="Toggle theme"
-                        >
-                            {theme === 'dark' ? (
-                                <Sun className="w-5 h-5" />
-                            ) : (
-                                <Moon className="w-5 h-5" />
-                            )}
-                        </button>
-                    )}
 
                     {/* Notifications */}
                     <div className="relative">

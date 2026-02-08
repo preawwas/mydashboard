@@ -79,7 +79,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
 
 
     return (
-        <Card className="bg-card backdrop-blur-xl border-border shadow-lg shadow-primary/5">
+        <Card className="bg-card border-border shadow-md">
             <CardHeader className="border-b border-border pb-4">
                 <CardTitle className="text-foreground text-lg font-bold">{t('dashboard.assetAllocation')}</CardTitle>
             </CardHeader>
@@ -87,7 +87,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                 <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
                     {/* Donut Chart */}
                     <div className="relative w-48 h-48 sm:w-64 sm:h-64 flex-shrink-0">
-                        <svg viewBox="0 0 100 100" className="w-full h-full transform drop-shadow-xl">
+                        <svg viewBox="0 0 100 100" className="w-full h-full">
                             {/* Background circle */}
                             <circle cx="50" cy="50" r="40" fill="currentColor" className="text-muted/10" />
 
@@ -99,7 +99,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                                         fill={item.color}
                                         stroke="transparent"
                                         strokeWidth="0"
-                                        className="transition-all duration-300 hover:opacity-90 cursor-pointer"
+                                        className="cursor-pointer hover:opacity-90"
                                     />
                                 ))
                             ) : (
@@ -125,7 +125,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                     <div className="flex-1 w-full space-y-3 sm:space-y-4">
                         {processedData.length > 0 ? (
                             processedData.map((item) => (
-                                <div key={item.category} className="group flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-card border border-border hover:border-primary/40 transition-all shadow-sm">
+                                <div key={item.category} className="group flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-card border border-border hover:border-primary/40 transition-colors shadow-sm">
                                     <div className="flex items-center gap-3 sm:gap-4">
                                         <div
                                             className="w-2 sm:w-3 h-10 sm:h-12 rounded-full shadow-lg"

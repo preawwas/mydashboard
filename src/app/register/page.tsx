@@ -87,21 +87,21 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#0F0F0C] via-[#15140F] to-[#1C1B16] flex items-center justify-center p-4">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-[#F5C542] to-[#FFD54F] bg-clip-text text-transparent">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
                         สมัครสมาชิก
                     </h1>
-                    <p className="text-[#A1A1AA] mt-2">สร้างบัญชีใหม่เพื่อเริ่มต้นใช้งาน</p>
+                    <p className="text-muted-foreground mt-2">สร้างบัญชีใหม่เพื่อเริ่มต้นใช้งาน</p>
                 </div>
 
                 {/* Form Card */}
-                <div className="bg-[#1C1B16] border border-[#2E2C24] rounded-2xl shadow-xl shadow-black/20 p-8">
+                <div className="bg-card border border-border rounded-2xl shadow-lg p-8">
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {errors.submit && (
-                            <div className="p-4 rounded-lg bg-red-900/10 border border-red-900/20">
+                            <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
                                 <p className="text-sm text-red-500">{errors.submit}</p>
                             </div>
                         )}
@@ -138,7 +138,7 @@ export default function RegisterPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="focus:outline-none text-[#71717A] hover:text-[#FAFAFA] transition-colors"
+                                    className="focus:outline-none text-muted-foreground hover:text-foreground transition-colors"
                                 >
                                     {showPassword ? (
                                         <EyeOff className="w-4 h-4" />
@@ -172,11 +172,11 @@ export default function RegisterPage() {
                     </form>
 
                     <div className="mt-6 text-center">
-                        <p className="text-sm text-[#71717A]">
+                        <p className="text-sm text-muted-foreground">
                             มีบัญชีอยู่แล้ว?{' '}
                             <Link
                                 href="/login"
-                                className="text-[#F5C542] hover:text-[#FFC83D] font-medium"
+                                className="text-primary hover:text-primary-hover font-medium"
                             >
                                 เข้าสู่ระบบ
                             </Link>

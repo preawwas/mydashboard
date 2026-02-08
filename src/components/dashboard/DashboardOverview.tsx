@@ -112,7 +112,7 @@ export default function DashboardOverview() {
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
+        <div className="space-y-6">
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -122,13 +122,13 @@ export default function DashboardOverview() {
                 <div className="flex gap-2">
                     <Link
                         href="/investments"
-                        className="px-4 py-2 bg-card backdrop-blur-md border border-border rounded-lg text-sm hover:border-primary transition-colors flex items-center gap-2 text-foreground"
+                        className="px-4 py-2 bg-card border border-border rounded-lg text-sm hover:border-primary transition-colors flex items-center gap-2 text-foreground"
                     >
                         Investment <ExternalLink className="w-3 h-3" />
                     </Link>
                     <Link
                         href="/expenses"
-                        className="px-4 py-2 bg-card backdrop-blur-md border border-border rounded-lg text-sm hover:border-primary transition-colors flex items-center gap-2 text-foreground"
+                        className="px-4 py-2 bg-card border border-border rounded-lg text-sm hover:border-primary transition-colors flex items-center gap-2 text-foreground"
                     >
                         Expenses <ExternalLink className="w-3 h-3" />
                     </Link>
@@ -203,8 +203,7 @@ export default function DashboardOverview() {
                                                 borderColor: 'var(--primary)',
                                                 borderRadius: '12px',
                                                 color: 'var(--foreground)',
-                                                boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                                                backdropFilter: 'blur(10px)'
+                                                boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
                                             }}
                                             itemStyle={{ color: 'var(--foreground)' }}
                                             labelStyle={{ color: 'var(--primary)', fontWeight: 'bold' }}
@@ -261,7 +260,6 @@ export default function DashboardOverview() {
                                             backgroundColor: 'var(--card)',
                                             borderColor: 'var(--primary)',
                                             borderRadius: '12px',
-                                            backdropFilter: 'blur(10px)',
                                             color: 'var(--foreground)'
                                         }}
                                         itemStyle={{ color: 'var(--foreground)' }}
@@ -361,7 +359,7 @@ export default function DashboardOverview() {
                                             <p className="text-foreground font-medium truncate">{cat.name}</p>
                                             <div className="w-full bg-muted/20 rounded-full h-1.5 mt-1">
                                                 <div
-                                                    className="h-1.5 rounded-full transition-all"
+                                                    className="h-1.5 rounded-full"
                                                     style={{
                                                         width: `${(cat.amount / expenseData.totalExpenses) * 100}%`,
                                                         backgroundColor: cat.color
@@ -404,10 +402,10 @@ interface StatCardProps {
 
 function StatCard({ title, value, subtitle, icon, trend, trendLabel, color }: StatCardProps) {
     const colorStyles = {
-        gold: 'bg-card backdrop-blur-md border-primary/30 shadow-md shadow-primary/5',
-        green: 'bg-card backdrop-blur-md border-emerald-500/30 shadow-md shadow-emerald-500/5',
-        red: 'bg-card backdrop-blur-md border-rose-500/30 shadow-md shadow-rose-500/5',
-        purple: 'bg-card backdrop-blur-md border-purple-500/30 shadow-md shadow-purple-500/5'
+        gold: 'bg-card border-primary/30 shadow-md',
+        green: 'bg-card border-emerald-500/30 shadow-md',
+        red: 'bg-card border-rose-500/30 shadow-md',
+        purple: 'bg-card border-purple-500/30 shadow-md'
     };
 
     const iconColors = {
@@ -418,7 +416,7 @@ function StatCard({ title, value, subtitle, icon, trend, trendLabel, color }: St
     };
 
     return (
-        <div className={`p-4 rounded-xl border ${colorStyles[color]} transition-all hover:scale-[1.02]`}>
+        <div className={`p-4 rounded-xl border ${colorStyles[color]}`}>
             <div className="flex items-start justify-between mb-2">
                 <span className={iconColors[color]}>{icon}</span>
                 {trend !== undefined && (

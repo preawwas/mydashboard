@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useUIStore, useAuthStore, useSettingsStore, useThemeStore } from '@/lib/store';
+import { useUIStore, useAuthStore, useSettingsStore } from '@/lib/store';
 import { useTranslation } from '@/lib/useTranslation';
 import {
     LayoutDashboard,
@@ -45,15 +45,8 @@ const Sidebar: React.FC = () => {
     const pathname = usePathname();
     const { sidebarOpen, toggleSidebar } = useUIStore();
     const { logout } = useAuthStore();
-    const { theme } = useThemeStore();
     const { enableInvestment, enableExpense } = useSettingsStore();
     const { t } = useTranslation();
-
-    // Hydration fix
-    const [mounted, setMounted] = React.useState(false);
-    React.useEffect(() => {
-        setMounted(true);
-    }, []);
 
     const handleLogout = () => {
         logout();
@@ -64,21 +57,22 @@ const Sidebar: React.FC = () => {
         <aside
             className={cn(
                 'fixed left-0 top-0 z-40 h-screen transition-[width,transform] duration-300 ease-in-out flex flex-col',
-                'bg-background/40 backdrop-blur-xl border-r border-border',
-                // Mobile behavior: slide in from left
-                sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-                // Desktop behavior: dynamic width
-                sidebarOpen ? 'w-64' : 'lg:w-20'
+                'bg-card border-r border-border',
+                // Mobile behavior: slide in from left with compact width (w-20)
+                sidebarOpen ? 'translate-x-0 w-20' : '-translate-x-full lg:translate-x-0',
+                // Desktop behavior: dynamic width (w-64 when open, w-20 when collapsed)
+                sidebarOpen ? 'lg:w-64' : 'lg:w-20'
             )}
         >
             {/* Logo */}
             <div className="h-16 flex items-center justify-between px-4 border-b border-border shrink-0">
-                <div className={cn('flex items-center gap-3', !sidebarOpen && 'justify-center w-full')}>
+                <div className={cn('flex items-center gap-3', 'justify-center w-full lg:justify-start', sidebarOpen && 'lg:w-auto')}>
                     <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
                         <TrendingUp className="w-5 h-5 text-primary-foreground" />
                     </div>
+                    {/* Hide text on mobile, show on desktop when sidebar is open */}
                     {sidebarOpen && (
-                        <span className="font-bold text-xl text-primary">
+                        <span className="font-bold text-xl text-primary hidden lg:inline">
                             Memo
                         </span>
                     )}
@@ -87,7 +81,7 @@ const Sidebar: React.FC = () => {
 
             {/* Navigation */}
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-                {mounted && navItems.map((item) => {
+                {navItems.map((item) => {
                     // Feature Toggle Logic
                     if (item.label === 'Investment' && !enableInvestment) return null;
                     if (item.label === 'Expense' && !enableExpense) return null;
@@ -106,13 +100,21 @@ const Sidebar: React.FC = () => {
                         <Link
                             key={item.href}
                             href={item.href}
+                            onClick={() => {
+                                // Close sidebar on mobile when navigating
+                                if (window.innerWidth < 1024 && sidebarOpen) {
+                                    toggleSidebar();
+                                }
+                            }}
                             className={cn(
                                 'flex items-center gap-3 px-4 py-3 rounded-xl font-medium',
                                 'transition-all duration-200 group',
                                 isActive
                                     ? 'bg-primary/10 text-primary border border-primary/20'
                                     : 'text-muted-foreground hover:bg-primary/5 hover:text-primary',
-                                !sidebarOpen && 'justify-center px-3'
+                                // Always compact on mobile, follow sidebarOpen on desktop
+                                'justify-center px-3 lg:justify-start lg:px-4',
+                                !sidebarOpen && 'lg:justify-center lg:px-3'
                             )}
                         >
                             <span
@@ -123,7 +125,8 @@ const Sidebar: React.FC = () => {
                             >
                                 {item.icon}
                             </span>
-                            {sidebarOpen && <span>{label}</span>}
+                            {/* Hide text on mobile, show on desktop when sidebar is open */}
+                            {sidebarOpen && <span className="hidden lg:inline">{label}</span>}
                         </Link>
                     );
                 })}
@@ -134,19 +137,28 @@ const Sidebar: React.FC = () => {
                 {/* Settings Link */}
                 <Link
                     href="/settings"
+                    onClick={() => {
+                        // Close sidebar on mobile when navigating
+                        if (window.innerWidth < 1024 && sidebarOpen) {
+                            toggleSidebar();
+                        }
+                    }}
                     className={cn(
                         'w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group',
                         pathname === '/settings'
                             ? 'bg-secondary text-secondary-foreground border border-border'
                             : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground',
-                        !sidebarOpen && 'justify-center px-3'
+                        // Always compact on mobile, follow sidebarOpen on desktop
+                        'justify-center px-3 lg:justify-start lg:px-4',
+                        !sidebarOpen && 'lg:justify-center lg:px-3'
                     )}
                 >
                     <Settings className={cn(
                         "w-5 h-5 transition-colors",
                         pathname === '/settings' ? "text-secondary-foreground" : "text-muted-foreground group-hover:text-foreground"
                     )} />
-                    {sidebarOpen && <span>{t('common.settings')}</span>}
+                    {/* Hide text on mobile, show on desktop when sidebar is open */}
+                    {sidebarOpen && <span className="hidden lg:inline">{t('common.settings')}</span>}
                 </Link>
 
                 <button
@@ -154,11 +166,14 @@ const Sidebar: React.FC = () => {
                     className={cn(
                         'w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium',
                         'transition-all duration-200 text-muted-foreground hover:bg-red-500/10 hover:text-red-500 group',
-                        !sidebarOpen && 'justify-center px-3'
+                        // Always compact on mobile, follow sidebarOpen on desktop
+                        'justify-center px-3 lg:justify-start lg:px-4',
+                        !sidebarOpen && 'lg:justify-center lg:px-3'
                     )}
                 >
                     <LogOut className="w-5 h-5 text-muted-foreground group-hover:text-red-500 transition-colors" />
-                    {sidebarOpen && <span>{t('common.logout')}</span>}
+                    {/* Hide text on mobile, show on desktop when sidebar is open */}
+                    {sidebarOpen && <span className="hidden lg:inline">{t('common.logout')}</span>}
                 </button>
 
                 <div className={cn(

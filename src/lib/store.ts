@@ -64,7 +64,7 @@ export const useInvestmentStore = create<InvestmentState>((set) => ({
         total: 0,
         totalPages: 0,
     },
-    isLoading: false,
+    isLoading: true,
     setInvestments: (response) =>
         set({
             investments: response.data,

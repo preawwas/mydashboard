@@ -29,8 +29,8 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Hero Card - Total Value */}
-            <Card className="lg:col-span-3 bg-card backdrop-blur-xl border-border shadow-xl shadow-primary/5 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+            <Card className="lg:col-span-3 bg-card border-border shadow-md relative overflow-hidden">
+
                 <CardContent className="p-8 relative z-10">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                         <div>
@@ -45,7 +45,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                             </h2>
                         </div>
 
-                        <div className="flex items-center gap-4 bg-card/60 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-border shadow-lg shrink-0">
+                        <div className="flex items-center gap-4 bg-card p-4 sm:p-5 rounded-2xl border border-border shadow-lg shrink-0">
                             <div>
                                 <p className="text-xs sm:text-sm text-muted-foreground font-medium mb-1">{t('common.totalProfit')}</p>
                                 <div className={`flex items-center gap-2 sm:gap-3 ${data.totalProfitLoss >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
@@ -64,7 +64,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
             </Card>
 
             {/* Secondary Stats */}
-            <Card className="bg-card backdrop-blur-lg border-border hover:border-primary/50 transition-all shadow-md shadow-primary/5">
+            <Card className="bg-card border-border hover:border-primary/50 transition-colors shadow-md">
                 <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="p-2 rounded-lg bg-blue-500/10">
@@ -79,7 +79,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                 </CardContent>
             </Card>
 
-            <Card className="bg-card backdrop-blur-lg border-border hover:border-primary/50 transition-all shadow-md shadow-primary/5">
+            <Card className="bg-card border-border hover:border-primary/50 transition-colors shadow-md">
                 <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="p-2 rounded-lg bg-primary/10">
@@ -94,7 +94,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                 </CardContent>
             </Card>
 
-            <Card className="bg-card backdrop-blur-lg border-border hover:border-primary/50 transition-all shadow-md shadow-primary/5">
+            <Card className="bg-card border-border hover:border-primary/50 transition-colors shadow-md">
                 <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="p-2 rounded-lg bg-emerald-500/10">

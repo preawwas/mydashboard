@@ -107,18 +107,24 @@ export default function InvestmentsPage() {
         }
     };
 
+    // Debounced fetch to prevent multiple rapid calls
     useEffect(() => {
-        fetchInvestments();
-    }, [token, pagination.page, pagination.limit, filters, searchQuery]);
+        const timeoutId = setTimeout(() => {
+            fetchInvestments();
+        }, 100);
+        return () => clearTimeout(timeoutId);
+    }, [token, pagination.page, pagination.limit, filters.asset_category, filters.strategy_type, filters.status, searchQuery]);
 
     // Handle Tab Switch - Reset filters when going to overview
-    useEffect(() => {
-        if (activeTab === 'overview') {
+    const handleTabChange = (tab: 'overview' | 'list') => {
+        if (tab === 'overview' && activeTab !== 'overview') {
+            // Batch all resets together
             setFilters({});
             setSearchQuery('');
             setPage(1);
         }
-    }, [activeTab]);
+        setActiveTab(tab);
+    };
 
     // Handle add investment
     // Handle add investment
@@ -227,7 +233,7 @@ export default function InvestmentsPage() {
                 <div className="border-b border-border">
                     <nav className="flex gap-8">
                         <button
-                            onClick={() => setActiveTab('overview')}
+                            onClick={() => handleTabChange('overview')}
                             className={`py-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'overview'
                                 ? 'border-primary text-primary'
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -236,7 +242,7 @@ export default function InvestmentsPage() {
                             {t('common.overview')}
                         </button>
                         <button
-                            onClick={() => setActiveTab('list')}
+                            onClick={() => handleTabChange('list')}
                             className={`py-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'list'
                                 ? 'border-primary text-primary'
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -248,7 +254,11 @@ export default function InvestmentsPage() {
                 </div>
 
                 {/* Content */}
-                {activeTab === 'overview' ? (
+                {isLoading && investments.length === 0 ? (
+                    <div className="flex items-center justify-center py-20">
+                        <Loading size="lg" text={t('common.loading')} />
+                    </div>
+                ) : activeTab === 'overview' ? (
                     <div className="space-y-6">
                         <SummaryCards data={summaryData} />
                         <AssetAllocation data={allocationData} />

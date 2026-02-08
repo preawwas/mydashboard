@@ -154,19 +154,14 @@ export default function ExpensesPage() {
         setIsDeleteModalOpen(true);
     };
 
-    useEffect(() => {
-        fetchExpenses();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, currentPage, sortField, sortOrder, filterCategory, filterPayment, filterStatus, startDate, endDate]);
-
-    // Debounce search
+    // Single debounced fetch to prevent multiple rapid calls
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            if (token) fetchExpenses();
-        }, 500);
+            fetchExpenses();
+        }, searchTerm ? 500 : 100); // Longer debounce for search
         return () => clearTimeout(timeoutId);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchTerm]);
+    }, [token, currentPage, sortField, sortOrder, filterCategory, filterPayment, filterStatus, startDate, endDate, searchTerm]);
 
     useEffect(() => {
         fetchFilterData();
