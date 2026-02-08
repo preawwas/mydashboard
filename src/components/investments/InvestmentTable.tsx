@@ -3,7 +3,7 @@
 import React from 'react';
 import { Table, Badge, Button } from '@/components/ui';
 import { Investment, InvestmentFilters } from '@/types';
-import { formatCurrency, formatDateTime, getCategoryColor, getStrategyColor, getStatusColor, calculateProfitLoss } from '@/lib/utils';
+import { formatCurrency, formatDate, getCategoryColor, getStrategyColor, getStatusColor, calculateProfitLoss } from '@/lib/utils';
 import { Eye, Edit, Trash2 } from 'lucide-react';
 import { useTranslation } from '@/lib/useTranslation';
 
@@ -39,8 +39,8 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
             render: (item: Investment) => (
                 <div className="flex items-center gap-3">
                     <div>
-                        <p className="font-medium text-[#FAFAFA]">{item.asset_code}</p>
-                        <p className="text-sm text-gray-500">{item.asset_name}</p>
+                        <p className="font-medium text-foreground">{item.asset_code}</p>
+                        <p className="text-sm text-muted-foreground">{item.asset_name}</p>
                     </div>
                 </div>
             ),
@@ -49,7 +49,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
             key: 'market',
             header: t('investment.market'),
             render: (item: Investment) => (
-                <span className="text-[#FAFAFA]">{item.market}</span>
+                <span className="text-foreground">{item.market}</span>
             ),
         },
         {
@@ -57,7 +57,12 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
             header: t('investment.type.label'),
             render: (item: Investment) => (
                 <Badge className={getCategoryColor(item.asset_category)}>
-                    {item.asset_category}
+                    {item.asset_category === 'GOLD' ? t('investment.type.gold') :
+                        item.asset_category === 'CRYPTO' ? t('investment.type.crypto') :
+                            item.asset_category === 'STOCK' ? t('investment.type.stock') :
+                                item.asset_category === 'FUND' ? t('investment.type.fund') :
+                                    item.asset_category === 'USD' ? 'USD' :
+                                        t('common.others')}
                 </Badge>
             ),
         },
@@ -75,10 +80,10 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
             header: t('investment.buy'),
             render: (item: Investment) => (
                 <div>
-                    <p className="font-medium text-[#FAFAFA]">
+                    <p className="font-medium text-foreground">
                         {item.buy_quantity} × {formatCurrency(item.buy_price_per_unit, item.buy_currency)}
                     </p>
-                    <p className="text-sm text-gray-500">{formatDateTime(item.buy_datetime)}</p>
+                    <p className="text-sm text-muted-foreground">{formatDate(item.buy_datetime)}</p>
                 </div>
             ),
         },
@@ -88,7 +93,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
             render: (item: Investment) => {
                 const totalCost = item.buy_quantity * item.buy_price_per_unit + item.buy_fee;
                 return (
-                    <p className="font-medium text-[#FAFAFA]">
+                    <p className="font-medium text-foreground">
                         {formatCurrency(totalCost, item.buy_currency)}
                     </p>
                 );
@@ -99,7 +104,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
             header: t('common.profit'),
             render: (item: Investment) => {
                 if (item.sell_history.length === 0) {
-                    return <span className="text-gray-400">-</span>;
+                    return <span className="text-muted-foreground">-</span>;
                 }
                 const { profitLoss, percentage } = calculateProfitLoss(
                     item.buy_quantity,
@@ -109,7 +114,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                 );
                 const isProfit = profitLoss >= 0;
                 return (
-                    <div className={isProfit ? 'text-green-600' : 'text-red-600'}>
+                    <div className={isProfit ? 'text-green-500' : 'text-destructive'}>
                         <p className="font-medium">
                             {isProfit ? '+' : ''}{formatCurrency(profitLoss, item.buy_currency)}
                         </p>
@@ -140,7 +145,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                             e.stopPropagation();
                             onEdit(item);
                         }}
-                        className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                        className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                         title={t('common.edit')}
                     >
                         <Edit className="w-4 h-4" />
@@ -150,7 +155,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                             e.stopPropagation();
                             onDelete(item);
                         }}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                         title={t('common.delete')}
                     >
                         <Trash2 className="w-4 h-4" />

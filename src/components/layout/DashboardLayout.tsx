@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
-import { useAuthStore, useUIStore } from '@/lib/store';
+import { useAuthStore, useUIStore, useThemeStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Loading, Toast } from '@/components/ui';
 
@@ -15,11 +15,15 @@ interface DashboardLayoutProps {
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const router = useRouter();
     const { user, token, isLoading, setLoading } = useAuthStore();
+    const { theme } = useThemeStore();
     const { sidebarOpen, toggleSidebar } = useUIStore();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         setMounted(true);
+        // Apply theme to document
+        document.documentElement.setAttribute('data-theme', theme);
+
         // Check authentication
         const storedAuth = localStorage.getItem('auth-storage');
         if (storedAuth) {
@@ -38,7 +42,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             return;
         }
         setLoading(false);
-    }, [router, setLoading]);
+    }, [router, setLoading, theme]);
 
     if (!mounted || isLoading) {
         return <Loading fullScreen text="กำลังโหลด..." />;
@@ -49,7 +53,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     }
 
     return (
-        <div className="min-h-screen bg-[#0F0F0C]">
+        <div className="min-h-screen bg-transparent text-foreground">
             <Sidebar />
             <Topbar />
 

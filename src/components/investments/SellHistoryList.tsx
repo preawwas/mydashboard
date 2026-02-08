@@ -28,7 +28,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between mb-4">
-                <p className="text-sm text-[#A1A1AA]">{t('investment.sellHistoryDesc')}</p>
+                <p className="text-sm text-muted-foreground">{t('investment.sellHistoryDesc')}</p>
                 <Button
                     type="button"
                     variant="primary"
@@ -45,13 +45,13 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                     {sellHistory.map((sell, index) => (
                         <div
                             key={sell._id}
-                            className="p-4 rounded-xl bg-[#1C1B16] border border-[#2E2C24] space-y-3 relative group"
+                            className="p-4 rounded-xl bg-card border border-border space-y-3 relative group"
                         >
                             <div className="absolute top-2 right-2">
                                 <button
                                     type="button"
                                     onClick={() => onRemove(index)}
-                                    className="p-1.5 text-[#A1A1AA] hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                                    className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
@@ -60,7 +60,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                                 <div className="col-span-12 md:col-span-4">
                                     <Input
                                         label={t('investment.sellDate')}
-                                        type="datetime-local"
+                                        type="date"
                                         value={sell.datetime}
                                         onChange={(e) => onUpdate(index, 'datetime', e.target.value)}
                                     />
@@ -113,9 +113,9 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                     ))}
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center min-h-[320px] border-2 border-dashed border-[#2E2C24] rounded-xl">
-                    <p className="text-[#A1A1AA]">{t('investment.noSellHistory')}</p>
-                    <p className="text-xs text-[#71717A] mt-1">{t('investment.addSellHint')}</p>
+                <div className="flex flex-col items-center justify-center min-h-[320px] border-2 border-dashed border-border rounded-xl">
+                    <p className="text-muted-foreground">{t('investment.noSellHistory')}</p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">{t('investment.addSellHint')}</p>
                 </div>
             )}
         </div>

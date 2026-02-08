@@ -87,17 +87,17 @@ export default function SettingsPage() {
             <div className="max-w-4xl mx-auto space-y-6">
                 {/* Header */}
                 <div>
-                    <h1 className="text-2xl font-bold text-[#FAFAFA]">Settings</h1>
-                    <p className="text-[#A1A1AA]">จัดการข้อมูลส่วนตัวและการตั้งค่าบัญชี</p>
+                    <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+                    <p className="text-muted-foreground">จัดการข้อมูลส่วนตัวและการตั้งค่าบัญชี</p>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b border-[#2E2C24]">
+                <div className="flex border-b border-border">
                     <button
                         onClick={() => setActiveTab('profile')}
                         className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'profile'
-                            ? 'border-[#F5C542] text-[#F5C542]'
-                            : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
                     >
                         ข้อมูลส่วนตัว
@@ -105,8 +105,8 @@ export default function SettingsPage() {
                     <button
                         onClick={() => setActiveTab('account')}
                         className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'account'
-                            ? 'border-[#F5C542] text-[#F5C542]'
-                            : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
                     >
                         ความปลอดภัยและการแจ้งเตือน
@@ -114,8 +114,8 @@ export default function SettingsPage() {
                     <button
                         onClick={() => setActiveTab('preferences')}
                         className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'preferences'
-                            ? 'border-[#F5C542] text-[#F5C542]'
-                            : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
                     >
                         การตั้งค่าทั่วไป
@@ -129,16 +129,16 @@ export default function SettingsPage() {
                             <CardContent>
                                 <div className="flex flex-col items-center py-6">
                                     <div className="relative">
-                                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#F5C542] to-[#FFC83D] flex items-center justify-center text-[#15140F] text-3xl font-bold shadow-xl shadow-[#F5C542]/20">
+                                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-primary-hover flex items-center justify-center text-primary-foreground text-3xl font-bold shadow-xl shadow-primary/20">
                                             {user?.name?.charAt(0).toUpperCase() || 'U'}
                                         </div>
-                                        <button className="absolute bottom-0 right-0 p-2 bg-[#2E2C24] rounded-full shadow-lg border border-[#3E3C32] hover:bg-[#3E3C32] transition-colors">
-                                            <Camera className="w-4 h-4 text-[#A1A1AA]" />
+                                        <button className="absolute bottom-0 right-0 p-2 bg-card rounded-full shadow-lg border border-border hover:bg-muted transition-colors">
+                                            <Camera className="w-4 h-4 text-muted-foreground" />
                                         </button>
                                     </div>
-                                    <h2 className="mt-4 text-xl font-semibold text-[#FAFAFA]">{user?.name || 'User'}</h2>
-                                    <p className="text-[#A1A1AA]">{user?.email}</p>
-                                    <span className="mt-2 px-3 py-1 rounded-full bg-[#2E2C24] text-[#F5C542] border border-[#F5C542]/20 text-sm font-medium">
+                                    <h2 className="mt-4 text-xl font-semibold text-foreground">{user?.name || 'User'}</h2>
+                                    <p className="text-muted-foreground">{user?.email}</p>
+                                    <span className="mt-2 px-3 py-1 rounded-full bg-secondary text-secondary-foreground border border-primary/20 text-sm font-medium">
                                         {user?.role === 'admin' ? 'Admin' : 'User'}
                                     </span>
                                 </div>
@@ -148,7 +148,7 @@ export default function SettingsPage() {
                         {/* Edit Form */}
                         <Card>
                             <CardHeader>
-                                <CardTitle className="text-[#FAFAFA]">แก้ไขข้อมูล</CardTitle>
+                                <CardTitle className="text-foreground">แก้ไขข้อมูล</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <form onSubmit={handleProfileSubmit} className="space-y-4">
@@ -192,8 +192,8 @@ export default function SettingsPage() {
                         {/* Password Change */}
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-[#FAFAFA]">
-                                    <Lock className="w-5 h-5 text-[#F5C542]" />
+                                <CardTitle className="flex items-center gap-2 text-foreground">
+                                    <Lock className="w-5 h-5 text-primary" />
                                     เปลี่ยนรหัสผ่าน
                                 </CardTitle>
                             </CardHeader>
@@ -220,7 +220,7 @@ export default function SettingsPage() {
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
-                                                className="focus:outline-none text-[#A1A1AA] hover:text-[#FAFAFA]"
+                                                className="focus:outline-none text-muted-foreground hover:text-foreground"
                                             >
                                                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                             </button>
@@ -253,16 +253,16 @@ export default function SettingsPage() {
                         {/* Notifications */}
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-[#FAFAFA]">
-                                    <Bell className="w-5 h-5 text-[#F5C542]" />
+                                <CardTitle className="flex items-center gap-2 text-foreground">
+                                    <Bell className="w-5 h-5 text-primary" />
                                     การแจ้งเตือน
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="flex items-center justify-between p-4 rounded-lg bg-[#2E2C24]/50 border border-[#2E2C24]">
+                                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/20 border border-border">
                                     <div>
-                                        <p className="font-medium text-[#FAFAFA]">แจ้งเตือนทางอีเมล</p>
-                                        <p className="text-sm text-[#A1A1AA]">รับข่าวสารและอัปเดตทางอีเมล</p>
+                                        <p className="font-medium text-foreground">แจ้งเตือนทางอีเมล</p>
+                                        <p className="text-sm text-muted-foreground">รับข่าวสารและอัปเดตทางอีเมล</p>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
                                         <input
@@ -271,14 +271,14 @@ export default function SettingsPage() {
                                             onChange={(e) => setNotifications({ ...notifications, email: e.target.checked })}
                                             className="sr-only peer"
                                         />
-                                        <div className="w-11 h-6 bg-[#3E3C32] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#F5C542]/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F5C542]"></div>
+                                        <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                                     </label>
                                 </div>
 
-                                <div className="flex items-center justify-between p-4 rounded-lg bg-[#2E2C24]/50 border border-[#2E2C24]">
+                                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/20 border border-border">
                                     <div>
-                                        <p className="font-medium text-[#FAFAFA]">Push Notification</p>
-                                        <p className="text-sm text-[#A1A1AA]">รับการแจ้งเตือนบนเบราว์เซอร์</p>
+                                        <p className="font-medium text-foreground">Push Notification</p>
+                                        <p className="text-sm text-muted-foreground">รับการแจ้งเตือนบนเบราว์เซอร์</p>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
                                         <input
@@ -287,14 +287,14 @@ export default function SettingsPage() {
                                             onChange={(e) => setNotifications({ ...notifications, push: e.target.checked })}
                                             className="sr-only peer"
                                         />
-                                        <div className="w-11 h-6 bg-[#3E3C32] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#F5C542]/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F5C542]"></div>
+                                        <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                                     </label>
                                 </div>
 
-                                <div className="flex items-center justify-between p-4 rounded-lg bg-[#2E2C24]/50 border border-[#2E2C24]">
+                                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/20 border border-border">
                                     <div>
-                                        <p className="font-medium text-[#FAFAFA]">แจ้งเตือนราคา</p>
-                                        <p className="text-sm text-[#A1A1AA]">แจ้งเตือนเมื่อราคาถึงเป้าหมาย</p>
+                                        <p className="font-medium text-foreground">แจ้งเตือนราคา</p>
+                                        <p className="text-sm text-muted-foreground">แจ้งเตือนเมื่อราคาถึงเป้าหมาย</p>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
                                         <input
@@ -303,7 +303,7 @@ export default function SettingsPage() {
                                             onChange={(e) => setNotifications({ ...notifications, priceAlert: e.target.checked })}
                                             className="sr-only peer"
                                         />
-                                        <div className="w-11 h-6 bg-[#3E3C32] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#F5C542]/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F5C542]"></div>
+                                        <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                                     </label>
                                 </div>
                             </CardContent>
@@ -312,14 +312,14 @@ export default function SettingsPage() {
                         {/* Security */}
                         <Card>
                             <CardHeader>
-                                <CardTitle className="flex items-center gap-2 text-[#FAFAFA]">
-                                    <Shield className="w-5 h-5 text-[#F5C542]" />
+                                <CardTitle className="flex items-center gap-2 text-foreground">
+                                    <Shield className="w-5 h-5 text-primary" />
                                     ความปลอดภัย
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="p-4 rounded-lg bg-[#F5C542]/10 border border-[#F5C542]/20">
-                                    <p className="text-sm text-[#F5C542]">
+                                <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
+                                    <p className="text-sm text-primary">
                                         บัญชีของคุณมีการป้องกันด้วย JWT Authentication
                                     </p>
                                 </div>
@@ -331,35 +331,35 @@ export default function SettingsPage() {
                         {/* Feature Toggles Card */}
                         <Card>
                             <CardHeader>
-                                <CardTitle className="text-lg font-bold flex items-center gap-2 text-[#FAFAFA]">
-                                    <Settings className="w-5 h-5 text-[#F5C542]" />
+                                <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
+                                    <Settings className="w-5 h-5 text-primary" />
                                     {t('settings.featureManagement')}
                                 </CardTitle>
-                                <p className="text-xs text-[#A1A1AA] mt-1">
+                                <p className="text-xs text-muted-foreground mt-1">
                                     {t('settings.featureDesc')}
                                 </p>
                             </CardHeader>
                             <CardContent className="space-y-6">
 
                                 {/* Investment Toggle */}
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-[#1C1B16] border border-[#2E2C24]">
+                                <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-border">
                                     <div className="flex items-center gap-4">
                                         <div className={cn(
                                             "p-3 rounded-lg transition-colors",
-                                            enableInvestment ? "bg-[#F5C542]/10 text-[#F5C542]" : "bg-[#2E2C24] text-[#71717A]"
+                                            enableInvestment ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                                         )}>
                                             <PieChart className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-bold text-[#FAFAFA]">{t('settings.investmentTitle')}</h3>
-                                            <p className="text-xs text-[#A1A1AA]">{t('settings.investmentDesc')}</p>
+                                            <h3 className="text-sm font-bold text-foreground">{t('settings.investmentTitle')}</h3>
+                                            <p className="text-xs text-muted-foreground">{t('settings.investmentDesc')}</p>
                                         </div>
                                     </div>
                                     <button
                                         onClick={toggleInvestment}
                                         className={cn(
                                             "transition-all duration-300",
-                                            enableInvestment ? "text-[#F5C542]" : "text-[#71717A]"
+                                            enableInvestment ? "text-primary" : "text-muted-foreground"
                                         )}
                                     >
                                         {enableInvestment ? (
@@ -371,24 +371,24 @@ export default function SettingsPage() {
                                 </div>
 
                                 {/* Expense Toggle */}
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-[#1C1B16] border border-[#2E2C24]">
+                                <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-border">
                                     <div className="flex items-center gap-4">
                                         <div className={cn(
                                             "p-3 rounded-lg transition-colors",
-                                            enableExpense ? "bg-[#F5C542]/10 text-[#F5C542]" : "bg-[#2E2C24] text-[#71717A]"
+                                            enableExpense ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
                                         )}>
                                             <CreditCard className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-bold text-[#FAFAFA]">{t('settings.expenseTitle')}</h3>
-                                            <p className="text-xs text-[#A1A1AA]">{t('settings.expenseDesc')}</p>
+                                            <h3 className="text-sm font-bold text-foreground">{t('settings.expenseTitle')}</h3>
+                                            <p className="text-xs text-muted-foreground">{t('settings.expenseDesc')}</p>
                                         </div>
                                     </div>
                                     <button
                                         onClick={toggleExpense}
                                         className={cn(
                                             "transition-all duration-300",
-                                            enableExpense ? "text-[#F5C542]" : "text-[#71717A]"
+                                            enableExpense ? "text-primary" : "text-muted-foreground"
                                         )}
                                     >
                                         {enableExpense ? (
@@ -405,42 +405,42 @@ export default function SettingsPage() {
                         {/* Language Card */}
                         <Card>
                             <CardHeader>
-                                <CardTitle className="text-lg font-bold flex items-center gap-2 text-[#FAFAFA]">
-                                    <Languages className="w-5 h-5 text-[#F5C542]" />
+                                <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
+                                    <Languages className="w-5 h-5 text-primary" />
                                     {t('settings.language')}
                                 </CardTitle>
-                                <p className="text-xs text-[#A1A1AA] mt-1">
+                                <p className="text-xs text-muted-foreground mt-1">
                                     {t('settings.languageDesc')}
                                 </p>
                             </CardHeader>
                             <CardContent className="space-y-6">
 
                                 {/* Language Toggle */}
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-[#1C1B16] border border-[#2E2C24]">
+                                <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-border">
                                     <div className="flex items-center gap-4">
                                         <div className={cn(
                                             "p-3 rounded-lg transition-colors",
-                                            "bg-[#F5C542]/10 text-[#F5C542]"
+                                            "bg-primary/10 text-primary"
                                         )}>
                                             <Languages className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-bold text-[#FAFAFA]">
+                                            <h3 className="text-sm font-bold text-foreground">
                                                 {language === 'en' ? 'English' : 'Thai'}
                                             </h3>
-                                            <p className="text-xs text-[#A1A1AA]">
+                                            <p className="text-xs text-muted-foreground">
                                                 {language === 'en' ? 'English Language' : 'ภาษาไทย'}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-2 bg-[#0F0F0C] p-1 rounded-lg border border-[#2E2C24]">
+                                    <div className="flex items-center gap-2 bg-background p-1 rounded-lg border border-border">
                                         <button
                                             onClick={() => setLanguage('en')}
                                             className={cn(
                                                 "px-3 py-1.5 rounded text-xs font-bold transition-all",
                                                 language === 'en'
-                                                    ? "bg-[#F5C542] text-[#15140F]"
-                                                    : "text-[#71717A] hover:text-[#FAFAFA]"
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "text-muted-foreground hover:text-foreground"
                                             )}
                                         >
                                             EN
@@ -450,8 +450,8 @@ export default function SettingsPage() {
                                             className={cn(
                                                 "px-3 py-1.5 rounded text-xs font-bold transition-all",
                                                 language === 'th'
-                                                    ? "bg-[#F5C542] text-[#15140F]"
-                                                    : "text-[#71717A] hover:text-[#FAFAFA]"
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "text-muted-foreground hover:text-foreground"
                                             )}
                                         >
                                             TH

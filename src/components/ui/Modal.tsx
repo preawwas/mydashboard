@@ -74,31 +74,37 @@ const Modal: React.FC<ModalProps> = ({
             <div className="flex min-h-full items-center justify-center p-4">
                 <div
                     className={cn(
-                        'relative w-full bg-[#1C1B16] border border-[#2E2C24] rounded-2xl shadow-2xl shadow-black/50',
+                        'relative w-full border border-border rounded-2xl shadow-2xl shadow-black/60',
                         'animate-in zoom-in-95 fade-in duration-200',
                         'motion-reduce:animate-none',
                         sizes[size],
                         className
                     )}
+                    style={{
+                        backgroundColor: 'var(--background)',
+                        opacity: 1,
+                        backdropFilter: 'none',
+                        WebkitBackdropFilter: 'none'
+                    }}
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Header */}
                     {(title || showCloseButton) && (
-                        <div className="flex items-start justify-between p-6 border-b border-[#2E2C24] relative">
+                        <div className="flex items-start justify-between p-6 border-b border-border relative">
                             {/* Subtle golden gradient line at bottom */}
-                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-[#F5C542]/30 to-transparent" />
+                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
                             <div>
                                 {title && (
-                                    <h2 className="text-lg sm:text-xl font-bold text-[#FAFAFA] uppercase tracking-wide">{title}</h2>
+                                    <h2 className="text-lg sm:text-xl font-bold text-foreground uppercase tracking-wide">{title}</h2>
                                 )}
                                 {description && (
-                                    <p className="mt-1 text-xs sm:text-sm text-[#A1A1AA]">{description}</p>
+                                    <p className="mt-1 text-xs sm:text-sm text-muted-foreground">{description}</p>
                                 )}
                             </div>
                             {showCloseButton && (
                                 <button
                                     onClick={onClose}
-                                    className="p-2 text-[#71717A] hover:text-[#FAFAFA] hover:bg-[#2E2C24] rounded-lg transition-colors"
+                                    className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/10 rounded-lg transition-colors"
                                     aria-label="Close"
                                 >
                                     <X className="w-5 h-5" aria-hidden="true" />

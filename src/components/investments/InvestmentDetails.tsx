@@ -22,6 +22,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
         { value: 'GOLD', label: t('investment.type.gold') },
         { value: 'CRYPTO', label: t('investment.type.crypto') },
         { value: 'STOCK', label: t('investment.type.stock') },
+        { value: 'FUND', label: t('investment.type.fund') },
         { value: 'USD', label: 'USD' },
         { value: 'OTHER', label: t('common.others') },
     ];
@@ -32,6 +33,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
         { value: 'BINANCE TH', label: 'Binance TH' },
         { value: 'DIME', label: 'DIME' },
         { value: 'SET', label: 'SET' },
+        { value: 'MUTUAL_FUND', label: 'Mutual Fund' },
         { value: 'OTHER', label: t('common.others') },
     ];
 
@@ -163,7 +165,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 <div className="col-span-12 md:col-span-3">
                     <Input
                         label={t('investment.buyDate')}
-                        type="datetime-local"
+                        type="date"
                         value={formData.buy_datetime}
                         onChange={handleBuyDatetimeChange}
                     />
@@ -215,11 +217,11 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
 
                 {/* Row 4: Note */}
                 <div className="col-span-12">
-                    <label className="block text-sm font-medium text-[#A1A1AA] mb-1.5">
+                    <label className="block text-sm font-medium text-muted-foreground mb-1.5">
                         {t('common.notes')}
                     </label>
                     <textarea
-                        className="w-full px-4 py-2.5 bg-[#1C1B16] border border-[#2E2C24] rounded-lg text-[#FAFAFA] placeholder-[#71717A] focus:outline-none focus:ring-1 focus:ring-[#F5C542]/50 focus:border-[#F5C542]/50 resize-none"
+                        className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 resize-none"
                         rows={3}
                         placeholder={t('investment.notesPlaceholder')}
                         value={formData.note}

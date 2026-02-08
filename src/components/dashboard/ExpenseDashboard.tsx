@@ -59,7 +59,7 @@ export default function ExpenseDashboard() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-[400px]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#F5C542]" />
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
     }
@@ -71,16 +71,16 @@ export default function ExpenseDashboard() {
             {/* Header */}
             <div>
                 <div className="flex items-center gap-2">
-                    <h2 className="text-lg sm:text-xl font-bold text-[#FAFAFA] uppercase tracking-wide">Expense Analytics</h2>
+                    <h2 className="text-lg sm:text-xl font-bold text-foreground uppercase tracking-wide">Expense Analytics</h2>
                     <span className="text-lg">💸</span>
                 </div>
-                <p className="text-xs sm:text-sm text-[#A1A1AA]">วิเคราะห์ค่าใช้จ่ายของคุณ ✨</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">วิเคราะห์ค่าใช้จ่ายของคุณ ✨</p>
             </div>
 
             {/* Top Categories */}
             <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                    <h3 className="text-base sm:text-lg font-semibold text-[#FAFAFA]">Top Layers</h3>
+                    <h3 className="text-base sm:text-lg font-semibold text-foreground">Top Layers</h3>
                     <span className="text-sm">🏆</span>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
@@ -88,14 +88,14 @@ export default function ExpenseDashboard() {
                         <div
                             key={index}
                             onClick={() => setSelectedCategory({ id: cat.id, name: cat.name })}
-                            className="bg-[#1C1B16] border border-[#2E2C24] p-3 sm:p-4 rounded-xl flex flex-col items-center justify-center gap-2 sm:gap-3 hover:border-[#F5C542] transition-all hover-lift cursor-pointer group"
+                            className="bg-card border border-border p-3 sm:p-4 rounded-xl flex flex-col items-center justify-center gap-2 sm:gap-3 hover:border-primary transition-all hover-lift cursor-pointer group"
                         >
-                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#15140F] flex items-center justify-center border border-[#2E2C24] group-hover:border-[#F5C542] transition-all group-hover:scale-105">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-background flex items-center justify-center border border-border group-hover:border-primary transition-all group-hover:scale-105">
                                 <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full transition-transform group-hover:scale-110" style={{ backgroundColor: cat.color }} />
                             </div>
                             <div className="text-center">
-                                <p className="text-xs sm:text-sm text-[#FAFAFA] font-medium truncate w-full max-w-[80px] sm:max-w-none group-hover:text-[#F5C542] transition-colors">{cat.name}</p>
-                                <p className="text-[10px] sm:text-xs text-[#A1A1AA]">฿{cat.amount.toLocaleString()}</p>
+                                <p className="text-xs sm:text-sm text-foreground font-medium truncate w-full max-w-[80px] sm:max-w-none group-hover:text-primary transition-colors">{cat.name}</p>
+                                <p className="text-[10px] sm:text-xs text-muted-foreground">฿{cat.amount.toLocaleString()}</p>
                             </div>
                         </div>
                     ))}
@@ -111,7 +111,7 @@ export default function ExpenseDashboard() {
                             <CardTitle className="text-base sm:text-lg font-bold">Total Monthly Expenses</CardTitle>
                             <span>📈</span>
                         </div>
-                        <p className="text-xl sm:text-2xl font-black text-[#F5C542]">฿{totalStats.toLocaleString()} 💰</p>
+                        <p className="text-xl sm:text-2xl font-black text-primary">฿{totalStats.toLocaleString()} 💰</p>
                     </CardHeader>
                     <CardContent>
                         <div className="h-[250px] sm:h-[300px] w-full">
@@ -119,33 +119,33 @@ export default function ExpenseDashboard() {
                                 <AreaChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#F5C542" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#F5C542" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#2E2C24" vertical={false} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                                     <XAxis
                                         dataKey="name"
-                                        stroke="#71717A"
+                                        stroke="var(--muted-foreground)"
                                         fontSize={10}
                                         tickLine={false}
                                         axisLine={false}
                                     />
                                     <YAxis
-                                        stroke="#71717A"
+                                        stroke="var(--muted-foreground)"
                                         fontSize={10}
                                         tickLine={false}
                                         axisLine={false}
                                         tickFormatter={(value) => `฿${value / 1000}k`}
                                     />
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: '#1C1B16', borderColor: '#2E2C24', color: '#FAFAFA' }}
-                                        itemStyle={{ color: '#F5C542' }}
+                                        contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
+                                        itemStyle={{ color: 'var(--primary)' }}
                                     />
                                     <Area
                                         type="monotone"
                                         dataKey="amount"
-                                        stroke="#F5C542"
+                                        stroke="var(--primary)"
                                         fillOpacity={1}
                                         fill="url(#colorAmount)"
                                     />
@@ -162,28 +162,28 @@ export default function ExpenseDashboard() {
                             <CardTitle className="text-base sm:text-lg font-bold">Expenses by Category</CardTitle>
                             <span>🎯</span>
                         </div>
-                        <p className="text-sm sm:text-base font-medium text-[#A1A1AA]">Top Spending Breakdown</p>
+                        <p className="text-sm sm:text-base font-medium text-muted-foreground">Top Spending Breakdown</p>
                     </CardHeader>
                     <CardContent>
                         <div className="h-[250px] sm:h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart layout="vertical" data={categories.slice(0, 5)} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#2E2C24" horizontal={false} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                                     <XAxis type="number" hide />
                                     <YAxis
                                         dataKey="name"
                                         type="category"
-                                        stroke="#71717A"
+                                        stroke="var(--muted-foreground)"
                                         fontSize={11}
                                         tickLine={false}
                                         axisLine={false}
                                         width={70}
                                     />
                                     <Tooltip
-                                        cursor={{ fill: '#2E2C24', opacity: 0.4 }}
-                                        contentStyle={{ backgroundColor: '#1C1B16', borderColor: '#2E2C24', color: '#FAFAFA' }}
+                                        cursor={{ fill: 'var(--muted)', opacity: 0.1 }}
+                                        contentStyle={{ backgroundColor: 'var(--card)', borderColor: 'var(--border)', color: 'var(--foreground)' }}
                                     />
-                                    <Bar dataKey="amount" fill="#F5C542" radius={[0, 4, 4, 0]} barSize={20} />
+                                    <Bar dataKey="amount" fill="var(--primary)" radius={[0, 4, 4, 0]} barSize={20} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>

@@ -26,10 +26,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" style={{ colorScheme: 'dark' }}>
-      <head>
-        <meta name="theme-color" content="#0F0F0C" />
-      </head>
+    <html lang="en">
+      <head />
       <body
         className={`${montserrat.variable} ${prompt.variable} font-sans antialiased`}
       >

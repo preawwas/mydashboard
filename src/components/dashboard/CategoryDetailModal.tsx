@@ -65,13 +65,13 @@ export default function CategoryDetailModal({ isOpen, onClose, categoryId, categ
         >
             {loading ? (
                 <div className="flex items-center justify-center p-8">
-                    <Loader2 className="w-8 h-8 animate-spin text-[#F5C542]" />
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
             ) : (
                 <div className="mt-4 space-y-4">
                     {/* Year Tabs */}
                     {availableYears.length > 0 && (
-                        <div className="flex items-center gap-2 p-1 bg-[#15140F] rounded-xl border border-[#2E2C24]">
+                        <div className="flex items-center gap-2 p-1 bg-background rounded-xl border border-border">
                             {availableYears.map(year => (
                                 <button
                                     key={year}
@@ -79,8 +79,8 @@ export default function CategoryDetailModal({ isOpen, onClose, categoryId, categ
                                     className={cn(
                                         "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all",
                                         selectedYear === year
-                                            ? "bg-[#F5C542] text-[#15140F] shadow-lg shadow-[#F5C542]/20"
-                                            : "text-[#71717A] hover:text-[#FAFAFA]"
+                                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                                            : "text-muted-foreground hover:text-foreground"
                                     )}
                                 >
                                     {year}
@@ -91,26 +91,26 @@ export default function CategoryDetailModal({ isOpen, onClose, categoryId, categ
 
                     <table className="w-full text-sm">
                         <thead>
-                            <tr className="text-[#A1A1AA] border-b border-[#2E2C24]">
+                            <tr className="text-muted-foreground border-b border-border">
                                 <th className="pb-4 font-medium text-left">เดือน</th>
                                 <th className="pb-4 font-medium text-right">ยอดรวม</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#2E2C24]">
+                        <tbody className="divide-y divide-border">
                             {filteredStats.length > 0 ? (
                                 filteredStats.map((item, index) => (
-                                    <tr key={index} className="text-[#FAFAFA] hover:bg-[#2E2C24]/30 transition-colors group">
-                                        <td className="py-4 font-medium group-hover:text-[#F5C542] transition-colors">{item.month}</td>
+                                    <tr key={index} className="text-foreground hover:bg-muted/10 transition-colors group">
+                                        <td className="py-4 font-medium group-hover:text-primary transition-colors">{item.month}</td>
                                         <td className="py-4 text-right font-bold">฿{item.total_amount.toLocaleString()}</td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
                                     <td colSpan={2} className="py-12 text-center">
-                                        <div className="text-[#2E2C24] mb-2 flex justify-center">
-                                            <Loader2 className="w-8 h-8 opacity-20" />
+                                        <div className="text-muted/20 mb-2 flex justify-center">
+                                            <Loader2 className="w-8 h-8" />
                                         </div>
-                                        <p className="text-[#71717A]">ไม่มีข้อมูลสำหรับปี {selectedYear}</p>
+                                        <p className="text-muted-foreground">ไม่มีข้อมูลสำหรับปี {selectedYear}</p>
                                     </td>
                                 </tr>
                             )}

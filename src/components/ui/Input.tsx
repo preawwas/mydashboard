@@ -29,13 +29,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         return (
             <div className="w-full">
                 {label && (
-                    <label htmlFor={inputId} className="block text-sm font-medium text-[#A1A1AA] mb-1.5">
-                        {label} {props.required && <span className="text-red-500">*</span>}
+                    <label htmlFor={inputId} className="block text-sm font-medium text-muted-foreground mb-1.5">
+                        {label} {props.required && <span className="text-destructive">*</span>}
                     </label>
                 )}
                 <div className="relative">
                     {leftIcon && (
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#71717A]" aria-hidden="true">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground" aria-hidden="true">
                             {leftIcon}
                         </div>
                     )}
@@ -44,14 +44,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         id={inputId}
                         type={type}
                         className={cn(
-                            'w-full px-4 py-2.5 border rounded-lg text-[#FAFAFA] placeholder-[#71717A]',
-                            'bg-[#1C1B16]',
+                            'w-full px-4 py-2.5 border rounded-lg text-foreground placeholder-muted-foreground',
+                            'bg-background',
                             'transition-all duration-200 ease-out',
-                            'focus:outline-none focus:ring-2 focus:ring-[#F5C542] focus:border-transparent focus:shadow-[0_0_12px_rgba(245,197,66,0.15)]',
-                            'disabled:bg-[#2E2C24] disabled:text-[#71717A] disabled:cursor-not-allowed',
+                            'focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent focus:shadow-[0_0_12px_rgba(var(--primary-rgb),0.15)]',
+                            'disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed',
                             error
-                                ? 'border-red-500 focus:ring-red-500'
-                                : 'border-[#3E3C32] hover:border-[#F5C542]/50',
+                                ? 'border-destructive focus:ring-destructive'
+                                : 'border-border hover:border-primary/50',
                             leftIcon && 'pl-10',
                             rightIcon && 'pr-10',
                             className
@@ -59,13 +59,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         {...props}
                     />
                     {rightIcon && (
-                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#71717A]">
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground">
                             {rightIcon}
                         </div>
                     )}
                 </div>
                 {error && (
-                    <p className="mt-1.5 text-sm text-red-500 flex items-center gap-1">
+                    <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                             <path
                                 fillRule="evenodd"
@@ -77,7 +77,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     </p>
                 )}
                 {helperText && !error && (
-                    <p className="mt-1.5 text-sm text-[#71717A]">{helperText}</p>
+                    <p className="mt-1.5 text-sm text-muted-foreground">{helperText}</p>
                 )}
             </div>
         );

@@ -2,79 +2,53 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useAuthStore, useUIStore } from '@/lib/store';
-import { Bell, Menu } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useAuthStore, useUIStore, useThemeStore } from '@/lib/store';
+import { Bell, Menu, Moon, Sun } from 'lucide-react';
+import { cn, getMonthlyPendingAmount } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
 
 const Topbar: React.FC = () => {
     const { token, user } = useAuthStore();
+    const { theme, toggleTheme } = useThemeStore();
     const { sidebarOpen, toggleSidebar } = useUIStore();
     const [pendingCount, setPendingCount] = useState(0);
     const [pendingTotal, setPendingTotal] = useState(0);
     const [showNotifications, setShowNotifications] = useState(false);
     const [pendingItems, setPendingItems] = useState<any[]>([]);
 
+    // Hydration fix for theme
+    const [mounted, setMounted] = useState(false);
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
     React.useEffect(() => {
         if (!token || !user) return;
-        apiClient.fetch(`/api/expenses/user/${user.id}`)
+        const params = new URLSearchParams({
+            status: 'PENDING',
+            limit: '100'
+        });
+
+        apiClient.fetch(`/api/expenses/user/${user.id}?${params.toString()}`)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    const now = new Date();
-                    const currentMonth = now.getMonth();
-                    const currentYear = now.getFullYear();
-
-                    const pending = data.data.filter((exp: any) => {
-                        if (exp.payment_type === 'FULL') {
-                            const d = new Date(exp.transaction_date);
-                            return exp.status === 'PENDING' && (
-                                (d.getFullYear() < currentYear) ||
-                                (d.getFullYear() === currentYear && d.getMonth() <= currentMonth)
-                            );
-                        }
-                        if (exp.payment_type === 'INSTALLMENT') {
-                            return exp.expense_installments?.some((i: any) => {
-                                const due = new Date(i.due_date);
-                                return i.status === 'PENDING' && (
-                                    (due.getFullYear() < currentYear) ||
-                                    (due.getFullYear() === currentYear && due.getMonth() <= currentMonth)
-                                );
-                            });
-                        }
-                        return false;
-                    });
-
-                    const total = pending.reduce((sum: number, exp: any) => {
-                        if (exp.payment_type === 'FULL') return sum + exp.amount_total;
-                        if (exp.payment_type === 'INSTALLMENT') {
-                            const pAmount = exp.expense_installments
-                                ?.filter((i: any) => {
-                                    const due = new Date(i.due_date);
-                                    return i.status === 'PENDING' && (
-                                        (due.getFullYear() < currentYear) ||
-                                        (due.getFullYear() === currentYear && due.getMonth() <= currentMonth)
-                                    );
-                                })
-                                .reduce((s: number, i: any) => s + i.amount, 0) || 0;
-                            return sum + pAmount;
-                        }
-                        return sum;
-                    }, 0);
+                    const pending = data.data.filter((exp: any) => getMonthlyPendingAmount(exp) > 0);
+                    const total = pending.reduce((sum: number, exp: any) => sum + getMonthlyPendingAmount(exp), 0);
 
                     setPendingItems(pending);
                     setPendingCount(pending.length);
                     setPendingTotal(total);
                 }
             });
-    }, [token]);
+    }, [token, user?.id]);
 
 
     return (
         <header
             className={cn(
-                'fixed top-0 right-0 z-30 h-16 border-b border-[#2E2C24]',
-                'bg-[#0F0F0C]/80 backdrop-blur-md',
+                'fixed top-0 right-0 z-30 h-16 border-b border-border',
+                'bg-background/40 backdrop-blur-md',
                 'transition-all duration-300',
                 'left-0 lg:left-20',
                 sidebarOpen && 'lg:left-64'
@@ -85,7 +59,7 @@ const Topbar: React.FC = () => {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={toggleSidebar}
-                        className="p-2 text-[#A1A1AA] hover:text-[#FAFAFA] hover:bg-[#2E2C24] rounded-lg transition-colors lg:hidden"
+                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/10 rounded-lg transition-colors lg:hidden"
                     >
                         <Menu className="w-5 h-5" />
                     </button>
@@ -95,18 +69,33 @@ const Topbar: React.FC = () => {
 
                 {/* Right Section */}
                 <div className="flex items-center gap-3">
+                    {/* Theme Toggle */}
+                    {mounted && (
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 text-muted-foreground hover:text-primary hover:bg-muted/10 rounded-lg transition-all duration-300"
+                            aria-label="Toggle theme"
+                        >
+                            {theme === 'dark' ? (
+                                <Sun className="w-5 h-5" />
+                            ) : (
+                                <Moon className="w-5 h-5" />
+                            )}
+                        </button>
+                    )}
+
                     {/* Notifications */}
                     <div className="relative">
                         <button
                             onClick={() => setShowNotifications(!showNotifications)}
                             className={cn(
-                                "relative p-2 text-[#A1A1AA] hover:text-[#F5C542] hover:bg-[#1C1B16] rounded-lg transition-colors",
-                                showNotifications && "text-[#F5C542] bg-[#1C1B16]"
+                                "relative p-2 text-muted-foreground hover:text-primary hover:bg-muted/10 rounded-lg transition-colors",
+                                showNotifications && "text-primary bg-muted/10"
                             )}
                         >
                             <Bell className="w-5 h-5" />
                             {pendingCount > 0 && (
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-[#0F0F0C]" />
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full ring-2 ring-background/40" />
                             )}
                         </button>
 
@@ -116,29 +105,29 @@ const Topbar: React.FC = () => {
                                     className="fixed inset-0 z-40"
                                     onClick={() => setShowNotifications(false)}
                                 />
-                                <div className="absolute right-0 mt-3 w-80 bg-[#1C1B16] border border-[#2E2C24] rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                                    <div className="p-4 border-b border-[#2E2C24] bg-[#21201A] flex items-center justify-between">
+                                <div className="absolute right-0 mt-3 w-80 bg-popover border border-border rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                    <div className="p-4 border-b border-border bg-muted/5 flex items-center justify-between">
                                         <div>
-                                            <h3 className="font-bold text-[#FAFAFA]">Monthly Reminders</h3>
-                                            <p className="text-[10px] text-[#A1A1AA]">You have {pendingCount} pending items</p>
+                                            <h3 className="font-bold text-foreground">Monthly Reminders</h3>
+                                            <p className="text-[10px] text-muted-foreground">You have {pendingCount} pending items</p>
                                         </div>
-                                        <div className="bg-[#F5C542] text-[#15140F] px-2 py-1 rounded-lg text-xs font-bold">
+                                        <div className="bg-primary text-primary-foreground px-2 py-1 rounded-lg text-xs font-bold">
                                             ฿{pendingTotal.toLocaleString()}
                                         </div>
                                     </div>
                                     <div className="max-h-[300px] overflow-y-auto p-2 space-y-1 custom-scrollbar">
                                         {pendingItems.length > 0 ? (
                                             pendingItems.map((item) => (
-                                                <div key={item.id} className="p-3 hover:bg-[#2E2C24] rounded-xl transition-colors group">
+                                                <div key={item.id} className="p-3 hover:bg-primary/5 rounded-xl transition-colors group">
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <span className="text-sm font-medium text-[#FAFAFA] group-hover:text-[#F5C542] transition-colors">
+                                                        <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
                                                             {item.item_name}
                                                         </span>
-                                                        <span className="text-xs font-bold text-[#FAFAFA]">
-                                                            ฿{item.amount_total.toLocaleString()}
+                                                        <span className="text-xs font-bold text-foreground">
+                                                            ฿{getMonthlyPendingAmount(item).toLocaleString()}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center justify-between text-[10px] text-[#71717A]">
+                                                    <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                                                         <span>{item.categories?.name}</span>
                                                         <span>{item.payment_type === 'INSTALLMENT' ? 'Installment' : 'Full Payment'}</span>
                                                     </div>
@@ -151,11 +140,11 @@ const Topbar: React.FC = () => {
                                             </div>
                                         )}
                                     </div>
-                                    <div className="p-3 bg-[#21201A] border-t border-[#2E2C24]">
+                                    <div className="p-3 bg-muted/5 border-t border-border">
                                         <Link
                                             href="/expenses"
                                             onClick={() => setShowNotifications(false)}
-                                            className="block w-full text-center py-2 bg-[#F5C542] hover:bg-[#FFC83D] text-[#15140F] text-xs font-bold rounded-xl transition-colors"
+                                            className="block w-full text-center py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold rounded-xl transition-colors"
                                         >
                                             View All Expenses
                                         </Link>
@@ -166,13 +155,13 @@ const Topbar: React.FC = () => {
                     </div>
 
                     {/* User Profile */}
-                    <div className="flex items-center gap-3 pl-3 border-l border-[#2E2C24]">
+                    <div className="flex items-center gap-3 pl-3 border-l border-border">
                         <Link href="/settings" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                             <div className="text-right hidden sm:block">
-                                <p className="text-sm font-medium text-[#FAFAFA]">{user?.name || 'User'}</p>
-                                <p className="text-xs text-[#A1A1AA]">{user?.role || 'user'}</p>
+                                <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
+                                <p className="text-xs text-muted-foreground">{user?.role || 'user'}</p>
                             </div>
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#F5C542] to-[#FFC83D] flex items-center justify-center text-[#15140F] font-semibold shadow-lg shadow-[#F5C542]/20">
+                            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-semibold shadow-lg shadow-primary/20">
                                 {user?.name?.charAt(0).toUpperCase() || 'U'}
                             </div>
                         </Link>

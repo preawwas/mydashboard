@@ -37,7 +37,7 @@ export interface PaymentChannel {
 }
 
 // Investment Types
-export type AssetCategory = 'GOLD' | 'CRYPTO' | 'STOCK';
+export type AssetCategory = 'GOLD' | 'CRYPTO' | 'STOCK' | 'FUND' | 'USD' | 'OTHER';
 export type StrategyType = 'DCA' | 'LONG_TERM' | 'TRADE';
 export type InvestmentStatus = 'OPEN' | 'CLOSED';
 
@@ -127,4 +127,39 @@ export interface PortfolioSummary {
         value: number;
         percentage: number;
     }[];
+}
+
+// Expense Types
+export type PaymentType = 'FULL' | 'INSTALLMENT';
+export type ExpenseStatus = 'PAID' | 'PENDING';
+export type NecessityType = 'NEED' | 'WANT';
+
+export interface ExpenseInstallment {
+    id: string;
+    expense_id: string;
+    period_number: number;
+    due_date: string;
+    amount: number;
+    status: ExpenseStatus;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Expense {
+    id: string;
+    user_id: string;
+    category_id: string;
+    payment_channel_id: string;
+    item_name: string;
+    amount_total: number;
+    transaction_date: string;
+    payment_type: PaymentType;
+    status: ExpenseStatus;
+    necessity: NecessityType;
+    note: string | null;
+    created_at: string;
+    updated_at: string;
+    categories?: Category;
+    payment_channels?: PaymentChannel;
+    expense_installments?: ExpenseInstallment[];
 }

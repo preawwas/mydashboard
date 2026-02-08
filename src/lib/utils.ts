@@ -10,6 +10,12 @@ export function getCurrentLocalDateTime() {
     return now.toISOString().slice(0, 16);
 }
 
+export function getCurrentLocalDate() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 10);
+}
+
 export function formatCurrency(amount: number, currency: string = 'THB'): string {
     return new Intl.NumberFormat('th-TH', {
         style: 'currency',
@@ -89,8 +95,12 @@ export function getCategoryColor(category: string): string {
             return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
         case 'STOCK':
             return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+        case 'FUND':
+            return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+        case 'USD':
+            return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300';
         default:
-            return 'bg-gray-100 text-gray-800';
+            return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
 }
 
@@ -105,4 +115,32 @@ export function getStrategyColor(strategy: string): string {
         default:
             return 'bg-gray-100 text-gray-800';
     }
+}
+export function getMonthlyPendingAmount(exp: any): number {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    if (exp.payment_type === 'FULL') {
+        const d = new Date(exp.transaction_date);
+        const isPending = exp.status === 'PENDING' && (
+            (d.getFullYear() < currentYear) ||
+            (d.getFullYear() === currentYear && d.getMonth() <= currentMonth)
+        );
+        return isPending ? exp.amount_total : 0;
+    }
+
+    if (exp.payment_type === 'INSTALLMENT') {
+        return exp.expense_installments
+            ?.filter((i: any) => {
+                const due = new Date(i.due_date);
+                return i.status === 'PENDING' && (
+                    (due.getFullYear() < currentYear) ||
+                    (due.getFullYear() === currentYear && due.getMonth() <= currentMonth)
+                );
+            })
+            .reduce((s: number, i: any) => s + i.amount, 0) || 0;
+    }
+
+    return 0;
 }

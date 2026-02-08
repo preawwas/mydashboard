@@ -18,14 +18,17 @@ import { apiClient } from '@/lib/api-client';
 
 // Color palette for charts
 const COLORS = {
-    GOLD: '#F5C542',
+    GOLD: 'var(--primary)',
     CRYPTO: '#8B5CF6',
     STOCK: '#10B981',
+    FUND: '#38A169',
+    USD: '#ED64A6',
+    OTHER: '#718096',
     expense: '#EF4444',
     income: '#22C55E'
 };
 
-const CATEGORY_COLORS = ['#F5C542', '#8B5CF6', '#10B981', '#3B82F6', '#EC4899'];
+const CATEGORY_COLORS = ['var(--primary)', '#8B5CF6', '#10B981', '#3B82F6', '#EC4899'];
 
 export default function DashboardOverview() {
     const { token, user } = useAuthStore();
@@ -101,8 +104,8 @@ export default function DashboardOverview() {
         return (
             <div className="flex items-center justify-center h-[600px]">
                 <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-12 h-12 animate-spin text-[#F5C542]" />
-                    <p className="text-[#A1A1AA]">กำลังโหลดข้อมูล...</p>
+                    <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                    <p className="text-muted-foreground">กำลังโหลดข้อมูล...</p>
                 </div>
             </div>
         );
@@ -113,19 +116,19 @@ export default function DashboardOverview() {
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-[#FAFAFA]">Dashboard</h1>
-                    <p className="text-sm text-[#A1A1AA]">ภาพรวมการเงินของคุณ</p>
+                    <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+                    <p className="text-sm text-muted-foreground">ภาพรวมการเงินของคุณ</p>
                 </div>
                 <div className="flex gap-2">
                     <Link
                         href="/investments"
-                        className="px-4 py-2 bg-[#1C1B16] border border-[#2E2C24] rounded-lg text-sm hover:border-[#F5C542] transition-colors flex items-center gap-2"
+                        className="px-4 py-2 bg-card backdrop-blur-md border border-border rounded-lg text-sm hover:border-primary transition-colors flex items-center gap-2 text-foreground"
                     >
                         Investment <ExternalLink className="w-3 h-3" />
                     </Link>
                     <Link
                         href="/expenses"
-                        className="px-4 py-2 bg-[#1C1B16] border border-[#2E2C24] rounded-lg text-sm hover:border-[#F5C542] transition-colors flex items-center gap-2"
+                        className="px-4 py-2 bg-card backdrop-blur-md border border-border rounded-lg text-sm hover:border-primary transition-colors flex items-center gap-2 text-foreground"
                     >
                         Expenses <ExternalLink className="w-3 h-3" />
                     </Link>
@@ -170,7 +173,7 @@ export default function DashboardOverview() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-base font-semibold">Asset Allocation</CardTitle>
-                        <p className="text-sm text-[#A1A1AA]">สัดส่วนการลงทุน</p>
+                        <p className="text-sm text-muted-foreground">สัดส่วนการลงทุน</p>
                     </CardHeader>
                     <CardContent>
                         <div className="h-[280px]">
@@ -196,19 +199,20 @@ export default function DashboardOverview() {
                                         </Pie>
                                         <Tooltip
                                             contentStyle={{
-                                                backgroundColor: '#0F0F0C',
-                                                borderColor: '#F5C542',
-                                                borderRadius: '8px',
-                                                color: '#FAFAFA',
-                                                boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
+                                                backgroundColor: 'var(--card)',
+                                                borderColor: 'var(--primary)',
+                                                borderRadius: '12px',
+                                                color: 'var(--foreground)',
+                                                boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                                                backdropFilter: 'blur(10px)'
                                             }}
-                                            itemStyle={{ color: '#FAFAFA' }}
-                                            labelStyle={{ color: '#F5C542', fontWeight: 'bold' }}
+                                            itemStyle={{ color: 'var(--foreground)' }}
+                                            labelStyle={{ color: 'var(--primary)', fontWeight: 'bold' }}
                                             formatter={(value) => formatCurrency(Number(value) || 0)}
                                         />
                                         <Legend
                                             verticalAlign="bottom"
-                                            formatter={(value) => <span className="text-[#FAFAFA] text-sm">{value}</span>}
+                                            formatter={(value) => <span className="text-foreground text-sm">{value}</span>}
                                         />
                                     </PieChart>
                                 </ResponsiveContainer>
@@ -225,7 +229,7 @@ export default function DashboardOverview() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-base font-semibold">Monthly Expenses</CardTitle>
-                        <p className="text-sm text-[#A1A1AA]">ค่าใช้จ่ายรายเดือน</p>
+                        <p className="text-sm text-muted-foreground">ค่าใช้จ่ายรายเดือน</p>
                     </CardHeader>
                     <CardContent>
                         <div className="h-[280px]">
@@ -233,20 +237,20 @@ export default function DashboardOverview() {
                                 <AreaChart data={expenseData.monthlyData}>
                                     <defs>
                                         <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#F5C542" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#F5C542" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#2E2C24" vertical={false} />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                                     <XAxis
                                         dataKey="name"
-                                        stroke="#71717A"
+                                        stroke="var(--muted-foreground)"
                                         fontSize={11}
                                         tickLine={false}
                                         axisLine={false}
                                     />
                                     <YAxis
-                                        stroke="#71717A"
+                                        stroke="var(--muted-foreground)"
                                         fontSize={11}
                                         tickLine={false}
                                         axisLine={false}
@@ -254,16 +258,19 @@ export default function DashboardOverview() {
                                     />
                                     <Tooltip
                                         contentStyle={{
-                                            backgroundColor: '#1C1B16',
-                                            borderColor: '#2E2C24',
-                                            borderRadius: '8px'
+                                            backgroundColor: 'var(--card)',
+                                            borderColor: 'var(--primary)',
+                                            borderRadius: '12px',
+                                            backdropFilter: 'blur(10px)',
+                                            color: 'var(--foreground)'
                                         }}
+                                        itemStyle={{ color: 'var(--foreground)' }}
                                         formatter={(value) => [formatCurrency(Number(value) || 0), 'Expense']}
                                     />
                                     <Area
                                         type="monotone"
                                         dataKey="expense"
-                                        stroke="#F5C542"
+                                        stroke="var(--primary)"
                                         strokeWidth={2}
                                         fillOpacity={1}
                                         fill="url(#colorExpense)"
@@ -282,11 +289,11 @@ export default function DashboardOverview() {
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                             <CardTitle className="text-base font-semibold">Investment Portfolio</CardTitle>
-                            <p className="text-sm text-[#A1A1AA]">{investmentStats?.openPositions || 0} positions</p>
+                            <p className="text-sm text-muted-foreground">{investmentStats?.openPositions || 0} positions</p>
                         </div>
                         <Link
                             href="/investments"
-                            className="text-[#F5C542] text-sm hover:underline flex items-center gap-1"
+                            className="text-primary text-sm hover:underline flex items-center gap-1"
                         >
                             ดูทั้งหมด <ArrowUpRight className="w-3 h-3" />
                         </Link>
@@ -295,26 +302,26 @@ export default function DashboardOverview() {
                         {investmentStats?.assetAllocation && investmentStats.assetAllocation.length > 0 ? (
                             <div className="space-y-3">
                                 {investmentStats.assetAllocation.map((asset, idx) => (
-                                    <div key={idx} className="flex items-center justify-between p-3 bg-[#15140F] rounded-lg">
+                                    <div key={idx} className="flex items-center justify-between p-3 bg-card border border-border rounded-xl">
                                         <div className="flex items-center gap-3">
                                             <div
                                                 className="w-3 h-3 rounded-full"
                                                 style={{ backgroundColor: COLORS[asset.category as keyof typeof COLORS] }}
                                             />
-                                            <span className="text-[#FAFAFA] font-medium">{asset.category}</span>
+                                            <span className="text-foreground font-bold">{asset.category}</span>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[#FAFAFA] font-semibold">{formatCurrency(asset.value)}</p>
-                                            <p className="text-xs text-[#A1A1AA]">{asset.percentage.toFixed(1)}%</p>
+                                            <p className="text-foreground font-black">{formatCurrency(asset.value)}</p>
+                                            <p className="text-xs text-muted-foreground font-bold">{asset.percentage.toFixed(1)}%</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-8 text-[#71717A]">
+                            <div className="text-center py-8 text-muted-foreground">
                                 <PiggyBank className="w-12 h-12 mx-auto mb-2 opacity-50" />
                                 <p>ยังไม่มีการลงทุน</p>
-                                <Link href="/investments" className="text-[#F5C542] text-sm mt-2 inline-block">
+                                <Link href="/investments" className="text-primary text-sm mt-2 inline-block">
                                     เริ่มลงทุน →
                                 </Link>
                             </div>
@@ -327,11 +334,11 @@ export default function DashboardOverview() {
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                             <CardTitle className="text-base font-semibold">Top Spending</CardTitle>
-                            <p className="text-sm text-[#A1A1AA]">หมวดหมู่ค่าใช้จ่ายสูงสุด</p>
+                            <p className="text-sm text-muted-foreground">หมวดหมู่ค่าใช้จ่ายสูงสุด</p>
                         </div>
                         <Link
                             href="/expenses"
-                            className="text-[#F5C542] text-sm hover:underline flex items-center gap-1"
+                            className="text-primary text-sm hover:underline flex items-center gap-1"
                         >
                             ดูทั้งหมด <ArrowUpRight className="w-3 h-3" />
                         </Link>
@@ -351,8 +358,8 @@ export default function DashboardOverview() {
                                             />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-[#FAFAFA] font-medium truncate">{cat.name}</p>
-                                            <div className="w-full bg-[#2E2C24] rounded-full h-1.5 mt-1">
+                                            <p className="text-foreground font-medium truncate">{cat.name}</p>
+                                            <div className="w-full bg-muted/20 rounded-full h-1.5 mt-1">
                                                 <div
                                                     className="h-1.5 rounded-full transition-all"
                                                     style={{
@@ -362,17 +369,17 @@ export default function DashboardOverview() {
                                                 />
                                             </div>
                                         </div>
-                                        <p className="text-[#FAFAFA] font-semibold whitespace-nowrap">
+                                        <p className="text-foreground font-semibold whitespace-nowrap">
                                             {formatCurrency(cat.amount)}
                                         </p>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-8 text-[#71717A]">
+                            <div className="text-center py-8 text-muted-foreground">
                                 <Wallet className="w-12 h-12 mx-auto mb-2 opacity-50" />
                                 <p>ยังไม่มีค่าใช้จ่าย</p>
-                                <Link href="/expenses" className="text-[#F5C542] text-sm mt-2 inline-block">
+                                <Link href="/expenses" className="text-primary text-sm mt-2 inline-block">
                                     บันทึกค่าใช้จ่าย →
                                 </Link>
                             </div>
@@ -397,16 +404,16 @@ interface StatCardProps {
 
 function StatCard({ title, value, subtitle, icon, trend, trendLabel, color }: StatCardProps) {
     const colorStyles = {
-        gold: 'bg-gradient-to-br from-[#F5C542]/20 to-[#F5C542]/5 border-[#F5C542]/30',
-        green: 'bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border-emerald-500/30',
-        red: 'bg-gradient-to-br from-red-500/20 to-red-500/5 border-red-500/30',
-        purple: 'bg-gradient-to-br from-purple-500/20 to-purple-500/5 border-purple-500/30'
+        gold: 'bg-card backdrop-blur-md border-primary/30 shadow-md shadow-primary/5',
+        green: 'bg-card backdrop-blur-md border-emerald-500/30 shadow-md shadow-emerald-500/5',
+        red: 'bg-card backdrop-blur-md border-rose-500/30 shadow-md shadow-rose-500/5',
+        purple: 'bg-card backdrop-blur-md border-purple-500/30 shadow-md shadow-purple-500/5'
     };
 
     const iconColors = {
-        gold: 'text-[#F5C542]',
+        gold: 'text-primary',
         green: 'text-emerald-500',
-        red: 'text-red-500',
+        red: 'text-rose-500',
         purple: 'text-purple-500'
     };
 
@@ -415,15 +422,15 @@ function StatCard({ title, value, subtitle, icon, trend, trendLabel, color }: St
             <div className="flex items-start justify-between mb-2">
                 <span className={iconColors[color]}>{icon}</span>
                 {trend !== undefined && (
-                    <span className={`text-xs flex items-center gap-0.5 ${trend >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                    <span className={`text-xs flex items-center gap-0.5 ${trend >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                         {trend >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                         {trendLabel}
                     </span>
                 )}
             </div>
-            <p className="text-xs text-[#A1A1AA] mb-1">{title}</p>
-            <p className="text-xl font-bold text-[#FAFAFA]">{value}</p>
-            {subtitle && <p className="text-xs text-[#71717A]">{subtitle}</p>}
+            <p className="text-xs text-muted-foreground mb-1">{title}</p>
+            <p className="text-xl font-bold text-foreground">{value}</p>
+            {subtitle && <p className="text-xs text-muted-foreground/60">{subtitle}</p>}
         </div>
     );
 }

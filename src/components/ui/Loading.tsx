@@ -17,15 +17,15 @@ const Loading: React.FC<LoadingProps> = ({ size = 'md', text, fullScreen = false
 
     const content = (
         <div className="flex flex-col items-center justify-center gap-3" role="status">
-            <Loader2 className={cn('animate-spin text-[#F5C542] motion-reduce:animate-none', sizes[size])} aria-hidden="true" />
-            {text && <p className="text-sm text-[#71717A] animate-pulse motion-reduce:animate-none">{text}</p>}
+            <Loader2 className={cn('animate-spin text-primary motion-reduce:animate-none', sizes[size])} aria-hidden="true" />
+            {text && <p className="text-sm text-muted-foreground animate-pulse motion-reduce:animate-none">{text}</p>}
             <span className="sr-only">{text || 'Loading'}</span>
         </div>
     );
 
     if (fullScreen) {
         return (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="fixed inset-0 bg-background/60 backdrop-blur-sm z-50 flex items-center justify-center">
                 {content}
             </div>
         );

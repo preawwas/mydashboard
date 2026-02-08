@@ -32,6 +32,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
     const { addToast } = useToastStore();
     const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
+    const [actionLoading, setActionLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -189,7 +190,8 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
     };
 
     const handleAddCategory = async () => {
-        if (!newCategoryName.trim() || !token) return;
+        if (!newCategoryName.trim() || !token || actionLoading) return;
+        setActionLoading(true);
         try {
             const response = await apiClient.fetch('/api/categories', {
                 method: 'POST',
@@ -204,11 +206,14 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
             }
         } catch (error) {
             console.error('Add category error:', error);
+        } finally {
+            setActionLoading(false);
         }
     };
 
     const handleAddChannel = async () => {
-        if (!newChannelName.trim() || !token) return;
+        if (!newChannelName.trim() || !token || actionLoading) return;
+        setActionLoading(true);
         try {
             const response = await apiClient.fetch('/api/payment-channels', {
                 method: 'POST',
@@ -223,6 +228,8 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
             }
         } catch (error) {
             console.error('Add channel error:', error);
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -269,7 +276,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!token) return;
+        if (!token || loading) return;
 
         const newErrors: Record<string, string> = {};
         if (!formData.categoryId) newErrors.categoryId = t('expenses.errors.categoryRequired');
@@ -343,8 +350,8 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
             className={cn(
                 "flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border transition-all text-xs font-medium relative",
                 isSelected
-                    ? "bg-[#F5C542] border-[#F5C542] text-[#15140F]"
-                    : "bg-[#1C1B16] border-[#2E2C24] text-[#A1A1AA] hover:border-[#F5C542]/50 hover:text-[#FAFAFA]",
+                    ? "bg-primary border-primary text-primary-foreground"
+                    : "bg-background border-border text-muted-foreground hover:border-primary/50 hover:text-foreground",
                 isReorderMode && "cursor-move border-dashed animate-pulse",
                 draggedItem?.id === item.id.toString() && "opacity-20"
             )}
@@ -360,7 +367,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
             )}
             <span className={cn(
                 "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0",
-                isSelected ? "bg-[#15140F]/20" : "bg-[#2E2C24]"
+                isSelected ? "bg-primary-foreground/20" : "bg-muted/10"
             )}>
                 {getIcon(item.name, "w-3 h-3")}
             </span>
@@ -377,19 +384,19 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
         >
             {fetching ? (
                 <div className="flex items-center justify-center p-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-[#F5C542]" />
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
             ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Top Row: Category Label + Necessity Toggle + Rearrange */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between gap-2">
-                            <label className={cn("text-xs font-medium", errors.categoryId ? "text-red-500" : "text-[#A1A1AA]")}>
-                                {t('expenses.category')} {errors.categoryId && <span className="text-red-500">*</span>}
+                            <label className={cn("text-xs font-medium", errors.categoryId ? "text-destructive" : "text-muted-foreground")}>
+                                {t('expenses.category')} {errors.categoryId && <span className="text-destructive">*</span>}
                             </label>
                             <div className="flex items-center gap-2">
                                 {/* Necessity Toggle - Compact */}
-                                <div className="flex bg-[#15140F] p-0.5 rounded-full border border-[#2E2C24]">
+                                <div className="flex bg-background p-0.5 rounded-full border border-border">
                                     {['NEED', 'WANT'].map((type) => (
                                         <button
                                             key={type}
@@ -398,8 +405,8 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                             className={cn(
                                                 "px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all",
                                                 formData.necessity === type
-                                                    ? "bg-[#F5C542] text-[#15140F]"
-                                                    : "text-[#71717A] hover:text-[#FAFAFA]"
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "text-muted-foreground hover:text-foreground"
                                             )}
                                         >
                                             {type === 'NEED' ? t('expenses.need') : t('expenses.want')}
@@ -419,7 +426,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                     }}
                                     className={cn(
                                         "flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all",
-                                        isReorderMode ? "bg-[#F5C542] text-[#15140F]" : "bg-[#2E2C24] text-[#71717A] hover:text-[#FAFAFA]"
+                                        isReorderMode ? "bg-primary text-primary-foreground" : "bg-muted/20 text-muted-foreground hover:text-foreground"
                                     )}
                                 >
                                     <Settings2 className="w-3 h-3" />
@@ -442,7 +449,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                             <button
                                 type="button"
                                 onClick={() => setShowAddCategory(true)}
-                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-dashed border-[#2E2C24] text-[#71717A] hover:border-[#F5C542] hover:text-[#F5C542] transition-all text-xs"
+                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary transition-all text-xs"
                             >
                                 <Plus className="w-3.5 h-3.5" />
                                 <span>{t('common.custom')}</span>
@@ -455,13 +462,13 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                     value={newCategoryName}
                                     onChange={(e) => setNewCategoryName(e.target.value)}
                                     placeholder={t('expenses.enterCategoryName')}
-                                    className="h-8 text-xs bg-[#1C1B16] border-[#2E2C24] flex-1"
+                                    className="h-8 text-xs bg-background border-border flex-1"
                                     autoFocus
                                 />
-                                <button type="button" onClick={handleAddCategory} className="p-1.5 text-[#F5C542] hover:bg-[#F5C542]/10 rounded-full">
-                                    <Check className="w-4 h-4" />
+                                <button type="button" onClick={handleAddCategory} disabled={actionLoading} className="p-1.5 text-primary hover:bg-primary/10 rounded-full disabled:opacity-50">
+                                    {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                                 </button>
-                                <button type="button" onClick={() => setShowAddCategory(false)} className="p-1.5 text-[#71717A] hover:bg-white/5 rounded-full">
+                                <button type="button" onClick={() => setShowAddCategory(false)} className="p-1.5 text-muted-foreground hover:bg-muted/10 rounded-full">
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
@@ -470,8 +477,8 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
 
                     {/* Item Name */}
                     <div className="space-y-1.5">
-                        <label className={cn("text-xs font-medium", errors.itemName ? "text-red-500" : "text-[#A1A1AA]")}>
-                            {t('expenses.itemName')} {errors.itemName && <span className="text-red-500">*</span>}
+                        <label className={cn("text-xs font-medium", errors.itemName ? "text-destructive" : "text-muted-foreground")}>
+                            {t('expenses.itemName')} {errors.itemName && <span className="text-destructive">*</span>}
                         </label>
                         <Input
                             value={formData.itemName}
@@ -479,7 +486,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                 handleChange('itemName', e.target.value);
                                 setErrors(prev => ({ ...prev, itemName: '' }));
                             }}
-                            className={cn("h-10 bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA]", errors.itemName && "border-red-500/50")}
+                            className={cn("h-10 bg-background border-border text-foreground", errors.itemName && "border-destructive/50")}
                             placeholder="e.g. Weekly Groceries"
                         />
                     </div>
@@ -487,11 +494,11 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     {/* Amount Row - Mobile Friendly */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <label className={cn("text-xs font-medium", errors.amount ? "text-red-500" : "text-[#A1A1AA]")}>
-                                {t('expenses.amount')} {errors.amount && <span className="text-red-500">*</span>}
+                            <label className={cn("text-xs font-medium", errors.amount ? "text-destructive" : "text-muted-foreground")}>
+                                {t('expenses.amount')} {errors.amount && <span className="text-destructive">*</span>}
                             </label>
                             <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#71717A] text-sm font-medium">฿</span>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm font-medium">฿</span>
                                 <Input
                                     type="number"
                                     step="0.01"
@@ -501,20 +508,20 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                         handleChange('amount', e.target.value);
                                         setErrors(prev => ({ ...prev, amount: '' }));
                                     }}
-                                    className={cn("h-10 bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA] pl-8", errors.amount && "border-red-500/50")}
+                                    className={cn("h-10 bg-background border-border text-foreground pl-8", errors.amount && "border-destructive/50")}
                                     placeholder="0.00"
                                 />
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-[#A1A1AA]">{t('expenses.qty')}</label>
+                            <label className="text-xs font-medium text-muted-foreground">{t('expenses.qty')}</label>
                             <Input
                                 type="number"
                                 inputMode="numeric"
                                 min="1"
                                 value={formData.duration}
                                 onChange={(e) => handleChange('duration', e.target.value)}
-                                className="h-10 bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA]"
+                                className="h-10 bg-background border-border text-foreground"
                                 placeholder="1"
                             />
                         </div>
@@ -523,17 +530,17 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     {/* Date & Total Row */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-[#A1A1AA]">{t('common.date')}</label>
+                            <label className="text-xs font-medium text-muted-foreground">{t('common.date')}</label>
                             <Input
                                 type="date"
                                 value={formData.transactionDate}
                                 onChange={(e) => handleChange('transactionDate', e.target.value)}
-                                className="h-10 bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA]"
+                                className="h-10 bg-background border-border text-foreground"
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-[#F5C542]">{t('expenses.totalAmount')}</label>
-                            <div className="h-10 px-3 flex items-center bg-[#1C1B16] border border-[#F5C542]/30 rounded-lg text-[#F5C542] font-bold">
+                            <label className="text-xs font-medium text-primary">{t('expenses.totalAmount')}</label>
+                            <div className="h-10 px-3 flex items-center bg-background border border-primary/30 rounded-lg text-primary font-bold">
                                 ฿{((parseFloat(formData.amount) || 0) * (parseInt(formData.duration) || 1)).toLocaleString()}
                             </div>
                         </div>
@@ -541,8 +548,8 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
 
                     {/* Payment Channel - Grid Wrap */}
                     <div className="space-y-2">
-                        <label className={cn("text-xs font-medium", errors.paymentChannelId ? "text-red-500" : "text-[#A1A1AA]")}>
-                            {t('expenses.paymentChannel')} {errors.paymentChannelId && <span className="text-red-500">*</span>}
+                        <label className={cn("text-xs font-medium", errors.paymentChannelId ? "text-destructive" : "text-muted-foreground")}>
+                            {t('expenses.paymentChannel')} {errors.paymentChannelId && <span className="text-destructive">*</span>}
                         </label>
 
                         <div className="flex flex-wrap gap-2">
@@ -559,7 +566,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                             <button
                                 type="button"
                                 onClick={() => setShowAddChannel(true)}
-                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-dashed border-[#2E2C24] text-[#71717A] hover:border-[#F5C542] hover:text-[#F5C542] transition-all text-xs"
+                                className="flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary transition-all text-xs"
                             >
                                 <Plus className="w-3.5 h-3.5" />
                                 <span>{t('expenses.addChannel')}</span>
@@ -572,13 +579,13 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                     value={newChannelName}
                                     onChange={(e) => setNewChannelName(e.target.value)}
                                     placeholder={t('expenses.enterChannelName')}
-                                    className="h-8 text-xs bg-[#1C1B16] border-[#2E2C24] flex-1"
+                                    className="h-8 text-xs bg-background border-border flex-1"
                                     autoFocus
                                 />
-                                <button type="button" onClick={handleAddChannel} className="p-1.5 text-[#F5C542] hover:bg-[#F5C542]/10 rounded-full">
-                                    <Check className="w-4 h-4" />
+                                <button type="button" onClick={handleAddChannel} disabled={actionLoading} className="p-1.5 text-primary hover:bg-primary/10 rounded-full disabled:opacity-50">
+                                    {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                                 </button>
-                                <button type="button" onClick={() => setShowAddChannel(false)} className="p-1.5 text-[#71717A] hover:bg-white/5 rounded-full">
+                                <button type="button" onClick={() => setShowAddChannel(false)} className="p-1.5 text-muted-foreground hover:bg-muted/10 rounded-full">
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
@@ -588,8 +595,8 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     {/* Payment Type - Compact Toggle */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-[#A1A1AA]">{t('expenses.paymentType')}</label>
-                            <div className="flex bg-[#15140F] p-0.5 rounded-lg border border-[#2E2C24]">
+                            <label className="text-xs font-medium text-muted-foreground">{t('expenses.paymentType')}</label>
+                            <div className="flex bg-background p-0.5 rounded-lg border border-border">
                                 {[
                                     { key: 'FULL', icon: <CheckCircle className="w-3.5 h-3.5" />, label: t('expenses.fullPayment') },
                                     { key: 'INSTALLMENT', icon: <CalendarDays className="w-3.5 h-3.5" />, label: t('expenses.installment') }
@@ -602,8 +609,8 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                         className={cn(
                                             "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-md transition-all text-xs font-medium",
                                             formData.paymentType === type.key
-                                                ? "bg-[#F5C542] text-[#15140F]"
-                                                : "text-[#71717A] hover:text-[#FAFAFA]",
+                                                ? "bg-primary text-primary-foreground"
+                                                : "text-muted-foreground hover:text-foreground",
                                             editId && "opacity-50"
                                         )}
                                     >
@@ -616,21 +623,21 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
 
                         {formData.paymentType === 'INSTALLMENT' ? (
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-[#A1A1AA]">{t('expenses.installmentPeriods')}</label>
+                                <label className="text-xs font-medium text-muted-foreground">{t('expenses.installmentPeriods')}</label>
                                 <Input
                                     type="number"
                                     inputMode="numeric"
                                     value={formData.installmentPeriods}
                                     onChange={(e) => handleChange('installmentPeriods', e.target.value)}
-                                    className="h-10 bg-[#1C1B16] border-[#2E2C24] text-[#FAFAFA]"
+                                    className="h-10 bg-background border-border text-foreground"
                                     placeholder="6"
                                     disabled={!!editId}
                                 />
                             </div>
                         ) : (
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-[#A1A1AA]">{t('common.status')}</label>
-                                <div className="flex bg-[#15140F] p-0.5 rounded-lg border border-[#2E2C24]">
+                                <label className="text-xs font-medium text-muted-foreground">{t('common.status')}</label>
+                                <div className="flex bg-background p-0.5 rounded-lg border border-border">
                                     {['PAID', 'PENDING'].map((s) => (
                                         <button
                                             key={s}
@@ -640,7 +647,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                                 "flex-1 flex items-center justify-center gap-1 py-2 rounded-md transition-all text-xs font-medium",
                                                 formData.status === s
                                                     ? (s === 'PAID' ? "bg-green-500/20 text-green-400 border border-green-500/30" : "bg-orange-500/20 text-orange-400 border border-orange-500/30")
-                                                    : "text-[#71717A]"
+                                                    : "text-muted-foreground"
                                             )}
                                         >
                                             {s === 'PAID' && <CheckCircle className="w-3 h-3" />}
@@ -659,18 +666,18 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                         <button
                             type="button"
                             onClick={() => setShowNotes(!showNotes)}
-                            className="flex items-center gap-1.5 text-xs font-medium text-[#A1A1AA] hover:text-[#FAFAFA] transition-colors"
+                            className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                         >
                             <StickyNote className="w-3.5 h-3.5" />
                             {t('expenses.notes')}
-                            {formData.note && <span className="w-1.5 h-1.5 rounded-full bg-[#F5C542]" />}
+                            {formData.note && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
                             {showNotes ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                         </button>
                         {showNotes && (
                             <textarea
                                 value={formData.note}
                                 onChange={(e) => handleChange('note', e.target.value)}
-                                className="w-full bg-[#1C1B16] border border-[#2E2C24] rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-[#F5C542] min-h-[60px] outline-none resize-none animate-in fade-in slide-in-from-top-1"
+                                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary min-h-[60px] outline-none resize-none animate-in fade-in slide-in-from-top-1"
                                 placeholder={t('expenses.notesPlaceholder')}
                             />
                         )}
@@ -682,20 +689,20 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                             <button
                                 type="button"
                                 onClick={() => setShowInstallments(!showInstallments)}
-                                className="flex items-center gap-1.5 text-xs font-medium text-[#A1A1AA] hover:text-[#FAFAFA] transition-colors"
+                                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                             >
                                 <CalendarDays className="w-3.5 h-3.5" />
                                 {t('expenses.installmentSchedule')} ({installments.length})
                                 {showInstallments ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                             </button>
                             {showInstallments && (
-                                <div className="max-h-32 overflow-y-auto bg-[#15140F] rounded-lg p-2 animate-in fade-in slide-in-from-top-1">
+                                <div className="max-h-32 overflow-y-auto bg-background rounded-lg p-2 animate-in fade-in slide-in-from-top-1">
                                     <div className="space-y-1">
                                         {installments.map((inst, index) => (
-                                            <div key={inst.id} className="flex items-center justify-between text-xs py-1.5 px-2 rounded bg-[#1C1B16]">
-                                                <span className="text-[#71717A]">#{inst.period_number}</span>
-                                                <span className="text-[#A1A1AA]">{new Date(inst.due_date).toLocaleDateString('en-GB')}</span>
-                                                <span className="text-[#FAFAFA] font-medium">฿{inst.amount.toLocaleString()}</span>
+                                            <div key={inst.id} className="flex items-center justify-between text-xs py-1.5 px-2 rounded bg-card">
+                                                <span className="text-muted/60">#{inst.period_number}</span>
+                                                <span className="text-muted-foreground">{new Date(inst.due_date).toLocaleDateString('en-GB')}</span>
+                                                <span className="text-foreground font-medium">฿{inst.amount.toLocaleString()}</span>
                                                 <select
                                                     value={inst.status}
                                                     onChange={(e) => {
@@ -721,21 +728,21 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     )}
 
                     {/* Footer Actions */}
-                    <div className="flex gap-2 pt-3 border-t border-[#2E2C24]">
+                    <div className="flex gap-2 pt-3 border-t border-border">
                         <Button
                             type="button"
-                            variant="outline"
+                            variant="secondary"
                             onClick={onClose}
-                            className="flex-1 h-11 bg-transparent border-[#2E2C24] hover:bg-[#2E2C24]"
+                            className="flex-1 h-11"
                         >
                             {t('common.cancel')}
                         </Button>
                         <Button
                             type="submit"
-                            disabled={loading}
-                            className="flex-1 h-11 bg-[#F5C542] text-[#15140F] hover:bg-[#FFC83D] font-bold uppercase tracking-wider"
+                            isLoading={loading}
+                            className="flex-1 h-11 uppercase tracking-wider"
                         >
-                            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (editId ? t('common.save') : t('expenses.addExpense'))}
+                            {editId ? t('common.save') : t('expenses.addExpense')}
                         </Button>
                     </div>
                 </form>

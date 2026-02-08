@@ -17,10 +17,10 @@ const Toast: React.FC = () => {
                     key={toast.id}
                     className={cn(
                         "flex items-center gap-3 px-4 py-3 rounded-xl shadow-2xl border animate-in slide-in-from-right-full duration-300 min-w-[300px]",
-                        toast.type === 'success' && "bg-[#10B981] border-[#059669] text-white",
-                        toast.type === 'error' && "bg-[#EF4444] border-[#DC2626] text-white",
-                        toast.type === 'info' && "bg-[#3B82F6] border-[#2563EB] text-white",
-                        toast.type === 'warning' && "bg-[#F59E0B] border-[#D97706] text-white"
+                        toast.type === 'success' && "bg-success border-success/20 text-white",
+                        toast.type === 'error' && "bg-error border-error/20 text-white",
+                        toast.type === 'info' && "bg-blue-500 border-blue-600 text-white",
+                        toast.type === 'warning' && "bg-warning border-warning/20 text-white"
                     )}
                 >
                     <div className="shrink-0 text-white" aria-hidden="true">

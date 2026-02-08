@@ -41,8 +41,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         return (
             <div className="w-full">
                 {label && (
-                    <label htmlFor={selectId} className="block text-sm font-medium text-[#A1A1AA] mb-1.5">
-                        {label} {props.required && <span className="text-red-500">*</span>}
+                    <label htmlFor={selectId} className="block text-sm font-medium text-muted-foreground mb-1.5">
+                        {label} {props.required && <span className="text-destructive">*</span>}
                     </label>
                 )}
                 <div className="relative">
@@ -52,31 +52,31 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
                         value={value}
                         onChange={handleChange}
                         className={cn(
-                            'w-full px-4 py-2.5 border rounded-lg text-[#FAFAFA] appearance-none',
-                            'bg-[#1C1B16]',
+                            'w-full px-4 py-2.5 border rounded-lg text-foreground appearance-none',
+                            'bg-background',
                             'transition-all duration-200 ease-out',
-                            'focus:outline-none focus:ring-2 focus:ring-[#F5C542] focus:border-transparent focus:shadow-[0_0_12px_rgba(245,197,66,0.15)]',
-                            'disabled:bg-[#2E2C24] disabled:text-[#71717A] disabled:cursor-not-allowed',
+                            'focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent focus:shadow-[0_0_12px_rgba(var(--primary-rgb),0.15)]',
+                            'disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed',
                             error
-                                ? 'border-red-500 focus:ring-red-500'
-                                : 'border-[#3E3C32] hover:border-[#F5C542]/50',
+                                ? 'border-destructive focus:ring-destructive'
+                                : 'border-border hover:border-primary/50',
                             className
                         )}
                         {...props}
                     >
 
                         {options.map((option) => (
-                            <option key={option.value} value={option.value} className="bg-[#1C1B16] text-[#FAFAFA]">
+                            <option key={option.value} value={option.value} className="bg-background text-foreground">
                                 {option.label}
                             </option>
                         ))}
                     </select>
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[#A1A1AA]" aria-hidden="true">
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-muted-foreground" aria-hidden="true">
                         <ChevronDown className="w-5 h-5" />
                     </div>
                 </div>
                 {error && (
-                    <p className="mt-1.5 text-sm text-red-500 flex items-center gap-1">
+                    <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                             <path
                                 fillRule="evenodd"
@@ -88,7 +88,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
                     </p>
                 )}
                 {helperText && !error && (
-                    <p className="mt-1.5 text-sm text-[#71717A]">{helperText}</p>
+                    <p className="mt-1.5 text-sm text-muted-foreground">{helperText}</p>
                 )}
             </div>
         );

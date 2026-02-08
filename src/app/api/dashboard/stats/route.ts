@@ -76,12 +76,13 @@ export async function GET(request: NextRequest) {
             if (item.sell_history && Array.isArray(item.sell_history)) {
                 item.sell_history.forEach((sell: SellRecord) => {
                     // Logic: (Sell Price - Buy Price) * Sell Quantity - Sell Fee
-                    // Note: This assumes buy_price_per_unit is constant average cost. 
-                    // FIFO/LIFO is more complex but sticking to avg cost for simplicity.
-                    const costInOriginal = sell.qty * item.buy_price_per_unit;
-                    const cost = convertToTHB(costInOriginal, item.buy_currency);
+                    // Better: Total Revenue - Proportional Buy Cost (including proportional buy fee)
+                    const proportionalCostInOriginal = (sell.qty / item.buy_quantity) * (item.buy_quantity * item.buy_price_per_unit + (item.buy_fee || 0));
+                    const cost = convertToTHB(proportionalCostInOriginal, item.buy_currency);
+
                     const revenueInOriginal = sell.qty * sell.price - (sell.fee || 0);
                     const revenue = convertToTHB(revenueInOriginal, sell.currency);
+
                     const profit = revenue - cost;
                     totalProfitLoss += profit;
                 });

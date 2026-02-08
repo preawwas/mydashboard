@@ -13,7 +13,7 @@ function getUserFromRequest(request: NextRequest) {
     return verifyToken(token);
 }
 
-// GET /api/investments - List investments
+// GET /api/investments - List investments with summary stats
 export async function GET(request: NextRequest) {
     try {
         const user = getUserFromRequest(request);
@@ -33,48 +33,99 @@ export async function GET(request: NextRequest) {
             search: searchParams.get('search') || undefined,
         };
 
-        // Build query
-        let query = supabase
+        // Build query for ALL matching records to calculate stats
+        let allQuery = supabase
             .from('investments')
-            .select('*', { count: 'exact' })
+            .select('*')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 
-        // Apply filters
+        // Apply filters to allQuery
         if (filters.asset_category) {
-            query = query.eq('asset_category', filters.asset_category);
+            allQuery = allQuery.eq('asset_category', filters.asset_category);
         }
         if (filters.strategy_type) {
-            query = query.eq('strategy_type', filters.strategy_type);
+            allQuery = allQuery.eq('strategy_type', filters.strategy_type);
         }
         if (filters.status) {
-            query = query.eq('status', filters.status);
+            allQuery = allQuery.eq('status', filters.status);
         }
         if (filters.search) {
-            query = query.or(`asset_code.ilike.%${filters.search}%,asset_name.ilike.%${filters.search}%`);
+            allQuery = allQuery.or(`asset_code.ilike.%${filters.search}%,asset_name.ilike.%${filters.search}%`);
         }
 
-        // Apply pagination
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + limit - 1;
-        query = query.range(startIndex, endIndex);
+        const { data: allFilteredData, error: allQueryError } = await allQuery;
 
-        const { data, error, count } = await query;
-
-        if (error) {
-            console.error('Get investments error:', error);
+        if (allQueryError) {
+            console.error('Get all investments error:', allQueryError);
             return NextResponse.json(
-                { error: error.message, details: error },
+                { error: allQueryError.message, details: allQueryError },
                 { status: 500 }
             );
         }
 
-        const total = count || 0;
+        const allItems = (allFilteredData || []) as any[];
+
+        // Calculate aggregate stats for the filtered set
+        let totalValue = 0;
+        let totalProfitLoss = 0;
+        let openPositions = 0;
+        let closedPositions = 0;
+        const assetAllocationMap = new Map<string, number>();
+
+        const USD_TO_THB = 31.00;
+        const convertToTHB = (amount: number, currency: string) => {
+            if (currency === 'USD') return amount * USD_TO_THB;
+            return amount;
+        };
+
+        allItems.forEach(item => {
+            if (item.status === 'OPEN') {
+                openPositions++;
+                const costInOriginal = (item.buy_quantity * item.buy_price_per_unit) + (item.buy_fee || 0);
+                const cost = convertToTHB(costInOriginal, item.buy_currency);
+                totalValue += cost;
+
+                const currentAlloc = assetAllocationMap.get(item.asset_category) || 0;
+                assetAllocationMap.set(item.asset_category, currentAlloc + cost);
+            } else {
+                closedPositions++;
+            }
+
+            if (item.sell_history && Array.isArray(item.sell_history)) {
+                item.sell_history.forEach((sell: any) => {
+                    const proportionalCostInOriginal = (sell.qty / item.buy_quantity) * (item.buy_quantity * item.buy_price_per_unit + (item.buy_fee || 0));
+                    const cost = convertToTHB(proportionalCostInOriginal, item.buy_currency);
+                    const revenueInOriginal = sell.qty * sell.price - (sell.fee || 0);
+                    const revenue = convertToTHB(revenueInOriginal, sell.currency);
+                    totalProfitLoss += (revenue - cost);
+                });
+            }
+        });
+
+        const assetAllocation = Array.from(assetAllocationMap.entries()).map(([category, value]) => ({
+            category,
+            value,
+            percentage: totalValue > 0 ? (value / totalValue) * 100 : 0
+        }));
+
+        const total = allItems.length;
         const totalPages = Math.ceil(total / limit);
+        const startIndex = (page - 1) * limit;
+        const paginatedData = allItems.slice(startIndex, startIndex + limit);
 
         return NextResponse.json({
             success: true,
-            data: data || [],
+            data: paginatedData,
+            stats: {
+                totalValue,
+                totalProfitLoss,
+                profitLossPercentage: totalValue > 0 ? (totalProfitLoss / totalValue) * 100 : 0,
+                totalAssets: total,
+                openPositions,
+                closedPositions,
+                assetAllocation
+            },
             total,
             page,
             limit,

@@ -9,9 +9,9 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ({ className, variant = 'default', padding = 'md', children, ...props }, ref) => {
         const variants = {
-            default: 'bg-[#1C1B16] shadow-xl shadow-black/20 border border-[#2E2C24]',
-            gradient: 'bg-gradient-to-br from-[#1C1B16] to-[#222017] shadow-xl border border-[#2E2C24]',
-            bordered: 'bg-transparent border border-[#2E2C24]',
+            default: 'bg-card shadow-xl shadow-primary/5 border border-border',
+            gradient: 'bg-card shadow-xl border border-border relative overflow-hidden',
+            bordered: 'bg-transparent border border-border',
         };
 
         const paddings = {
@@ -60,7 +60,7 @@ const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
     ({ className, ...props }, ref) => (
         <h3
             ref={ref}
-            className={cn('text-lg font-semibold text-[#FAFAFA]', className)}
+            className={cn('text-lg font-semibold text-foreground', className)}
             {...props}
         />
     )
@@ -74,7 +74,7 @@ const CardDescription = React.forwardRef<HTMLParagraphElement, CardDescriptionPr
     ({ className, ...props }, ref) => (
         <p
             ref={ref}
-            className={cn('text-sm text-[#A1A1AA]', className)}
+            className={cn('text-sm text-muted-foreground', className)}
             {...props}
         />
     )

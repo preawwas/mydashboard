@@ -16,9 +16,12 @@ interface AssetAllocationProps {
 }
 
 const categoryColors: Record<string, string> = {
-    GOLD: '#F5C542',  // Gold
-    CRYPTO: '#9F7AEA', // Soft Purple
-    STOCK: '#4299E1',  // Sky Blue
+    GOLD: '#F5C542',
+    CRYPTO: '#9F7AEA',
+    STOCK: '#4299E1',
+    FUND: '#38A169',
+    OTHER: '#718096',
+    USD: '#ED64A6',
 };
 
 const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
@@ -76,17 +79,17 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
 
 
     return (
-        <Card className="bg-[#1C1C1E] border-[#2E2C24]">
-            <CardHeader className="border-b border-white/5 pb-4">
-                <CardTitle className="text-white text-lg font-medium">{t('dashboard.assetAllocation')}</CardTitle>
+        <Card className="bg-card backdrop-blur-xl border-border shadow-lg shadow-primary/5">
+            <CardHeader className="border-b border-border pb-4">
+                <CardTitle className="text-foreground text-lg font-bold">{t('dashboard.assetAllocation')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
                 <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
                     {/* Donut Chart */}
                     <div className="relative w-48 h-48 sm:w-64 sm:h-64 flex-shrink-0">
-                        <svg viewBox="0 0 100 100" className="w-full h-full transform drop-shadow-2xl">
+                        <svg viewBox="0 0 100 100" className="w-full h-full transform drop-shadow-xl">
                             {/* Background circle */}
-                            <circle cx="50" cy="50" r="40" fill="#27272A" />
+                            <circle cx="50" cy="50" r="40" fill="currentColor" className="text-muted/10" />
 
                             {chartPaths.length > 0 ? (
                                 chartPaths.map((item, index) => (
@@ -94,23 +97,23 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                                         key={item.category}
                                         d={item.path}
                                         fill={item.color}
-                                        stroke="#1C1C1E"
-                                        strokeWidth="2"
+                                        stroke="transparent"
+                                        strokeWidth="0"
                                         className="transition-all duration-300 hover:opacity-90 cursor-pointer"
                                     />
                                 ))
                             ) : (
-                                <circle cx="50" cy="50" r="40" fill="#27272A" stroke="#3F3F46" strokeWidth="1" />
+                                <circle cx="50" cy="50" r="40" fill="currentColor" className="text-muted/20" />
                             )}
 
                             {/* Inner Hole for Donut effect */}
-                            <circle cx="50" cy="50" r="28" fill="#1C1C1E" />
+                            <circle cx="50" cy="50" r="28" fill="var(--background)" fillOpacity="0.8" />
 
                             {/* Center Text */}
                             <foreignObject x="15" y="32" width="70" height="36">
                                 <div className="flex flex-col items-center justify-center h-full text-center">
-                                    <span className="text-[0.4rem] text-gray-300 mb-0.5 tracking-wide uppercase">{t('common.totalValue')}</span>
-                                    <span className="text-[0.6rem] font-bold text-white truncate w-full px-1 drop-shadow-md">
+                                    <span className="text-[0.4rem] text-muted-foreground mb-0.5 tracking-wide uppercase font-bold">{t('common.totalValue')}</span>
+                                    <span className="text-[0.6rem] font-black text-foreground truncate w-full px-1">
                                         {formatCurrency(total).replace('฿', '')}
                                     </span>
                                 </div>
@@ -122,26 +125,27 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                     <div className="flex-1 w-full space-y-3 sm:space-y-4">
                         {processedData.length > 0 ? (
                             processedData.map((item) => (
-                                <div key={item.category} className="group flex items-center justify-between p-2.5 sm:p-3 rounded-xl bg-[#27272A]/50 border border-transparent hover:border-[#F5C542]/20 transition-all">
+                                <div key={item.category} className="group flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-card border border-border hover:border-primary/40 transition-all shadow-sm">
                                     <div className="flex items-center gap-3 sm:gap-4">
                                         <div
-                                            className="w-2 sm:w-3 h-10 sm:h-12 rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)]"
-                                            style={{ backgroundColor: item.color, boxShadow: `0 0 10px ${item.color}40` }}
+                                            className="w-2 sm:w-3 h-10 sm:h-12 rounded-full shadow-lg"
+                                            style={{ backgroundColor: item.color, boxShadow: `0 0 15px ${item.color}30` }}
                                         />
                                         <div>
-                                            <p className="text-white font-semibold text-base sm:text-lg">
+                                            <p className="text-foreground font-bold text-base sm:text-lg">
                                                 {item.category === 'GOLD' ? t('investment.type.gold') :
                                                     item.category === 'CRYPTO' ? t('investment.type.crypto') :
                                                         item.category === 'STOCK' ? t('investment.type.stock') :
-                                                            item.category === 'USD' ? 'USD' :
-                                                                t('common.others')}
+                                                            item.category === 'FUND' ? t('investment.type.fund') :
+                                                                item.category === 'USD' ? 'USD' :
+                                                                    t('common.others')}
                                             </p>
-                                            <p className="text-xs text-gray-400 font-medium">{item.percentage.toFixed(1)}%</p>
+                                            <p className="text-xs text-muted-foreground font-bold">{item.percentage.toFixed(1)}%</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-white font-bold tracking-wide text-lg sm:text-xl">{formatCurrency(item.value)}</p>
-                                        <div className="hidden sm:block w-28 bg-gray-800 h-2 rounded-full mt-2 ml-auto overflow-hidden">
+                                        <p className="text-foreground font-black tracking-tight text-lg sm:text-xl">{formatCurrency(item.value)}</p>
+                                        <div className="hidden sm:block w-28 bg-muted h-2 rounded-full mt-2 ml-auto overflow-hidden border border-border">
                                             <div
                                                 className="h-full rounded-full"
                                                 style={{ width: `${item.percentage}%`, backgroundColor: item.color }}
@@ -151,7 +155,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                                 </div>
                             ))
                         ) : (
-                            <div className="text-center py-8 text-gray-500 bg-[#27272A]/30 rounded-xl border border-dashed border-gray-700">
+                            <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed border-border">
                                 <p>{t('investment.noItems')}</p>
                                 <p className="text-sm mt-2">{t('dashboard.investmentIntro')}</p>
                             </div>

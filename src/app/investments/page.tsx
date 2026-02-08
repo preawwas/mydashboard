@@ -36,6 +36,7 @@ export default function InvestmentsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [showFilters, setShowFilters] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState<Investment | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     // Calculate summary data
     const [summaryData, setSummaryData] = useState({
@@ -79,56 +80,25 @@ export default function InvestmentsPage() {
             if (data.success) {
                 setInvestments(data);
 
-                // Calculate summary
-                let totalValue = 0;
-                let totalProfitLoss = 0;
-                let openPositions = 0;
-                let closedPositions = 0;
-                const categoryValues: Record<string, number> = {};
+                // Use aggregate stats from backend
+                if (data.stats) {
+                    const stats = data.stats;
+                    setSummaryData({
+                        totalValue: stats.totalValue,
+                        totalProfitLoss: stats.totalProfitLoss,
+                        profitLossPercentage: stats.profitLossPercentage,
+                        totalAssets: data.total,
+                        openPositions: stats.openPositions,
+                        closedPositions: stats.closedPositions,
+                    });
 
-                // Exchange rate USD -> THB
-                const USD_TO_THB = 31.00;
-                const convertToTHB = (amount: number, currency: string) => {
-                    if (currency === 'USD') return amount * USD_TO_THB;
-                    return amount; // Already THB
-                };
-
-                for (const inv of data.data as Investment[]) {
-                    const costInOriginal = inv.buy_quantity * inv.buy_price_per_unit + inv.buy_fee;
-                    const cost = convertToTHB(costInOriginal, inv.buy_currency);
-                    totalValue += cost;
-
-                    if (inv.status === 'OPEN') openPositions++;
-                    else closedPositions++;
-
-                    categoryValues[inv.asset_category] = (categoryValues[inv.asset_category] || 0) + cost;
-
-                    // Calculate profit/loss from sell history
-                    for (const sell of inv.sell_history) {
-                        const sellValueInOriginal = sell.qty * sell.price - sell.fee;
-                        const sellValue = convertToTHB(sellValueInOriginal, sell.currency);
-                        const sellCost = (sell.qty / inv.buy_quantity) * cost;
-                        totalProfitLoss += sellValue - sellCost;
-                    }
+                    // Update allocation data with colors
+                    const allocation = stats.assetAllocation.map((item: any) => ({
+                        ...item,
+                        color: colors[item.category as keyof typeof colors] || '#6b7280',
+                    }));
+                    setAllocationData(allocation);
                 }
-
-                setSummaryData({
-                    totalValue,
-                    totalProfitLoss,
-                    profitLossPercentage: totalValue > 0 ? (totalProfitLoss / totalValue) * 100 : 0,
-                    totalAssets: data.total,
-                    openPositions,
-                    closedPositions,
-                });
-
-                // Calculate allocation
-                const allocation = Object.entries(categoryValues).map(([category, value]) => ({
-                    category,
-                    value,
-                    percentage: (value / totalValue) * 100 || 0,
-                    color: colors[category as keyof typeof colors] || '#6b7280',
-                }));
-                setAllocationData(allocation);
             }
         } catch (error) {
             console.error('Fetch investments error:', error);
@@ -141,10 +111,19 @@ export default function InvestmentsPage() {
         fetchInvestments();
     }, [token, pagination.page, pagination.limit, filters, searchQuery]);
 
+    // Handle Tab Switch - Reset filters when going to overview
+    useEffect(() => {
+        if (activeTab === 'overview') {
+            setFilters({});
+            setSearchQuery('');
+            setPage(1);
+        }
+    }, [activeTab]);
+
     // Handle add investment
     // Handle add investment
     const handleAddInvestment = async (data: InvestmentFormData) => {
-        if (!token) return;
+        if (!token || isLoading) return;
 
         try {
             const response = await apiClient.fetch('/api/investments', {
@@ -170,7 +149,7 @@ export default function InvestmentsPage() {
 
     // Handle edit investment
     const handleEditInvestment = async (data: InvestmentFormData) => {
-        if (!token || !selectedInvestment) return;
+        if (!token || !selectedInvestment || isLoading) return;
 
         const response = await apiClient.fetch(`/api/investments/${selectedInvestment.id}`, {
             method: 'PATCH',
@@ -189,18 +168,23 @@ export default function InvestmentsPage() {
 
     // Handle delete investment
     const handleDeleteInvestment = async () => {
-        if (!token || !deleteConfirm) return;
+        if (!token || !deleteConfirm || deleting) return;
 
-        const response = await apiClient.fetch(`/api/investments/${deleteConfirm.id}`, {
-            method: 'DELETE',
-        });
+        setDeleting(true);
+        try {
+            const response = await apiClient.fetch(`/api/investments/${deleteConfirm.id}`, {
+                method: 'DELETE',
+            });
 
-        const result = await response.json();
-        if (result.success) {
-            removeInvestment(deleteConfirm.id);
-            setDeleteConfirm(null);
-            fetchInvestments();
-            addToast(t('investment.deleteSuccess'), 'success');
+            const result = await response.json();
+            if (result.success) {
+                removeInvestment(deleteConfirm.id);
+                setDeleteConfirm(null);
+                fetchInvestments();
+                addToast(t('investment.deleteSuccess'), 'success');
+            }
+        } finally {
+            setDeleting(false);
         }
     };
 
@@ -225,8 +209,8 @@ export default function InvestmentsPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-[#FAFAFA]">{t('common.investment')}</h1>
-                        <p className="text-gray-500">{t('investment.managePortfolio')}</p>
+                        <h1 className="text-2xl font-bold text-foreground">{t('common.investment')}</h1>
+                        <p className="text-muted-foreground">{t('investment.managePortfolio')}</p>
                     </div>
                     <Button
                         onClick={() => {
@@ -240,13 +224,13 @@ export default function InvestmentsPage() {
                 </div>
 
                 {/* Tabs */}
-                <div className="border-b border-[#2E2C24]">
+                <div className="border-b border-border">
                     <nav className="flex gap-8">
                         <button
                             onClick={() => setActiveTab('overview')}
                             className={`py-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'overview'
-                                ? 'border-[#F5C542] text-[#F5C542]'
-                                : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-muted-foreground hover:text-foreground'
                                 }`}
                         >
                             {t('common.overview')}
@@ -254,8 +238,8 @@ export default function InvestmentsPage() {
                         <button
                             onClick={() => setActiveTab('list')}
                             className={`py-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'list'
-                                ? 'border-[#F5C542] text-[#F5C542]'
-                                : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-muted-foreground hover:text-foreground'
                                 }`}
                         >
                             {t('investment.investmentList')}
@@ -282,7 +266,7 @@ export default function InvestmentsPage() {
                                     rightIcon={
                                         searchQuery ? (
                                             <button onClick={() => handleSearch('')}>
-                                                <X className="w-4 h-4 text-[#A1A1AA] hover:text-[#FAFAFA]" />
+                                                <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
                                             </button>
                                         ) : undefined
                                     }
@@ -294,17 +278,17 @@ export default function InvestmentsPage() {
                                     onClick={() => setShowFilters(!showFilters)}
                                     leftIcon={<Filter className="w-4 h-4" />}
                                     className={showFilters
-                                        ? 'bg-[#F5C542] text-[#15140F] hover:bg-[#F5C542]/90 border-transparent'
-                                        : 'bg-transparent border-[#2E2C24] text-[#A1A1AA] hover:text-[#F5C542] hover:border-[#F5C542] hover:bg-[#2E2C24]/50'
+                                        ? 'bg-primary text-primary-foreground hover:bg-primary/90 border-transparent'
+                                        : 'bg-transparent border-border text-muted-foreground hover:text-primary hover:border-primary hover:bg-muted/5'
                                     }
                                 >
                                     {t('common.filter')}
                                     {hasActiveFilters && (
-                                        <span className="ml-1.5 w-2 h-2 rounded-full bg-[#15140F]" />
+                                        <span className="ml-1.5 w-2 h-2 rounded-full bg-primary-foreground" />
                                     )}
                                 </Button>
                                 {hasActiveFilters && (
-                                    <Button variant="ghost" onClick={clearFilters} className="text-[#A1A1AA] hover:text-[#FAFAFA] hover:bg-[#2E2C24]">
+                                    <Button variant="ghost" onClick={clearFilters} className="text-muted-foreground hover:text-foreground hover:bg-muted/10">
                                         {t('common.clear')}
                                     </Button>
                                 )}
@@ -313,7 +297,7 @@ export default function InvestmentsPage() {
 
                         {/* Filter Panel */}
                         {showFilters && (
-                            <div className="p-4 rounded-xl bg-[#1C1B16] border border-[#2E2C24] grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="p-4 rounded-xl bg-card border border-border grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                 <Select
                                     label={t('investment.assetType')}
                                     placeholder={t('common.all')}
@@ -399,15 +383,15 @@ export default function InvestmentsPage() {
                         size="sm"
                     >
                         <div className="space-y-4">
-                            <p className="text-[#A1A1AA]">
+                            <p className="text-muted-foreground">
                                 {t('common.deleteMessage').replace('{item}', `${deleteConfirm.asset_code} (${deleteConfirm.asset_name})`)}
                             </p>
-                            <p className="text-sm text-red-600">{t('common.cannotUndo')}</p>
+                            <p className="text-sm text-rose-500">{t('common.cannotUndo')}</p>
                             <div className="flex justify-end gap-3 pt-4">
-                                <Button variant="secondary" onClick={() => setDeleteConfirm(null)}>
+                                <Button variant="secondary" onClick={() => setDeleteConfirm(null)} disabled={deleting}>
                                     {t('common.cancel')}
                                 </Button>
-                                <Button variant="danger" onClick={handleDeleteInvestment}>
+                                <Button variant="danger" onClick={handleDeleteInvestment} isLoading={deleting}>
                                     {t('common.delete')}
                                 </Button>
                             </div>

@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Button, Modal } from '@/components/ui';
 import { InvestmentFormData, SellRecord, SellRecordWithId } from '@/types';
-import { getCurrentLocalDateTime } from '@/lib/utils';
+import { getCurrentLocalDate } from '@/lib/utils';
 import InvestmentDetails from './InvestmentDetails';
 import SellHistoryList from './SellHistoryList';
 import { useTranslation } from '@/lib/useTranslation';
@@ -44,8 +44,8 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
         buy_price_per_unit: initialData?.buy_price_per_unit || 0,
         buy_currency: initialData?.buy_currency || 'THB',
         buy_fee: initialData?.buy_fee || 0,
-        buy_datetime: initialData?.buy_datetime || getCurrentLocalDateTime(),
-        sell_history: (initialData?.sell_history || []).map((s, i) => ({ ...s, _id: `init_${i}` })),
+        buy_datetime: (initialData?.buy_datetime || getCurrentLocalDate()).slice(0, 10),
+        sell_history: (initialData?.sell_history || []).map((s, i) => ({ ...s, _id: `init_${i}`, datetime: s.datetime.slice(0, 10) })),
         note: initialData?.note || '',
     }), [initialData]);
 
@@ -104,7 +104,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!validateForm()) {
+        if (isLoading || !validateForm()) {
             return;
         }
 
@@ -126,7 +126,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 ...prev.sell_history,
                 {
                     _id: newId,
-                    datetime: getCurrentLocalDateTime(),
+                    datetime: getCurrentLocalDate(),
                     qty: 0,
                     price: 0,
                     currency: 'THB',
@@ -181,13 +181,13 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
         >
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 {/* Tabs */}
-                <div className="flex border-b border-[#2E2C24] -mt-2">
+                <div className="flex border-b border-border -mt-2">
                     <button
                         type="button"
                         onClick={() => setActiveTab('details')}
                         className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'details'
-                            ? 'border-[#F5C542] text-[#F5C542]'
-                            : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
                     >
                         {t('investment.details')}
@@ -196,13 +196,13 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                         type="button"
                         onClick={() => setActiveTab('sell_history')}
                         className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'sell_history'
-                            ? 'border-[#F5C542] text-[#F5C542]'
-                            : 'border-transparent text-[#A1A1AA] hover:text-[#FAFAFA]'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
                     >
                         {t('investment.sellHistory')}
                         {formData.sell_history.length > 0 && (
-                            <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-[#2E2C24] text-[#F5C542]">
+                            <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-muted/20 text-primary">
                                 {formData.sell_history.length}
                             </span>
                         )}
@@ -231,12 +231,12 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-end gap-3 pt-4 border-t border-[#2E2C24]">
-                    <Button type="button" variant="secondary" onClick={onClose} className="bg-[#2E2C24] text-[#FAFAFA] hover:bg-[#3E3C32] hover:text-[#FAFAFA] border border-transparent transition-all">
+                <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                    <Button type="button" variant="secondary" onClick={onClose}>
                         {t('common.cancel')}
                     </Button>
-                    <Button type="submit" isLoading={isLoading} className="bg-gradient-to-r from-[#F5C542] to-[#FFD54F] text-[#15140F] hover:opacity-90 border-none font-bold focus:ring-2 focus:ring-[#F5C542] focus:ring-offset-2 focus:ring-offset-[#1C1B16]">
-                        {mode === 'add' ? t('common.save') : t('common.save')}
+                    <Button type="submit" isLoading={isLoading}>
+                        {t('common.save')}
                     </Button>
                 </div>
             </form>
