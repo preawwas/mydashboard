@@ -1,213 +1,47 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { SummaryCards, AssetAllocation, InvestmentTable, InvestmentForm } from '@/components/investments';
-import { Button, Input, Select, Modal, Badge, Loading, EmptyState } from '@/components/ui';
-import { useAuthStore, useInvestmentStore, useUIStore, useToastStore } from '@/lib/store';
+import { Button, Input, Select, Modal, Loading } from '@/components/ui';
 import { useTranslation } from '@/lib/useTranslation';
-import { Investment, InvestmentFormData, InvestmentFilters } from '@/types';
-import { Plus, Search, Filter, X, TrendingUp } from 'lucide-react';
-import { apiClient } from '@/lib/api-client';
+import { InvestmentFilters } from '@/types';
+import { Plus, Search, Filter, X } from 'lucide-react';
+import { useInvestments } from '@/hooks';
 
 export default function InvestmentsPage() {
-    const { token, user } = useAuthStore();
     const { t } = useTranslation();
     const {
         investments,
+        summaryData,
+        allocationData,
+        isLoading,
+        deleting,
+        activeTab,
+        searchQuery,
+        showFilters,
+        deleteConfirm,
+        hasActiveFilters,
         pagination,
         filters,
-        isLoading,
-        setInvestments,
-        setFilters,
+        modalOpen,
+        modalType,
+        selectedInvestment,
+        setActiveTab,
+        handleSearch,
+        setShowFilters,
+        setDeleteConfirm,
+        clearFilters,
         setPage,
         setLimit,
-        setLoading,
-        setSelectedInvestment,
-        selectedInvestment,
-        addInvestment,
-        updateInvestment,
-        removeInvestment,
-    } = useInvestmentStore();
-    const { modalOpen, modalType, openModal, closeModal } = useUIStore();
-    const { addToast } = useToastStore();
-
-    const [activeTab, setActiveTab] = useState<'overview' | 'list'>('overview');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [showFilters, setShowFilters] = useState(false);
-    const [deleteConfirm, setDeleteConfirm] = useState<Investment | null>(null);
-    const [deleting, setDeleting] = useState(false);
-
-    // Calculate summary data
-    const [summaryData, setSummaryData] = useState({
-        totalValue: 0,
-        totalProfitLoss: 0,
-        profitLossPercentage: 0,
-        totalAssets: 0,
-        openPositions: 0,
-        closedPositions: 0,
-    });
-
-    const [allocationData, setAllocationData] = useState<
-        { category: string; value: number; percentage: number; color: string }[]
-    >([]);
-
-    const colors = {
-        GOLD: '#f59e0b',
-        CRYPTO: '#8b5cf6',
-        STOCK: '#3b82f6',
-    };
-
-    // Fetch investments
-    const fetchInvestments = async () => {
-        if (!token) return;
-
-        setLoading(true);
-        try {
-            const params = new URLSearchParams({
-                page: pagination.page.toString(),
-                limit: pagination.limit.toString(),
-            });
-
-            if (filters.asset_category) params.set('asset_category', filters.asset_category);
-            if (filters.strategy_type) params.set('strategy_type', filters.strategy_type);
-            if (filters.status) params.set('status', filters.status);
-            if (searchQuery) params.set('search', searchQuery);
-
-            const response = await apiClient.fetch(`/api/investments?${params}`);
-
-            const data = await response.json();
-            if (data.success) {
-                setInvestments(data);
-
-                // Use aggregate stats from backend
-                if (data.stats) {
-                    const stats = data.stats;
-                    setSummaryData({
-                        totalValue: stats.totalValue,
-                        totalProfitLoss: stats.totalProfitLoss,
-                        profitLossPercentage: stats.profitLossPercentage,
-                        totalAssets: data.total,
-                        openPositions: stats.openPositions,
-                        closedPositions: stats.closedPositions,
-                    });
-
-                    // Update allocation data with colors
-                    const allocation = stats.assetAllocation.map((item: any) => ({
-                        ...item,
-                        color: colors[item.category as keyof typeof colors] || '#6b7280',
-                    }));
-                    setAllocationData(allocation);
-                }
-            }
-        } catch (error) {
-            console.error('Fetch investments error:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Debounced fetch to prevent multiple rapid calls
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            fetchInvestments();
-        }, 100);
-        return () => clearTimeout(timeoutId);
-    }, [token, pagination.page, pagination.limit, filters.asset_category, filters.strategy_type, filters.status, searchQuery]);
-
-    // Handle Tab Switch - Reset filters when going to overview
-    const handleTabChange = (tab: 'overview' | 'list') => {
-        if (tab === 'overview' && activeTab !== 'overview') {
-            // Batch all resets together
-            setFilters({});
-            setSearchQuery('');
-            setPage(1);
-        }
-        setActiveTab(tab);
-    };
-
-    // Handle add investment
-    // Handle add investment
-    const handleAddInvestment = async (data: InvestmentFormData) => {
-        if (!token || isLoading) return;
-
-        try {
-            const response = await apiClient.fetch('/api/investments', {
-                method: 'POST',
-                body: JSON.stringify(data),
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                addInvestment(result.data);
-                fetchInvestments();
-                closeModal(); // Ensure modal is closed on success
-                addToast(t('investment.addSuccess'), 'success');
-            } else {
-                console.error('Failed to add investment:', result.error);
-                addToast(result.error || t('common.error'), 'error');
-            }
-        } catch (error) {
-            console.error('Add investment network error:', error);
-            addToast(t('common.error'), 'error');
-        }
-    };
-
-    // Handle edit investment
-    const handleEditInvestment = async (data: InvestmentFormData) => {
-        if (!token || !selectedInvestment || isLoading) return;
-
-        const response = await apiClient.fetch(`/api/investments/${selectedInvestment.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify(data),
-        });
-
-        const result = await response.json();
-        if (result.success) {
-            updateInvestment(result.data);
-            fetchInvestments();
-            closeModal();
-            setSelectedInvestment(null);
-            addToast(t('investment.updateSuccess'), 'success');
-        }
-    };
-
-    // Handle delete investment
-    const handleDeleteInvestment = async () => {
-        if (!token || !deleteConfirm || deleting) return;
-
-        setDeleting(true);
-        try {
-            const response = await apiClient.fetch(`/api/investments/${deleteConfirm.id}`, {
-                method: 'DELETE',
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                removeInvestment(deleteConfirm.id);
-                setDeleteConfirm(null);
-                fetchInvestments();
-                addToast(t('investment.deleteSuccess'), 'success');
-            }
-        } finally {
-            setDeleting(false);
-        }
-    };
-
-    // Handle search
-    const handleSearch = (value: string) => {
-        setSearchQuery(value);
-        setPage(1);
-    };
-
-    // Clear filters
-    const clearFilters = () => {
-        setFilters({});
-        setSearchQuery('');
-        setPage(1);
-    };
-
-    const hasActiveFilters = filters.asset_category || filters.strategy_type || filters.status || searchQuery;
+        setFilters,
+        handleAddInvestment,
+        handleEditInvestment,
+        handleDeleteInvestment,
+        openAddModal,
+        openEditModal,
+        closeFormModal,
+    } = useInvestments();
 
     return (
         <DashboardLayout>
@@ -219,10 +53,7 @@ export default function InvestmentsPage() {
                         <p className="text-muted-foreground">{t('investment.managePortfolio')}</p>
                     </div>
                     <Button
-                        onClick={() => {
-                            setSelectedInvestment(null);
-                            openModal('add');
-                        }}
+                        onClick={openAddModal}
                         leftIcon={<Plus className="w-4 h-4" />}
                     >
                         {t('investment.addInvestment')}
@@ -233,7 +64,7 @@ export default function InvestmentsPage() {
                 <div className="border-b border-border">
                     <nav className="flex gap-8">
                         <button
-                            onClick={() => handleTabChange('overview')}
+                            onClick={() => setActiveTab('overview')}
                             className={`py-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'overview'
                                 ? 'border-primary text-primary'
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -242,7 +73,7 @@ export default function InvestmentsPage() {
                             {t('common.overview')}
                         </button>
                         <button
-                            onClick={() => handleTabChange('list')}
+                            onClick={() => setActiveTab('list')}
                             className={`py-3 border-b-2 font-medium text-sm transition-colors ${activeTab === 'list'
                                 ? 'border-primary text-primary'
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
@@ -356,10 +187,7 @@ export default function InvestmentsPage() {
                             pagination={pagination}
                             onPageChange={setPage}
                             onLimitChange={setLimit}
-                            onEdit={(inv) => {
-                                setSelectedInvestment(inv);
-                                openModal('edit');
-                            }}
+                            onEdit={openEditModal}
                             onDelete={(inv) => setDeleteConfirm(inv)}
                         />
                     </div>
@@ -369,10 +197,7 @@ export default function InvestmentsPage() {
                 {(modalType === 'add' || modalType === 'edit') && (
                     <InvestmentForm
                         isOpen={modalOpen}
-                        onClose={() => {
-                            closeModal();
-                            setSelectedInvestment(null);
-                        }}
+                        onClose={closeFormModal}
                         onSubmit={modalType === 'add' ? handleAddInvestment : handleEditInvestment}
                         initialData={selectedInvestment ? {
                             ...selectedInvestment,
@@ -381,8 +206,6 @@ export default function InvestmentsPage() {
                         mode={modalType}
                     />
                 )}
-
-                {/* View Modal Removed */}
 
                 {/* Delete Confirmation */}
                 {deleteConfirm && (

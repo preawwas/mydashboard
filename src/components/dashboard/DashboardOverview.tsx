@@ -1,24 +1,22 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent, DashboardSkeleton } from '@/components/ui';
 import {
     TrendingUp, TrendingDown, Wallet, PiggyBank,
-    ArrowUpRight, ArrowDownRight, Loader2, ExternalLink
+    ArrowUpRight, ArrowDownRight, ExternalLink
 } from 'lucide-react';
 import {
     ResponsiveContainer, PieChart, Pie, Cell,
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-    BarChart, Bar
 } from 'recharts';
 import Link from 'next/link';
-import { useAuthStore } from '@/lib/store';
-import { PortfolioSummary } from '@/types';
-import { apiClient } from '@/lib/api-client';
+import { formatCurrency } from '@/lib/utils';
+import { useDashboardData } from '@/hooks';
 
 // Color palette for charts
 const COLORS = {
-    GOLD: 'var(--primary)',
+    GOLD: '#F59E0B', // Amber 500
     CRYPTO: '#8B5CF6',
     STOCK: '#10B981',
     FUND: '#38A169',
@@ -28,87 +26,21 @@ const COLORS = {
     income: '#22C55E'
 };
 
-const CATEGORY_COLORS = ['var(--primary)', '#8B5CF6', '#10B981', '#3B82F6', '#EC4899'];
+// Fallback colors for unknown categories (preventing overlap with main COLORS)
+const CATEGORY_COLORS = [
+    '#3B82F6', // Blue
+    '#F97316', // Orange
+    '#06B6D4', // Cyan
+    '#6366F1', // Indigo
+    '#EC4899', // Pink (different shade)
+    '#14B8A6', // Teal
+];
 
 export default function DashboardOverview() {
-    const { token, user } = useAuthStore();
-    const [loading, setLoading] = useState(true);
-    const [investmentStats, setInvestmentStats] = useState<PortfolioSummary | null>(null);
-    const [expenseData, setExpenseData] = useState<{
-        totalExpenses: number;
-        categories: any[];
-        monthlyData: any[];
-    }>({ totalExpenses: 0, categories: [], monthlyData: [] });
-
-    useEffect(() => {
-        if (token && user) {
-            fetchAllData();
-        }
-    }, [token, user]);
-
-    const fetchAllData = async () => {
-        setLoading(true);
-        try {
-            // Fetch investment stats
-            const statsRes = await apiClient.fetch('/api/dashboard/stats');
-            const statsData = await statsRes.json();
-            if (statsData.success) {
-                setInvestmentStats(statsData.data);
-            }
-
-            // Fetch expense data
-            const catRes = await apiClient.fetch('/api/categories');
-            const catData = await catRes.json();
-
-            const expRes = await apiClient.fetch(`/api/expenses/user/${user?.id}?limit=1`);
-            const expData = await expRes.json();
-
-            if (catData.success && expData.success && expData.stats) {
-                const { totalAmount, byCategory, byMonth } = expData.stats;
-
-                const cats = catData.data.map((cat: any) => ({
-                    ...cat,
-                    amount: byCategory[cat.id] || 0
-                })).filter((c: any) => c.amount > 0).sort((a: any, b: any) => b.amount - a.amount);
-
-                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                const chartData = months.map(m => ({
-                    name: m,
-                    expense: byMonth[m] || 0
-                }));
-
-                setExpenseData({
-                    totalExpenses: totalAmount || 0,
-                    categories: cats,
-                    monthlyData: chartData
-                });
-            }
-        } catch (error) {
-            console.error('Dashboard fetch error:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('th-TH', {
-            style: 'currency',
-            currency: 'THB',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        }).format(value);
-    };
-
+    const { loading, investmentStats, expenseData } = useDashboardData();
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-[600px]">
-                <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                    <p className="text-muted-foreground">กำลังโหลดข้อมูล...</p>
-                </div>
-            </div>
-        );
+        return <DashboardSkeleton />;
     }
 
     return (
@@ -348,11 +280,11 @@ export default function DashboardOverview() {
                                     <div key={idx} className="flex items-center gap-3">
                                         <div
                                             className="w-10 h-10 rounded-lg flex items-center justify-center"
-                                            style={{ backgroundColor: cat.color + '20' }}
+                                            style={{ backgroundColor: (cat.color || '#718096') + '20' }}
                                         >
                                             <div
                                                 className="w-4 h-4 rounded-full"
-                                                style={{ backgroundColor: cat.color }}
+                                                style={{ backgroundColor: cat.color || '#718096' }}
                                             />
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -362,7 +294,7 @@ export default function DashboardOverview() {
                                                     className="h-1.5 rounded-full"
                                                     style={{
                                                         width: `${(cat.amount / expenseData.totalExpenses) * 100}%`,
-                                                        backgroundColor: cat.color
+                                                        backgroundColor: cat.color || '#718096'
                                                     }}
                                                 />
                                             </div>

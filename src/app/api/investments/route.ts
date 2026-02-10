@@ -1,26 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
-import { createSupabaseApiClient, createSupabaseAdminClient } from '@/lib/supabase-server';
-import { InvestmentFilters } from '@/types';
-
-// Helper to get user from token
-function getUserFromRequest(request: NextRequest) {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-        return null;
-    }
-    const token = authHeader.split(' ')[1];
-    return verifyToken(token);
-}
+import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import { withAuth } from '@/lib/api-middleware';
+import { createInvestmentSchema, validateRequest } from '@/lib/validation';
+import { AuthUser, InvestmentFilters, SellRecord } from '@/types';
 
 // GET /api/investments - List investments with summary stats
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request: NextRequest, user: AuthUser) => {
     try {
-        const user = getUserFromRequest(request);
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
         const supabase = createSupabaseAdminClient();
 
         const { searchParams } = new URL(request.url);
@@ -40,7 +26,7 @@ export async function GET(request: NextRequest) {
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 
-        // Apply filters to allQuery
+        // Apply filters
         if (filters.asset_category) {
             allQuery = allQuery.eq('asset_category', filters.asset_category);
         }
@@ -59,12 +45,12 @@ export async function GET(request: NextRequest) {
         if (allQueryError) {
             console.error('Get all investments error:', allQueryError);
             return NextResponse.json(
-                { error: allQueryError.message, details: allQueryError },
+                { success: false, error: allQueryError.message },
                 { status: 500 }
             );
         }
 
-        const allItems = (allFilteredData || []) as any[];
+        const allItems = allFilteredData || [];
 
         // Calculate aggregate stats for the filtered set
         let totalValue = 0;
@@ -79,7 +65,7 @@ export async function GET(request: NextRequest) {
             return amount;
         };
 
-        allItems.forEach(item => {
+        allItems.forEach((item) => {
             if (item.status === 'OPEN') {
                 openPositions++;
                 const costInOriginal = (item.buy_quantity * item.buy_price_per_unit) + (item.buy_fee || 0);
@@ -93,7 +79,7 @@ export async function GET(request: NextRequest) {
             }
 
             if (item.sell_history && Array.isArray(item.sell_history)) {
-                item.sell_history.forEach((sell: any) => {
+                (item.sell_history as SellRecord[]).forEach((sell) => {
                     const proportionalCostInOriginal = (sell.qty / item.buy_quantity) * (item.buy_quantity * item.buy_price_per_unit + (item.buy_fee || 0));
                     const cost = convertToTHB(proportionalCostInOriginal, item.buy_currency);
                     const revenueInOriginal = sell.qty * sell.price - (sell.fee || 0);
@@ -131,56 +117,37 @@ export async function GET(request: NextRequest) {
             limit,
             totalPages,
         });
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Get investments error:', error);
         return NextResponse.json(
-            { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+            { success: false, error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
             { status: 500 }
         );
     }
-}
+});
 
 // POST /api/investments - Create investment
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest, user: AuthUser) => {
     try {
-        const user = getUserFromRequest(request);
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        // Use Admin client to bypass RLS, trusting our own auth check above
         const supabase = createSupabaseAdminClient();
         const body = await request.json();
 
-        // Validate required fields
-        const requiredFields = ['asset_category', 'asset_code', 'asset_name', 'market', 'strategy_type', 'status', 'buy_quantity', 'buy_price_per_unit', 'buy_currency', 'buy_datetime'];
-        for (const field of requiredFields) {
-            if (!body[field]) {
-                return NextResponse.json(
-                    { error: `กรุณากรอก ${field}` },
-                    { status: 400 }
-                );
-            }
+        const validation = validateRequest(createInvestmentSchema, body);
+        if (!validation.success) {
+            return NextResponse.json(
+                { success: false, error: validation.error },
+                { status: 400 }
+            );
         }
+
+        const data = validation.data;
 
         // Insert investment
         const { data: investment, error } = await supabase
             .from('investments')
             .insert({
                 user_id: user.id,
-                asset_category: body.asset_category,
-                asset_code: body.asset_code,
-                asset_name: body.asset_name,
-                market: body.market,
-                strategy_type: body.strategy_type,
-                status: body.status,
-                buy_quantity: parseFloat(body.buy_quantity),
-                buy_price_per_unit: parseFloat(body.buy_price_per_unit),
-                buy_currency: body.buy_currency,
-                buy_fee: parseFloat(body.buy_fee || 0),
-                buy_datetime: body.buy_datetime,
-                sell_history: body.sell_history || [],
-                note: body.note || null,
+                ...data,
             })
             .select()
             .single();
@@ -188,7 +155,7 @@ export async function POST(request: NextRequest) {
         if (error) {
             console.error('Create investment error:', error);
             return NextResponse.json(
-                { error: error.message, details: error },
+                { success: false, error: error.message },
                 { status: 500 }
             );
         }
@@ -198,11 +165,11 @@ export async function POST(request: NextRequest) {
             data: investment,
             message: 'เพิ่มการลงทุนสำเร็จ',
         });
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Create investment error:', error);
         return NextResponse.json(
-            { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+            { success: false, error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
             { status: 500 }
         );
     }
-}
+});

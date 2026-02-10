@@ -1,25 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateUser, generateToken } from '@/lib/auth';
+import { loginSchema, validateRequest } from '@/lib/validation';
 
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { email, password } = body;
+        const validation = validateRequest(loginSchema, body);
 
-        // Validate input
-        if (!email || !password) {
+        if (!validation.success) {
             return NextResponse.json(
-                { error: 'กรุณากรอกอีเมลและรหัสผ่าน' },
+                { success: false, error: validation.error },
                 { status: 400 }
             );
         }
+
+        const { email, password } = validation.data;
 
         // Authenticate user
         const user = await authenticateUser(email, password);
 
         if (!user) {
             return NextResponse.json(
-                { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
+                { success: false, error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
                 { status: 401 }
             );
         }
@@ -33,16 +35,16 @@ export async function POST(request: NextRequest) {
             token,
             message: 'เข้าสู่ระบบสำเร็จ',
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Login error:', error);
-        if (error.message === 'Please verify your email address.') {
+        if (error instanceof Error && error.message === 'Please verify your email address.') {
             return NextResponse.json(
-                { error: 'กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ' },
+                { success: false, error: 'กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ' },
                 { status: 403 }
             );
         }
         return NextResponse.json(
-            { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+            { success: false, error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
             { status: 500 }
         );
     }

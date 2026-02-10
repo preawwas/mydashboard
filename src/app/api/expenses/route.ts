@@ -1,26 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
+import { withAuth } from '@/lib/api-middleware';
+import { createExpenseSchema, validateRequest } from '@/lib/validation';
+import { AuthUser } from '@/types';
 
-function getUserFromRequest(request: NextRequest) {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-        return null;
-    }
-    const token = authHeader.split(' ')[1];
-    return verifyToken(token);
-}
-
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest, user: AuthUser) => {
     try {
-        const user = getUserFromRequest(request);
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const body = await request.json();
+        const validation = validateRequest(createExpenseSchema, body);
+
+        if (!validation.success) {
+            return NextResponse.json(
+                { success: false, error: validation.error },
+                { status: 400 }
+            );
         }
 
-        const body = await request.json();
         const {
-            transactionDate, // Frontend uses this name
+            transactionDate,
             categoryId,
             itemName,
             amount,
@@ -30,12 +27,7 @@ export async function POST(request: NextRequest) {
             necessity,
             note,
             status
-        } = body;
-
-        // Basic validation
-        if (!transactionDate || !itemName || !amount || !categoryId || !paymentChannelId) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-        }
+        } = validation.data;
 
         const supabase = createSupabaseAdminClient();
 
@@ -46,7 +38,7 @@ export async function POST(request: NextRequest) {
                 user_id: user.id,
                 transaction_date: transactionDate,
                 item_name: itemName,
-                amount_total: parseFloat(amount),
+                amount_total: amount,
                 category_id: categoryId,
                 payment_channel_id: paymentChannelId,
                 payment_type: paymentType,
@@ -59,24 +51,22 @@ export async function POST(request: NextRequest) {
 
         if (expenseError) {
             console.error('Error creating expense:', expenseError);
-            return NextResponse.json({ error: expenseError.message, details: expenseError }, { status: 500 });
+            return NextResponse.json(
+                { success: false, error: expenseError.message },
+                { status: 500 }
+            );
         }
 
         // 2. If Installment, create installment periods
         if (paymentType === 'INSTALLMENT' && installmentPeriods) {
-            const periods = parseInt(installmentPeriods);
-            const amountPerPeriod = parseFloat(amount) / periods;
+            const periods = installmentPeriods;
+            const amountPerPeriod = amount / periods;
             const installments = [];
-
             const startDate = new Date(transactionDate);
 
             for (let i = 1; i <= periods; i++) {
-                // Calculate due date: same day of month, incrementing months
                 const dueDate = new Date(startDate);
-                dueDate.setMonth(dueDate.getMonth() + (i - 1)); // first installment is current month or next?
-                // User said: "เมื่อเริ่มต้นเดือนใหม่ ให้ List รายการเป็นข้อๆ ว่า รายการค่าใช้จ่าย Status เป็น PENDING เหลือรายการอะไรบ้าง"
-                // Usually first installment is immediate or next month. 
-                // Let's stick to Month + (i-1) if they want 1st installment in the same month.
+                dueDate.setMonth(dueDate.getMonth() + (i - 1));
 
                 installments.push({
                     user_id: user.id,
@@ -94,25 +84,24 @@ export async function POST(request: NextRequest) {
 
             if (installmentError) {
                 console.error('Error creating installments:', installmentError);
-                return NextResponse.json({ error: 'Expense created but installments failed' }, { status: 500 });
+                return NextResponse.json(
+                    { success: false, error: 'Expense created but installments failed' },
+                    { status: 500 }
+                );
             }
         }
 
         return NextResponse.json({ success: true, data: expense });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal Server Error';
         console.error('Create expense error:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
-}
+});
 
-export async function GET(request: NextRequest) {
+export const GET = withAuth(async (request: NextRequest, user: AuthUser) => {
     try {
-        const user = getUserFromRequest(request);
-        if (!user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
         const supabase = createSupabaseAdminClient();
 
         const { data: expenses, error } = await supabase
@@ -128,13 +117,17 @@ export async function GET(request: NextRequest) {
 
         if (error) {
             console.error('Error fetching expenses:', error);
-            return NextResponse.json({ error: error.message, details: error }, { status: 500 });
+            return NextResponse.json(
+                { success: false, error: error.message },
+                { status: 500 }
+            );
         }
 
         return NextResponse.json({ success: true, data: expenses });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Internal Server Error';
         console.error('Fetch expenses error:', error);
-        return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
-}
+});

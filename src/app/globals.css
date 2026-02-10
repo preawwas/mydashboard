@@ -117,7 +117,7 @@ body {
   animation-name: zoom-in-95;
 }
 
-/* Scrollbar styling - dark theme */
+/* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -336,8 +336,8 @@ body {
 }
 
 /* Gradient text */
-.text-gradient-gold {
-  background: linear-gradient(135deg, #F5C542 0%, #FFC83D 100%);
+.text-gradient-purple {
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -345,5 +345,91 @@ body {
 
 /* Subtle glow on active elements */
 .glow-active {
-  box-shadow: 0 0 15px rgba(245, 197, 66, 0.3);
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+}
+
+/* ===== Page Transition Animations ===== */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes number-count {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-enter {
+  animation: page-enter 0.3s ease-out both;
+}
+
+.slide-in-from-left-1 {
+  animation: slide-in-from-left 0.2s ease-out both;
+}
+
+.slide-in-from-right-1 {
+  animation: slide-in-from-right 0.2s ease-out both;
+}
+
+.animate-number {
+  animation: number-count 0.4s ease-out both;
+}
+
+/* Staggered animation delays for lists */
+.stagger-1 {
+  animation-delay: 50ms;
+}
+
+.stagger-2 {
+  animation-delay: 100ms;
+}
+
+.stagger-3 {
+  animation-delay: 150ms;
+}
+
+.stagger-4 {
+  animation-delay: 200ms;
+}
+
+.stagger-5 {
+  animation-delay: 250ms;
 }

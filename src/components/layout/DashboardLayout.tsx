@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import Breadcrumb from '@/components/ui/Breadcrumb';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { useAuthStore, useUIStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Loading, Toast } from '@/components/ui';
@@ -21,25 +23,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     useEffect(() => {
         setMounted(true);
 
-        // Check authentication
-        const storedAuth = localStorage.getItem('auth-storage');
-        if (storedAuth) {
-            try {
-                const parsed = JSON.parse(storedAuth);
-                if (!parsed.state?.token || !parsed.state?.user) {
-                    router.push('/login');
-                    return;
-                }
-            } catch {
-                router.push('/login');
-                return;
-            }
-        } else {
+        // Check authentication via Zustand store (persisted state)
+        if (!token || !user) {
             router.push('/login');
             return;
         }
         setLoading(false);
-    }, [router, setLoading]);
+    }, [router, setLoading, token, user]);
 
     if (!mounted || isLoading) {
         return <Loading fullScreen text="กำลังโหลด..." />;
@@ -65,13 +55,18 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <main
                 className={cn(
                     'pt-16 min-h-screen transition-[padding] duration-300 ease-in-out',
-                    // On mobile (less than lg), padding left is 0. 
-                    // On desktop (lg+), padding left follows sidebar state.
                     'pl-0 lg:pl-20',
                     sidebarOpen && 'lg:pl-64'
                 )}
             >
-                <div className="p-3 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">{children}</div>
+                <div className="p-3 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
+                    <Breadcrumb />
+                    <ErrorBoundary>
+                        <div className="animate-page-enter">
+                            {children}
+                        </div>
+                    </ErrorBoundary>
+                </div>
             </main>
             <Toast />
         </div>

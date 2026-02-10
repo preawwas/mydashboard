@@ -1,185 +1,47 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Button, Card, CardHeader, CardTitle, CardContent, Input, Table, Modal } from '@/components/ui';
-import { Plus, Search, Filter, Calendar, Edit, Trash2, Bell, Loader2, RefreshCw } from 'lucide-react';
-import { useAuthStore, useToastStore, useLanguageStore } from '@/lib/store';
+import { Plus, Search, Filter, Calendar, Edit, Trash2, Bell } from 'lucide-react';
+import { useLanguageStore } from '@/lib/store';
 import { cn, getMonthlyPendingAmount } from '@/lib/utils';
 import { useTranslation } from '@/lib/useTranslation';
 import ExpenseFormModal from '@/components/expenses/ExpenseFormModal';
-import { apiClient } from '@/lib/api-client';
+import { useExpenses, Expense } from '@/hooks';
 
 export default function ExpensesPage() {
-    const { token, user } = useAuthStore();
-    const { addToast } = useToastStore();
     const { language } = useLanguageStore();
     const { t } = useTranslation();
-    const [expenses, setExpenses] = useState<any[]>([]);
-    const [allPendingExpenses, setAllPendingExpenses] = useState<any[]>([]); // Separate state for reminders
-    const [loading, setLoading] = useState(true);
-    const [deleting, setDeleting] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
+
+    const {
+        expenses, categories, paymentChannels,
+        pendingExpenses, totalPending, totalItems, totalPages,
+        loading, deleting,
+        sortField, sortOrder, currentPage, itemsPerPage,
+        searchTerm, filters,
+        setSortField, setSortOrder, setCurrentPage, setSearchTerm,
+        setFilters, clearFilters, toggleSort,
+        deleteExpense, refreshAll,
+    } = useExpenses();
+
+    // UI-only state
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editId, setEditId] = useState<string | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [itemToDelete, setItemToDelete] = useState<any>(null);
+    const [itemToDelete, setItemToDelete] = useState<Expense | null>(null);
 
-
-    // Filter states (Inputs)
-    const [filterCategory, setFilterCategory] = useState('ALL');
-    const [filterPayment, setFilterPayment] = useState('ALL');
-    const [filterStatus, setFilterStatus] = useState('ALL');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [minAmount, setMinAmount] = useState('');
-    const [maxAmount, setMaxAmount] = useState('');
-
-
-    // Sort and Pagination states
-    const [sortField, setSortField] = useState<'date' | 'amount'>('date');
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
-
-    // Filter options
-    const [totalItems, setTotalItems] = useState(0);
-
-    // Filter options
-    const [categories, setCategories] = useState<any[]>([]);
-    const [paymentChannels, setPaymentChannels] = useState<any[]>([]);
-
-    // Fetch all pending expenses for Monthly Reminders (no pagination limit)
-    const fetchPendingReminders = async () => {
-        if (!token || !user) return;
-        try {
-            const params = new URLSearchParams({
-                page: '1',
-                limit: '100', // High limit to get all pending items
-                status: 'PENDING'
-            });
-
-            const response = await apiClient.fetch(`/api/expenses/user/${user.id}?${params.toString()}`);
-            const data = await response.json();
-            if (data.success) {
-                setAllPendingExpenses(data.data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch pending reminders:', error);
-        }
-    };
-
-    const fetchExpenses = async () => {
-        if (!token || !user) return;
-        setLoading(true);
-        try {
-            const params = new URLSearchParams({
-                page: currentPage.toString(),
-                limit: itemsPerPage.toString(),
-                sortField,
-                sortOrder,
-                search: searchTerm,
-                category: filterCategory,
-                payment: filterPayment,
-                status: filterStatus,
-                startDate,
-                endDate
-            });
-
-            const response = await apiClient.fetch(`/api/expenses/user/${user.id}?${params.toString()}`);
-            const data = await response.json();
-            if (data.success) {
-                setExpenses(data.data);
-                if (data.pagination) {
-                    setTotalItems(data.pagination.total);
-                }
-            }
-        } catch (error) {
-            console.error('Failed to fetch expenses:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchFilterData = async () => {
-        // ... (keep existing)
-        if (!token) return;
-        try {
-            const [catRes, chanRes] = await Promise.all([
-                apiClient.fetch('/api/categories'),
-                apiClient.fetch('/api/payment-channels')
-            ]);
-            // ... (keep rest)
-            const [catData, chanData] = await Promise.all([catRes.json(), chanRes.json()]);
-            if (catData.success) {
-                setCategories(catData.data);
-            }
-            if (chanData.success) {
-                setPaymentChannels(chanData.data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch filter data:', error);
-        }
-    };
-
-    const handleDelete = async () => {
-        if (!itemToDelete || !token || deleting) return;
-        setDeleting(true);
-
-        try {
-            const response = await apiClient.fetch(`/api/expenses/${itemToDelete.id}`, {
-                method: 'DELETE'
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                // Refresh data instead of client-side filter to ensure correct pagination
-                fetchExpenses();
-                setIsDeleteModalOpen(false);
-                setItemToDelete(null);
-                addToast('Expense deleted successfully', 'success');
-            } else {
-                addToast(result.error || 'Failed to delete expense', 'error');
-            }
-        } catch (error) {
-            console.error('Delete error:', error);
-            addToast('An error occurred while deleting.', 'error');
-        } finally {
-            setDeleting(false);
-        }
-    };
-
-    const confirmDelete = (item: any) => {
+    const confirmDelete = (item: Expense) => {
         setItemToDelete(item);
         setIsDeleteModalOpen(true);
     };
 
-    // Single debounced fetch to prevent multiple rapid calls
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            fetchExpenses();
-        }, searchTerm ? 500 : 100); // Longer debounce for search
-        return () => clearTimeout(timeoutId);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token, currentPage, sortField, sortOrder, filterCategory, filterPayment, filterStatus, startDate, endDate, searchTerm]);
-
-    useEffect(() => {
-        fetchFilterData();
-        fetchPendingReminders();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [token]);
-
-
-    // Pagination logic
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const paginatedExpenses = expenses; // expenses is now the page data
-
-
-    // Use allPendingExpenses for reminders (not limited by pagination)
-    const pendingExpenses = allPendingExpenses.filter(exp => getMonthlyPendingAmount(exp) > 0)
-        .sort((a, b) => getMonthlyPendingAmount(b) - getMonthlyPendingAmount(a));
-
-    const totalPending = pendingExpenses.reduce((sum, exp) => sum + getMonthlyPendingAmount(exp), 0);
+    const handleDelete = async () => {
+        if (!itemToDelete) return;
+        await deleteExpense(itemToDelete);
+        setIsDeleteModalOpen(false);
+        setItemToDelete(null);
+    };
 
     const formatDate = (dateString: string) => {
         const [year, month, day] = dateString.split('T')[0].split('-');
@@ -229,7 +91,7 @@ export default function ExpensesPage() {
                     }}
                     className={cn(
                         "flex items-center gap-1 hover:text-foreground transition-colors",
-                        (minAmount || maxAmount) && "text-primary"
+                        (filters.minAmount || filters.maxAmount) && "text-primary"
                     )}
                 >
                     {t('expenses.amount')}
@@ -320,7 +182,7 @@ export default function ExpensesPage() {
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <div className="flex items-center gap-3">
                                 <button
-                                    onClick={() => { fetchExpenses(); fetchPendingReminders(); }}
+                                    onClick={() => refreshAll()}
                                     className="p-2 bg-primary/10 rounded-lg shrink-0 hover:bg-primary/20 transition-all active:scale-95"
                                     title="Refresh reminders"
                                 >
@@ -395,8 +257,8 @@ export default function ExpensesPage() {
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 xl:w-[600px]">
                                         <select
                                             className="bg-background border-border text-foreground rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:ring-primary focus:outline-none h-10"
-                                            value={filterCategory}
-                                            onChange={(e) => setFilterCategory(e.target.value)}
+                                            value={filters.category}
+                                            onChange={(e) => setFilters({ category: e.target.value })}
                                         >
                                             <option value="ALL">{t('expenses.filters.allCategories')}</option>
                                             {categories.map(cat => (
@@ -405,8 +267,8 @@ export default function ExpensesPage() {
                                         </select>
                                         <select
                                             className="bg-background border-border text-foreground rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:ring-primary focus:outline-none h-10"
-                                            value={filterPayment}
-                                            onChange={(e) => setFilterPayment(e.target.value)}
+                                            value={filters.payment}
+                                            onChange={(e) => setFilters({ payment: e.target.value })}
                                         >
                                             <option value="ALL">{t('expenses.filters.allPayments')}</option>
                                             {paymentChannels.map(chan => (
@@ -415,8 +277,8 @@ export default function ExpensesPage() {
                                         </select>
                                         <select
                                             className="bg-background border-border text-foreground rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:ring-primary focus:outline-none col-span-2 md:col-span-1 h-10"
-                                            value={filterStatus}
-                                            onChange={(e) => setFilterStatus(e.target.value)}
+                                            value={filters.status}
+                                            onChange={(e) => setFilters({ status: e.target.value })}
                                         >
                                             <option value="ALL">{t('expenses.filters.allStatus')}</option>
                                             <option value="PAID">{t('expenses.filters.paid')}</option>
@@ -432,21 +294,21 @@ export default function ExpensesPage() {
                                         <Input
                                             type="date"
                                             className="flex-1 h-9 py-1 text-xs bg-background border-border"
-                                            value={startDate}
-                                            onChange={(e) => setStartDate(e.target.value)}
+                                            value={filters.startDate}
+                                            onChange={(e) => setFilters({ startDate: e.target.value })}
                                         />
                                         <span className="text-muted-foreground">-</span>
                                         <Input
                                             type="date"
                                             className="flex-1 h-9 py-1 text-xs bg-background border-border"
-                                            value={endDate}
-                                            onChange={(e) => setEndDate(e.target.value)}
+                                            value={filters.endDate}
+                                            onChange={(e) => setFilters({ endDate: e.target.value })}
                                         />
                                     </div>
 
                                     {/* Amount Range */}
                                     <div className="flex items-center gap-2 flex-1 w-full">
-                                        <Filter className={cn("w-4 h-4 shrink-0", (minAmount || maxAmount) ? "text-primary" : "text-muted-foreground")} />
+                                        <Filter className={cn("w-4 h-4 shrink-0", (filters.minAmount || filters.maxAmount) ? "text-primary" : "text-muted-foreground")} />
                                         <div className="relative flex-1">
                                             <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">฿</span>
                                             <Input
@@ -454,8 +316,8 @@ export default function ExpensesPage() {
                                                 inputMode="decimal"
                                                 placeholder={t('common.min')}
                                                 className="h-9 py-1 text-xs bg-background border-border pl-6 w-full"
-                                                value={minAmount}
-                                                onChange={(e) => setMinAmount(e.target.value)}
+                                                value={filters.minAmount}
+                                                onChange={(e) => setFilters({ minAmount: e.target.value })}
                                             />
                                         </div>
                                         <span className="text-muted-foreground">-</span>
@@ -466,26 +328,17 @@ export default function ExpensesPage() {
                                                 inputMode="decimal"
                                                 placeholder={t('common.max')}
                                                 className="h-9 py-1 text-xs bg-background border-border pl-6 w-full"
-                                                value={maxAmount}
-                                                onChange={(e) => setMaxAmount(e.target.value)}
+                                                value={filters.maxAmount}
+                                                onChange={(e) => setFilters({ maxAmount: e.target.value })}
                                             />
                                         </div>
                                     </div>
 
-                                    {(startDate || endDate || filterCategory !== 'ALL' || filterPayment !== 'ALL' || filterStatus !== 'ALL' || searchTerm || minAmount || maxAmount) && (
+                                    {(filters.startDate || filters.endDate || filters.category !== 'ALL' || filters.payment !== 'ALL' || filters.status !== 'ALL' || searchTerm || filters.minAmount || filters.maxAmount) && (
                                         <Button
                                             variant="ghost"
                                             className="text-[10px] sm:text-xs text-primary hover:bg-primary/10 h-8 px-2 shrink-0"
-                                            onClick={() => {
-                                                setStartDate('');
-                                                setEndDate('');
-                                                setFilterCategory('ALL');
-                                                setFilterPayment('ALL');
-                                                setFilterStatus('ALL');
-                                                setSearchTerm('');
-                                                setMinAmount('');
-                                                setMaxAmount('');
-                                            }}
+                                            onClick={clearFilters}
                                         >
                                             {t('common.clear')}
                                         </Button>
@@ -496,7 +349,7 @@ export default function ExpensesPage() {
                     </CardHeader>
                     <CardContent className="p-0 sm:p-6 space-y-4">
                         <Table
-                            data={paginatedExpenses}
+                            data={expenses}
                             columns={columns}
                             keyExtractor={(item) => item.id}
                             isLoading={loading}
@@ -555,12 +408,10 @@ export default function ExpensesPage() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={() => {
-                    // Reset to page 1 and sort by date descending to show newest first
                     setCurrentPage(1);
                     setSortField('date');
                     setSortOrder('desc');
-                    fetchExpenses();
-                    fetchPendingReminders();
+                    refreshAll();
                 }}
                 editId={editId}
             />

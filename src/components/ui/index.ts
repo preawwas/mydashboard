@@ -5,6 +5,8 @@ export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 export { default as Modal } from './Modal';
 export { default as Table } from './Table';
 export { default as Badge } from './Badge';
-export { Loading, Skeleton } from './Loading';
+export { Loading } from './Loading';
 export { default as EmptyState } from './EmptyState';
 export { default as Toast } from './Toast';
+export { default as ErrorBoundary } from './ErrorBoundary';
+export { default as Skeleton, CardSkeleton, TableSkeleton, DashboardSkeleton } from './Skeleton';

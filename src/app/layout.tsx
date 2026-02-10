@@ -17,7 +17,9 @@ const prompt = Prompt({
 
 export const metadata: Metadata = {
   title: "Memo - Premium Fintech Dashboard",
-  description: "Manage your investments with style",
+  description: "ระบบจัดการการเงินส่วนบุคคล - ติดตามการลงทุนและค่าใช้จ่าย",
+  manifest: '/manifest.json',
+  themeColor: '#8B5CF6',
 };
 
 export default function RootLayout({
@@ -27,7 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head />
+      <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      </head>
       <body
         className={`${montserrat.variable} ${prompt.variable} font-sans antialiased`}
       >

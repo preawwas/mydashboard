@@ -1,7 +1,8 @@
 import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-    return clsx(inputs);
+    return twMerge(clsx(inputs));
 }
 
 export function getCurrentLocalDateTime() {
@@ -79,9 +80,9 @@ export function calculateProfitLoss(
 export function getStatusColor(status: string): string {
     switch (status) {
         case 'OPEN':
-            return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+            return 'bg-green-100 text-green-800';
         case 'CLOSED':
-            return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+            return 'bg-gray-100 text-gray-800';
         default:
             return 'bg-gray-100 text-gray-800';
     }
@@ -90,28 +91,28 @@ export function getStatusColor(status: string): string {
 export function getCategoryColor(category: string): string {
     switch (category) {
         case 'GOLD':
-            return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+            return 'bg-yellow-100 text-yellow-800';
         case 'CRYPTO':
-            return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
+            return 'bg-purple-100 text-purple-800';
         case 'STOCK':
-            return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+            return 'bg-blue-100 text-blue-800';
         case 'FUND':
-            return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+            return 'bg-green-100 text-green-800';
         case 'USD':
-            return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-300';
+            return 'bg-pink-100 text-pink-800';
         default:
-            return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+            return 'bg-gray-100 text-gray-800';
     }
 }
 
 export function getStrategyColor(strategy: string): string {
     switch (strategy) {
         case 'DCA':
-            return 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300';
+            return 'bg-teal-100 text-teal-800';
         case 'LONG_TERM':
-            return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300';
+            return 'bg-indigo-100 text-indigo-800';
         case 'TRADE':
-            return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
+            return 'bg-orange-100 text-orange-800';
         default:
             return 'bg-gray-100 text-gray-800';
     }
