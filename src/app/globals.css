@@ -117,6 +117,43 @@ body {
   animation-name: zoom-in-95;
 }
 
+/* Valentine's Day Theme */
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translateY(-120vh) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes sway {
+
+  0%,
+  100% {
+    transform: translateX(-10px);
+  }
+
+  50% {
+    transform: translateX(10px);
+  }
+}
+
+.valentine-heart {
+  position: fixed;
+  bottom: -10vh;
+  pointer-events: none;
+  z-index: 50;
+  animation: float-up linear forwards;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;

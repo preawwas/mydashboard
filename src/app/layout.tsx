@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Montserrat, Prompt } from "next/font/google";
 import "./globals.css";
+import ValentineTheme from "@/components/ValentineTheme";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body
         className={`${montserrat.variable} ${prompt.variable} font-sans antialiased`}
       >
+        <ValentineTheme />
         {children}
       </body>
     </html>

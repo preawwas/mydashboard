@@ -16,12 +16,15 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const router = useRouter();
-    const { user, token, isLoading, setLoading } = useAuthStore();
+    const { user, token, isLoading, setLoading, isHydrated } = useAuthStore();
     const { sidebarOpen, toggleSidebar } = useUIStore();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         setMounted(true);
+
+        // Wait for hydration to complete
+        if (!isHydrated) return;
 
         // Check authentication via Zustand store (persisted state)
         if (!token || !user) {
@@ -29,9 +32,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             return;
         }
         setLoading(false);
-    }, [router, setLoading, token, user]);
+    }, [router, setLoading, token, user, isHydrated]);
 
-    if (!mounted || isLoading) {
+    if (!mounted || isLoading || !isHydrated) {
         return <Loading fullScreen text="กำลังโหลด..." />;
     }
 
