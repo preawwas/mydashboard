@@ -48,6 +48,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         {
             key: 'market',
             header: t('investment.market'),
+            className: 'hidden lg:table-cell',
             render: (item: Investment) => (
                 <span className="text-foreground">{item.market}</span>
             ),
@@ -55,6 +56,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         {
             key: 'category',
             header: t('investment.type.label'),
+            className: 'hidden md:table-cell',
             render: (item: Investment) => (
                 <Badge className={getCategoryColor(item.asset_category)}>
                     {item.asset_category === 'GOLD' ? t('investment.type.gold') :
@@ -69,6 +71,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         {
             key: 'strategy',
             header: t('investment.strategy'),
+            className: 'hidden xl:table-cell',
             render: (item: Investment) => (
                 <Badge className={getStrategyColor(item.strategy_type)}>
                     {item.strategy_type}
@@ -78,6 +81,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         {
             key: 'buy_info',
             header: t('investment.buy'),
+            className: 'hidden sm:table-cell',
             render: (item: Investment) => (
                 <div>
                     <p className="font-medium text-foreground">
@@ -90,6 +94,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         {
             key: 'total_cost',
             header: t('investment.totalCost'),
+            className: 'hidden md:table-cell',
             render: (item: Investment) => {
                 const totalCost = item.buy_quantity * item.buy_price_per_unit + item.buy_fee;
                 return (
@@ -103,9 +108,6 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
             key: 'profit_loss',
             header: t('common.profit'),
             render: (item: Investment) => {
-                if (item.sell_history.length === 0) {
-                    return <span className="text-muted-foreground">-</span>;
-                }
                 const { profitLoss, percentage } = calculateProfitLoss(
                     item.buy_quantity,
                     item.buy_price_per_unit,
@@ -128,6 +130,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         {
             key: 'status',
             header: t('common.status'),
+            className: 'hidden sm:table-cell',
             render: (item: Investment) => (
                 <Badge className={getStatusColor(item.status)}>
                     {item.status === 'OPEN' ? t('investment.status.open') : t('investment.status.closed')}

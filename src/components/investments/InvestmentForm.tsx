@@ -181,11 +181,11 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
         >
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 {/* Tabs */}
-                <div className="flex border-b border-border -mt-2">
+                <div className="flex border-b border-border -mt-2 overflow-x-auto scrollbar-hide">
                     <button
                         type="button"
                         onClick={() => setActiveTab('details')}
-                        className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'details'
+                        className={`px-4 sm:px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'details'
                             ? 'border-primary text-primary'
                             : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
@@ -195,14 +195,14 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                     <button
                         type="button"
                         onClick={() => setActiveTab('sell_history')}
-                        className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'sell_history'
+                        className={`px-4 sm:px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'sell_history'
                             ? 'border-primary text-primary'
                             : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
                     >
                         {t('investment.sellHistory')}
                         {formData.sell_history.length > 0 && (
-                            <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-muted/20 text-primary">
+                            <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-primary/10 text-primary font-bold">
                                 {formData.sell_history.length}
                             </span>
                         )}
@@ -210,7 +210,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 </div>
 
                 {/* Details Tab */}
-                <div className={`${activeTab === 'details' ? 'block' : 'hidden'} space-y-4 min-h-[380px]`}>
+                <div className={`${activeTab === 'details' ? 'block' : 'hidden'} space-y-4 min-h-[300px] sm:min-h-[380px]`}>
                     <InvestmentDetails
                         formData={formData}
                         errors={errors}
@@ -220,7 +220,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 </div>
 
                 {/* Sell History Tab */}
-                <div className={`${activeTab === 'sell_history' ? 'block' : 'hidden'} space-y-4 h-[380px] overflow-y-auto custom-scrollbar`}>
+                <div className={`${activeTab === 'sell_history' ? 'block' : 'hidden'} space-y-4 h-[300px] sm:h-[380px] overflow-y-auto custom-scrollbar`}>
                     <SellHistoryList
                         sellHistory={formData.sell_history}
                         errors={errors}
@@ -231,11 +231,11 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-end gap-3 pt-4 border-t border-border">
-                    <Button type="button" variant="secondary" onClick={onClose}>
+                <div className="flex justify-end gap-2 sm:gap-3 pt-4 border-t border-border flex-shrink-0">
+                    <Button type="button" variant="secondary" onClick={onClose} className="px-4 sm:px-6">
                         {t('common.cancel')}
                     </Button>
-                    <Button type="submit" isLoading={isLoading}>
+                    <Button type="submit" isLoading={isLoading} className="px-4 sm:px-6">
                         {t('common.save')}
                     </Button>
                 </div>

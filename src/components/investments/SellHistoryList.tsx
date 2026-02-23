@@ -57,7 +57,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                                 </button>
                             </div>
                             <div className="grid grid-cols-12 gap-3">
-                                <div className="col-span-12 md:col-span-4">
+                                <div className="col-span-12 sm:col-span-6 md:col-span-4">
                                     <Input
                                         label={t('investment.sellDate')}
                                         type="date"
@@ -65,7 +65,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                                         onChange={(e) => onUpdate(index, 'datetime', e.target.value)}
                                     />
                                 </div>
-                                <div className="col-span-4 md:col-span-2">
+                                <div className="col-span-6 sm:col-span-6 md:col-span-2">
                                     <Input
                                         label={t('investment.qty')}
                                         type="number"
@@ -77,7 +77,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                                         required
                                     />
                                 </div>
-                                <div className="col-span-4 md:col-span-2">
+                                <div className="col-span-6 sm:col-span-6 md:col-span-2">
                                     <Input
                                         label={t('investment.sellPrice')}
                                         type="number"
@@ -89,7 +89,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                                         required
                                     />
                                 </div>
-                                <div className="col-span-4 md:col-span-2">
+                                <div className="col-span-6 sm:col-span-6 md:col-span-2">
                                     <Input
                                         label={t('investment.fee')}
                                         type="number"
@@ -100,7 +100,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                                         error={errors[`sell_history_${index}_fee`]}
                                     />
                                 </div>
-                                <div className="col-span-12 md:col-span-2">
+                                <div className="col-span-6 sm:col-span-6 md:col-span-2">
                                     <Select
                                         label={t('investment.currency')}
                                         options={currencyOptions}

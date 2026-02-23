@@ -106,9 +106,9 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
 
     return (
         <div className="space-y-4">
-            <div className="grid grid-cols-12 gap-4">
+            <div className="grid grid-cols-12 gap-x-4 gap-y-3 sm:gap-y-4">
                 {/* Row 1: Identity & Classification */}
-                <div className="col-span-12 md:col-span-3">
+                <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Input
                         label={t('investment.assetCode')}
                         placeholder={t('investment.enterAssetCode')}
@@ -118,7 +118,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         required
                     />
                 </div>
-                <div className="col-span-12 md:col-span-6">
+                <div className="col-span-12 sm:col-span-6 md:col-span-6">
                     <Input
                         label={t('investment.assetName')}
                         placeholder={t('investment.enterAssetName')}
@@ -128,7 +128,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         required
                     />
                 </div>
-                <div className="col-span-12 md:col-span-3">
+                <div className="col-span-12 sm:col-span-12 md:col-span-3">
                     <Select
                         label={t('investment.type.label')}
                         options={assetCategoryOptions}
@@ -138,7 +138,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
 
                 {/* Row 2: Market & Strategy Setup */}
-                <div className="col-span-12 md:col-span-3">
+                <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Select
                         label={t('investment.market')}
                         options={marketOptions}
@@ -146,7 +146,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         onChange={handleMarketChange}
                     />
                 </div>
-                <div className="col-span-12 md:col-span-3">
+                <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Select
                         label={t('investment.strategy')}
                         options={strategyOptions}
@@ -154,7 +154,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         onChange={handleStrategyChange}
                     />
                 </div>
-                <div className="col-span-12 md:col-span-3">
+                <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Select
                         label={t('common.status')}
                         options={statusOptions}
@@ -162,7 +162,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         onChange={handleStatusChange}
                     />
                 </div>
-                <div className="col-span-12 md:col-span-3">
+                <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Input
                         label={t('investment.buyDate')}
                         type="date"
@@ -172,7 +172,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
 
                 {/* Row 3: Transaction Numbers */}
-                <div className="col-span-12 md:col-span-3">
+                <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Input
                         label={t('investment.buyQty')}
                         type="number"
@@ -184,7 +184,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         required
                     />
                 </div>
-                <div className="col-span-12 md:col-span-3">
+                <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Input
                         label={t('investment.buyPrice')}
                         type="number"
@@ -196,7 +196,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         required
                     />
                 </div>
-                <div className="col-span-12 md:col-span-3">
+                <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Select
                         label={t('investment.currency')}
                         options={currencyOptions}
@@ -204,7 +204,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                         onChange={handleBuyCurrencyChange}
                     />
                 </div>
-                <div className="col-span-12 md:col-span-3">
+                <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Input
                         label={t('investment.fee')}
                         type="number"
@@ -216,12 +216,12 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
 
                 {/* Row 4: Note */}
-                <div className="col-span-12">
-                    <label className="block text-sm font-medium text-muted-foreground mb-1.5">
+                <div className="col-span-12 mt-2">
+                    <label className="block text-sm font-medium text-muted-foreground mb-1.5 px-0.5">
                         {t('common.notes')}
                     </label>
                     <textarea
-                        className="w-full px-4 py-2.5 bg-background border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 resize-none"
+                        className="w-full px-4 py-3 bg-secondary/30 border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all resize-none shadow-sm"
                         rows={3}
                         placeholder={t('investment.notesPlaceholder')}
                         value={formData.note}
