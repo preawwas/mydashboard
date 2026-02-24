@@ -163,3 +163,11 @@ export interface Expense {
     payment_channels?: PaymentChannel;
     expense_installments?: ExpenseInstallment[];
 }
+
+
+export type FloatingItemType = "emoji" | "image";
+
+export interface FloatingItemConfig {
+    type: FloatingItemType;
+    value: string; // Emoji character or Image URL
+}

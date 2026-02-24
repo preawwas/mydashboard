@@ -1,31 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-
-// Define the types of floating items
-type FloatingItemType = "emoji" | "image";
-
-interface FloatingItemConfig {
-  type: FloatingItemType;
-  value: string; // Emoji character or Image URL
-}
-
-// ==========================================
-// CONFIGURATION AREA
-// You can add emojis or image URLs here
-// ==========================================
-const ITEMS: FloatingItemConfig[] = [
-  // Emojis
-  { type: "emoji", value: "❤️" },
-  { type: "emoji", value: "💖" },
-  { type: "emoji", value: "💝" },
-  { type: "emoji", value: "💕" },
-  { type: "emoji", value: "💗" },
-
-  // Example of how to add an image (uncomment and replace URL to use)
-  // { type: "image", value: "/images/your-face.png" },
-  // { type: "image", value: "https://example.com/face.png" },
-];
+import { useSettingsStore, useAuthStore } from "@/lib/store";
+import { FloatingItemConfig } from "@/types";
 
 interface FloatingElement {
   id: number;
@@ -37,12 +14,19 @@ interface FloatingElement {
 }
 
 export default function ValentineTheme() {
+  const { valentineEnabled, valentineItems } = useSettingsStore();
+  const { isHydrated } = useAuthStore();
   const [elements, setElements] = useState<FloatingElement[]>([]);
 
   useEffect(() => {
+    if (!valentineEnabled || !isHydrated || valentineItems.length === 0) {
+      setElements([]);
+      return;
+    }
+
     // Helper to create a random element
     const createRandomElement = (idOffset: number = 0): FloatingElement => {
-      const randomItem = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+      const randomItem = valentineItems[Math.floor(Math.random() * valentineItems.length)];
       return {
         id: Date.now() + idOffset,
         item: randomItem,
@@ -69,10 +53,14 @@ export default function ValentineTheme() {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [valentineEnabled, valentineItems, isHydrated]);
+
+  if (!isHydrated || !valentineEnabled || valentineItems.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-[9999]">
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-[90]">
       {elements.map((el) => (
         <div
           key={el.id}
@@ -92,13 +80,14 @@ export default function ValentineTheme() {
               src={el.item.value}
               alt="floating decoration"
               className="w-full h-auto object-contain drop-shadow-md opacity-90"
+              onError={(e) => {
+                // Remove failed images
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
             />
           )}
         </div>
       ))}
-      <div className="absolute top-0 right-0 p-4 opacity-20 hover:opacity-100 transition-opacity">
-        <span className="text-pink-400 text-xs">Happy Valentine's Day!</span>
-      </div>
     </div>
   );
 }

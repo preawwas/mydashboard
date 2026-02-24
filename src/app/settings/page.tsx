@@ -3,17 +3,23 @@
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardHeader, CardTitle, CardContent, Button, Input } from '@/components/ui';
-import { User, Mail, Save, Camera, Lock, Bell, Shield, Eye, EyeOff, Settings, PieChart, CreditCard, Languages, ToggleLeft, ToggleRight } from 'lucide-react';
+import { User, Mail, Save, Camera, Lock, Bell, Shield, Eye, EyeOff, Settings, PieChart, CreditCard, Languages, ToggleLeft, ToggleRight, Heart, Plus, Trash2, Image as ImageIcon, Smile } from 'lucide-react';
 import { useAuthStore, useSettingsStore, useLanguageStore } from '@/lib/store';
 import { useTranslation } from '@/lib/useTranslation';
 import { cn } from '@/lib/utils';
+import { EmojiPicker } from '@/components/EmojiPicker';
 
 export default function SettingsPage() {
     const { user, setUser } = useAuthStore();
     const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'preferences'>('profile');
     const { enableInvestment, enableExpense, toggleInvestment, toggleExpense } = useSettingsStore();
     const { language, setLanguage } = useLanguageStore();
+    const { valentineEnabled, valentineItems, setValentineEnabled, setValentineItems } = useSettingsStore();
     const { t } = useTranslation();
+
+    const [newItem, setNewItem] = useState({ type: 'emoji' as 'emoji' | 'image', value: '' });
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
 
     // Profile State
     const [profileData, setProfileData] = useState({
@@ -458,6 +464,169 @@ export default function SettingsPage() {
                                         </button>
                                     </div>
                                 </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Theme Card */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
+                                    <Heart className="w-5 h-5 text-pink-500" />
+                                    Theme
+                                </CardTitle>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    ตั้งค่าเอฟเฟกต์
+                                </p>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                {/* Theme Toggle */}
+                                <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-border">
+                                    <div className="flex items-center gap-4">
+                                        <div className={cn(
+                                            "p-3 rounded-lg transition-colors",
+                                            valentineEnabled ? "bg-pink-100 text-pink-500" : "bg-muted text-muted-foreground"
+                                        )}>
+                                            <Heart className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-bold text-foreground">เปิดใช้งานธีม</h3>
+                                            <p className="text-xs text-muted-foreground">แสดงเอฟเฟกต์ทั่วหน้าจอ</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setValentineEnabled(!valentineEnabled)}
+                                        className={cn(
+                                            "transition-all duration-300",
+                                            valentineEnabled ? "text-pink-500" : "text-muted-foreground"
+                                        )}
+                                    >
+                                        {valentineEnabled ? (
+                                            <ToggleRight className="w-10 h-10" />
+                                        ) : (
+                                            <ToggleLeft className="w-10 h-10" />
+                                        )}
+                                    </button>
+                                </div>
+
+                                {/* Items Editor */}
+                                {valentineEnabled && (
+                                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-sm font-bold text-foreground">รายการไอคอน</h3>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xs text-muted-foreground">{valentineItems.length} รายการ</span>
+                                                {valentineItems.length > 0 && (
+                                                    <button
+                                                        onClick={() => {
+                                                            if (confirm('ต้องการลบไอคอนทั้งหมดใช่ไหม?')) {
+                                                                setValentineItems([]);
+                                                            }
+                                                        }}
+                                                        className="text-[10px] text-red-400 hover:text-red-500 transition-colors uppercase font-bold"
+                                                    >
+                                                        ล้างทั้งหมด
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Add New Item */}
+                                        <div className="flex gap-2 relative">
+                                            <div className="flex-1 flex gap-2">
+                                                <select
+                                                    value={newItem.type}
+                                                    onChange={(e) => setNewItem({ ...newItem, type: e.target.value as 'emoji' | 'image' })}
+                                                    className="bg-background border border-border rounded-lg px-2 text-xs focus:ring-2 focus:ring-primary/50 outline-none"
+                                                >
+                                                    <option value="emoji">Emoji</option>
+                                                    <option value="image">URL</option>
+                                                </select>
+
+                                                {newItem.type === 'emoji' ? (
+                                                    <div className="relative flex-1">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                            className="w-full flex items-center justify-between bg-background border border-border rounded-lg px-3 h-9 text-sm text-left hover:border-primary/50 transition-colors"
+                                                        >
+                                                            <span className={newItem.value ? "text-foreground" : "text-muted-foreground"}>
+                                                                {newItem.value || "เลือกอิโมจิ..."}
+                                                            </span>
+                                                            <Smile className="w-4 h-4 text-muted-foreground" />
+                                                        </button>
+
+                                                        {showEmojiPicker && (
+                                                            <div className="absolute top-10 left-0 z-[100]">
+                                                                <EmojiPicker
+                                                                    onSelect={(emoji) => {
+                                                                        setNewItem({ ...newItem, value: emoji });
+                                                                        setShowEmojiPicker(false);
+                                                                    }}
+                                                                    onClose={() => setShowEmojiPicker(false)}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <Input
+                                                        placeholder="ใส่ Link รูปภาพ..."
+                                                        value={newItem.value}
+                                                        onChange={(e) => setNewItem({ ...newItem, value: e.target.value })}
+                                                        className="h-9 text-sm"
+                                                    />
+                                                )}
+                                            </div>
+                                            <Button
+                                                size="sm"
+                                                disabled={!newItem.value.trim()}
+                                                className={cn(
+                                                    "h-9 transition-all",
+                                                    newItem.value.trim() ? "bg-pink-500 hover:bg-pink-600" : "bg-muted text-muted-foreground opacity-50 cursor-not-allowed"
+                                                )}
+                                                onClick={() => {
+                                                    if (newItem.value.trim()) {
+                                                        const isAlreadyAdded = valentineItems.some(i => i.value === newItem.value.trim());
+                                                        if (!isAlreadyAdded) {
+                                                            setValentineItems([...valentineItems, { type: newItem.type, value: newItem.value.trim() }]);
+                                                        }
+                                                        setNewItem({ ...newItem, value: '' });
+                                                    }
+                                                }}
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                            </Button>
+                                        </div>
+
+
+                                        {/* Items List */}
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                            {valentineItems.map((item, idx) => (
+                                                <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-muted/30 border border-border group">
+                                                    <div className="flex items-center gap-2 overflow-hidden">
+                                                        {item.type === 'emoji' ? (
+                                                            <span className="text-lg shrink-0">{item.value}</span>
+                                                        ) : (
+                                                            <div className="w-6 h-6 shrink-0 rounded bg-white flex items-center justify-center overflow-hidden">
+                                                                <img src={item.value} alt="" className="w-full h-full object-contain" />
+                                                            </div>
+                                                        )}
+                                                        <span className="text-[10px] text-muted-foreground truncate">{item.value}</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            const newItems = [...valentineItems];
+                                                            newItems.splice(idx, 1);
+                                                            setValentineItems(newItems);
+                                                        }}
+                                                        className="text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

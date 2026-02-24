@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { AuthUser, Investment, InvestmentFilters, PaginatedResponse } from '@/types';
+import { AuthUser, Investment, InvestmentFilters, PaginatedResponse, FloatingItemConfig } from '@/types';
 
 // Auth Store
 interface AuthState {
@@ -156,8 +156,12 @@ export const useToastStore = create<ToastState>((set) => ({
 interface SettingsState {
     enableInvestment: boolean;
     enableExpense: boolean;
+    valentineEnabled: boolean;
+    valentineItems: FloatingItemConfig[];
     toggleInvestment: () => void;
     toggleExpense: () => void;
+    setValentineEnabled: (enabled: boolean) => void;
+    setValentineItems: (items: FloatingItemConfig[]) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -165,14 +169,26 @@ export const useSettingsStore = create<SettingsState>()(
         (set) => ({
             enableInvestment: true,
             enableExpense: true,
+            valentineEnabled: true,
+            valentineItems: [
+                { type: "emoji", value: "❤️" },
+                { type: "emoji", value: "💖" },
+                { type: "emoji", value: "💝" },
+                { type: "emoji", value: "💕" },
+                { type: "emoji", value: "💗" },
+            ],
             toggleInvestment: () => set((state) => ({ enableInvestment: !state.enableInvestment })),
             toggleExpense: () => set((state) => ({ enableExpense: !state.enableExpense })),
+            setValentineEnabled: (valentineEnabled) => set({ valentineEnabled }),
+            setValentineItems: (valentineItems) => set({ valentineItems }),
         }),
         {
             name: 'settings-storage',
             partialize: (state) => ({
                 enableInvestment: state.enableInvestment,
-                enableExpense: state.enableExpense
+                enableExpense: state.enableExpense,
+                valentineEnabled: state.valentineEnabled,
+                valentineItems: state.valentineItems,
             }),
         }
     )
