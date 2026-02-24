@@ -269,7 +269,13 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
     const handleChange = (name: string, value: any) => {
         setFormData(prev => {
             const newData = { ...prev, [name]: value };
-            if (name === 'paymentType' && value === 'INSTALLMENT') newData.status = 'PENDING';
+            if (name === 'paymentType') {
+                if (value === 'INSTALLMENT') {
+                    newData.status = 'PENDING';
+                } else if (value === 'FULL') {
+                    newData.installmentPeriods = ''; // Clear installments
+                }
+            }
             return newData;
         });
     };
@@ -283,6 +289,14 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
         if (!formData.paymentChannelId) newErrors.paymentChannelId = t('expenses.errors.paymentRequired');
         if (!formData.itemName) newErrors.itemName = t('expenses.errors.itemRequired');
         if (!formData.amount) newErrors.amount = t('expenses.errors.amountRequired');
+
+        if (formData.paymentType === 'INSTALLMENT') {
+            if (!formData.installmentPeriods || parseInt(formData.installmentPeriods) <= 0) {
+                // No error message as requested, just block submission
+                setLoading(false);
+                return;
+            }
+        }
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -298,12 +312,17 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
             const method = editId ? 'PATCH' : 'POST';
             const computedTotal = (parseFloat(formData.amount) || 0) * (parseInt(formData.duration) || 1);
 
-            const payload = {
+            const payload: any = {
                 ...formData,
                 amount: computedTotal.toString(),
                 transactionDate: formData.transactionDate,
-                installments: installments
+                installments: formData.paymentType === 'FULL' ? [] : installments
             };
+
+            // Ensure installmentPeriods is NOT sent as an empty string (prevents Number("") -> 0 issue)
+            if (formData.paymentType === 'FULL') {
+                delete payload.installmentPeriods;
+            }
 
             const response = await apiClient.fetch(url, {
                 method,
@@ -627,8 +646,13 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                 <Input
                                     type="number"
                                     inputMode="numeric"
+                                    min="1"
                                     value={formData.installmentPeriods}
-                                    onChange={(e) => handleChange('installmentPeriods', e.target.value)}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val === '0') return; // Block 0
+                                        handleChange('installmentPeriods', val);
+                                    }}
                                     className="h-10 bg-background border-border text-foreground"
                                     placeholder="6"
                                     disabled={!!editId}

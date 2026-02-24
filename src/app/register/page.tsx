@@ -166,8 +166,9 @@ export default function RegisterPage() {
                             className="w-full"
                             size="lg"
                             isLoading={isLoading}
+                            disabled={true}
                         >
-                            สมัครสมาชิก
+                            ปิดรับสมาชิกชั่วคราว
                         </Button>
                     </form>
 

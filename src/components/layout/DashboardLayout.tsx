@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
-import Breadcrumb from '@/components/ui/Breadcrumb';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { useAuthStore, useUIStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
@@ -63,7 +62,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 )}
             >
                 <div className="p-3 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
-                    <Breadcrumb />
                     <ErrorBoundary>
                         <div className="animate-page-enter">
                             {children}

@@ -48,6 +48,10 @@ export default function ExpensesPage() {
         return `${day}/${month}/${year}`;
     };
 
+    const formatHeader = (text: string) => {
+        return language === 'en' ? text.toUpperCase() : text;
+    };
+
     const columns = [
         {
             key: 'transaction_date',
@@ -59,7 +63,7 @@ export default function ExpensesPage() {
                     }}
                     className="flex items-center gap-1 hover:text-foreground transition-colors"
                 >
-                    {t('common.dateRange').split(' ')[0]} {/* Hacky, but works for "Date" */}
+                    {formatHeader(t('common.dateRange').split(' ')[0])} {/* Hacky, but works for "Date" */}
                     {sortField === 'date' && (
                         <span className="text-[10px]">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
@@ -69,12 +73,12 @@ export default function ExpensesPage() {
         },
         {
             key: 'item_name',
-            header: t('common.item'),
+            header: formatHeader(t('common.item')),
             render: (item: any) => <span className="font-medium text-foreground">{item.item_name}</span>
         },
         {
             key: 'category',
-            header: t('common.category'),
+            header: formatHeader(t('common.category')),
             render: (item: any) => (
                 <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium bg-muted/10 text-foreground">
                     {item.categories?.name || 'Uncategorized'}
@@ -94,7 +98,7 @@ export default function ExpensesPage() {
                         (filters.minAmount || filters.maxAmount) && "text-primary"
                     )}
                 >
-                    {t('expenses.amount')}
+                    {formatHeader(t('expenses.amount'))}
                     {sortField === 'amount' && (
                         <span className="text-[10px]">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
@@ -111,7 +115,7 @@ export default function ExpensesPage() {
         },
         {
             key: 'payment',
-            header: t('common.payment'),
+            header: formatHeader(t('common.payment')),
             render: (item: any) => (
                 <span className="text-muted-foreground">
                     {item.payment_channels?.name}
@@ -121,7 +125,7 @@ export default function ExpensesPage() {
         },
         {
             key: 'status',
-            header: t('common.status'),
+            header: formatHeader(t('common.status')),
             render: (item: any) => (
                 <span className={cn(
                     "px-2 py-1 rounded text-xs font-medium",
@@ -135,7 +139,7 @@ export default function ExpensesPage() {
         },
         {
             key: 'manage',
-            header: t('common.manage'),
+            header: formatHeader(t('common.manage')),
             render: (item: any) => (
                 <div className="flex items-center gap-2">
                     <button
