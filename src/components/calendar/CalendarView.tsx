@@ -34,6 +34,7 @@ const CalendarView: React.FC = () => {
     const [dragOverDate, setDragOverDate] = useState<string | null>(null);
     const [statusFilter, setStatusFilter] = useState('All');
     const [deadlineCount, setDeadlineCount] = useState(ITEMS_PER_PAGE);
+    const [defaultDueDate, setDefaultDueDate] = useState('');
 
     const fetchNotes = async () => {
         setLoading(true);
@@ -105,7 +106,8 @@ const CalendarView: React.FC = () => {
         setDraggedNote(null);
     };
 
-    const handleEditNote = (note: ExtendedNote) => { setSelectedNote(note); setIsModalOpen(true); };
+    const handleEditNote = (note: ExtendedNote) => { setSelectedNote(note); setDefaultDueDate(''); setIsModalOpen(true); };
+    const handleCreateOnDate = (dateStr: string) => { setSelectedNote(null); setDefaultDueDate(dateStr); setIsModalOpen(true); };
 
     const getHeaderTitle = () => {
         if (viewMode === 'month') return currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
@@ -160,6 +162,8 @@ const CalendarView: React.FC = () => {
                 onDragOver={(e) => handleDragOver(e, dateStr)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, dateStr)}
+                onClick={() => handleCreateOnDate(dateStr)}
+                style={{ cursor: 'pointer' }}
             >
                 <div className="flex justify-between items-start mb-2">
                     <span className={cn(
@@ -245,6 +249,8 @@ const CalendarView: React.FC = () => {
                     onDragOver={(e) => handleDragOver(e, dateStr)}
                     onDragLeave={handleDragLeave}
                     onDrop={(e) => handleDrop(e, dateStr)}
+                    onClick={() => handleCreateOnDate(dateStr)}
+                    style={{ cursor: 'pointer' }}
                 >
                     <div className="text-center mb-3">
                         <div className="text-xs font-bold text-muted-foreground uppercase">{d.toLocaleDateString('default', { weekday: 'short' })}</div>
@@ -268,10 +274,11 @@ const CalendarView: React.FC = () => {
         const isDragOver = dragOverDate === dateStr;
         return (
             <div
-                className={cn("border border-border/40 rounded-2xl bg-card/30 shadow-lg p-6 min-h-[500px] transition-all", isDragOver && "bg-primary/15 ring-1 ring-primary/30")}
+                className={cn("border border-border/40 rounded-2xl bg-card/30 shadow-lg p-6 min-h-[500px] transition-all cursor-pointer", isDragOver && "bg-primary/15 ring-1 ring-primary/30")}
                 onDragOver={(e) => handleDragOver(e, dateStr)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, dateStr)}
+                onClick={() => handleCreateOnDate(dateStr)}
             >
                 <div className="text-center mb-6">
                     <div className="text-sm font-bold text-muted-foreground uppercase mb-1">{currentDate.toLocaleDateString('default', { weekday: 'long' })}</div>
@@ -450,6 +457,7 @@ const CalendarView: React.FC = () => {
                 onClose={() => setIsModalOpen(false)}
                 note={selectedNote}
                 onSave={fetchNotes}
+                defaultDueDate={defaultDueDate}
             />
         </div>
     );

@@ -20,9 +20,10 @@ interface NoteModalProps {
     onClose: () => void;
     note?: any;
     onSave: (note: any) => void;
+    defaultDueDate?: string;
 }
 
-const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave }) => {
+const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, defaultDueDate }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [noteCategoryId, setNoteCategoryId] = useState('');
@@ -50,7 +51,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave }) 
                 setNoteCategoryId('');
                 setStatus('New');
                 setIsFavorite(false);
-                setDueDate('');
+                setDueDate(defaultDueDate || '');
             }
         }
     }, [isOpen, note]);
@@ -69,7 +70,8 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave }) 
                     return indexA - indexB;
                 });
                 setCategories(sorted);
-                if (!note && sorted.length > 0 && !noteCategoryId) {
+                // In Create mode, always default to first category
+                if (!note && sorted.length > 0) {
                     setNoteCategoryId(sorted[0].note_category_id);
                 }
             }

@@ -46,10 +46,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <Sidebar />
             <Topbar />
 
-            {/* Mobile Sidebar Overlay */}
+            {/* Mobile Dropdown Overlay */}
             {sidebarOpen && (
                 <div
-                    className="fixed inset-0 bg-black/60 z-30 lg:hidden"
+                    className="fixed inset-0 top-16 bg-black/40 z-30 lg:hidden backdrop-blur-sm"
                     onClick={() => toggleSidebar()}
                 />
             )}
