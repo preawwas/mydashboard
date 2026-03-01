@@ -340,39 +340,39 @@ const CalendarView: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-8">
             <div className="flex-1">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                    <div className="flex items-center gap-2 sm:gap-4">
                         <div className="flex items-center bg-card/60 border border-border/40 rounded-xl overflow-hidden">
-                            <Button variant="ghost" onClick={() => navigate(-1)} className="h-10 w-10 p-0 rounded-none border-r border-border/40 hover:bg-primary/10">
-                                <ChevronLeft className="w-5 h-5" />
+                            <Button variant="ghost" onClick={() => navigate(-1)} className="h-9 sm:h-10 w-9 sm:w-10 p-0 rounded-none border-r border-border/40 hover:bg-primary/10">
+                                <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5" />
                             </Button>
-                            <Button variant="ghost" onClick={() => navigate(1)} className="h-10 w-10 p-0 rounded-none hover:bg-primary/10">
-                                <ChevronRight className="w-5 h-5" />
+                            <Button variant="ghost" onClick={() => navigate(1)} className="h-9 sm:h-10 w-9 sm:w-10 p-0 rounded-none hover:bg-primary/10">
+                                <ChevronRight className="w-4 sm:w-5 h-4 sm:h-5" />
                             </Button>
                         </div>
-                        <h2 className="text-2xl font-black text-foreground">{getHeaderTitle()}</h2>
-                        <Button variant="outline" onClick={goToToday} className="h-10 px-4 rounded-xl border-border/40 bg-card/60 font-bold ml-2 hover:bg-primary/10">
+                        <h2 className="text-base sm:text-2xl font-black text-foreground">{getHeaderTitle()}</h2>
+                        <Button variant="outline" onClick={goToToday} className="h-8 sm:h-10 px-3 sm:px-4 rounded-xl border-border/40 bg-card/60 font-bold text-xs sm:text-sm hover:bg-primary/10">
                             Today
                         </Button>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                         {/* Status Filter Dropdown */}
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="h-9 px-3 rounded-xl bg-card/60 border border-border/40 text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer pr-8"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 8px center' }}
+                            className="h-8 sm:h-9 px-2 sm:px-3 rounded-xl bg-card/60 border border-border/40 text-xs sm:text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer pr-7"
+                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center' }}
                         >
                             {STATUS_OPTIONS.map(s => (
-                                <option key={s} value={s}>{s === 'All' ? '🔍 All Status' : s}</option>
+                                <option key={s} value={s}>{s === 'All' ? '🔍 All' : s}</option>
                             ))}
                         </select>
 
                         {/* View Mode */}
-                        <div className="flex items-center bg-card/60 border border-border/40 rounded-xl p-1">
+                        <div className="flex items-center bg-card/60 border border-border/40 rounded-xl p-0.5 sm:p-1">
                             {(['month', 'week', 'day'] as ViewMode[]).map(mode => (
                                 <Button key={mode} variant="ghost" onClick={() => setViewMode(mode)}
-                                    className={cn("h-8 px-4 rounded-lg font-bold text-xs capitalize", viewMode === mode ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+                                    className={cn("h-7 sm:h-8 px-2.5 sm:px-4 rounded-lg font-bold text-[10px] sm:text-xs capitalize", viewMode === mode ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
                                     {mode}
                                 </Button>
                             ))}

@@ -389,86 +389,88 @@ const NoteDashboard: React.FC = () => {
                     <p className="text-muted-foreground font-medium">Loading notes...</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-                    {STATUS_COLUMNS.map(status => {
-                        const style = statusStyles[status];
-                        const columnNotes = filteredNotes.filter(n => n.status === status);
-                        const isDragOver = dragOverStatus === status;
-                        return (
-                            <div
-                                key={status}
-                                className={cn("rounded-2xl border transition-all duration-200 min-h-[350px]", style.border, style.bg, isDragOver && "ring-2 ring-primary/30 border-primary/30 scale-[1.01]")}
-                                onDragOver={(e) => handleDragOver(e, status)}
-                                onDragLeave={handleDragLeave}
-                                onDrop={(e) => handleDrop(e, status)}
-                            >
-                                {/* Column Header */}
-                                <div className="px-5 py-4 border-b border-border/30 flex items-center justify-between">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className={cn("w-3 h-3 rounded-full", style.dot)} />
-                                        <h3 className={cn("text-sm font-black uppercase tracking-wider", style.text)}>{status}</h3>
+                <div className="overflow-x-auto pb-4 -mx-2 px-2">
+                    <div className="flex gap-5 md:grid md:grid-cols-2 xl:grid-cols-4">
+                        {STATUS_COLUMNS.map(status => {
+                            const style = statusStyles[status];
+                            const columnNotes = filteredNotes.filter(n => n.status === status);
+                            const isDragOver = dragOverStatus === status;
+                            return (
+                                <div
+                                    key={status}
+                                    className={cn("rounded-2xl border transition-all duration-200 min-h-[350px] min-w-[280px] md:min-w-0", style.border, style.bg, isDragOver && "ring-2 ring-primary/30 border-primary/30 scale-[1.01]")}
+                                    onDragOver={(e) => handleDragOver(e, status)}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={(e) => handleDrop(e, status)}
+                                >
+                                    {/* Column Header */}
+                                    <div className="px-5 py-4 border-b border-border/30 flex items-center justify-between">
+                                        <div className="flex items-center gap-2.5">
+                                            <div className={cn("w-3 h-3 rounded-full", style.dot)} />
+                                            <h3 className={cn("text-sm font-black uppercase tracking-wider", style.text)}>{status}</h3>
+                                        </div>
+                                        <span className={cn("px-3 py-1 rounded-full text-lg font-black", style.text, style.countBg)}>
+                                            {columnNotes.length}
+                                        </span>
                                     </div>
-                                    <span className={cn("px-3 py-1 rounded-full text-lg font-black", style.text, style.countBg)}>
-                                        {columnNotes.length}
-                                    </span>
-                                </div>
 
-                                {/* Cards */}
-                                <div className="p-3 space-y-3">
-                                    {columnNotes.map(note => {
-                                        const deadline = note.reminders ? getDaysRemainingText(note.reminders.due_date) : null;
-                                        return (
-                                            <div
-                                                key={note.note_id}
-                                                draggable
-                                                onDragStart={(e) => handleDragStart(e, note)}
-                                                onDragEnd={handleDragEnd}
-                                                onClick={() => handleOpenEdit(note)}
-                                                className="group bg-card border border-border/50 rounded-xl p-4 cursor-grab active:cursor-grabbing hover:border-primary/30 hover:shadow-md transition-all duration-200"
-                                            >
-                                                <div className="flex items-start gap-2.5">
-                                                    <GripVertical className="w-4 h-4 text-muted-foreground/30 mt-0.5 shrink-0 group-hover:text-muted-foreground transition-colors" />
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-start justify-between gap-2">
-                                                            <div className="flex items-center gap-2 min-w-0">
-                                                                <span className="text-sm shrink-0">{note.note_categories?.icon || '📝'}</span>
-                                                                <h4 className="text-sm font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">{note.title}</h4>
+                                    {/* Cards */}
+                                    <div className="p-3 space-y-3">
+                                        {columnNotes.map(note => {
+                                            const deadline = note.reminders ? getDaysRemainingText(note.reminders.due_date) : null;
+                                            return (
+                                                <div
+                                                    key={note.note_id}
+                                                    draggable
+                                                    onDragStart={(e) => handleDragStart(e, note)}
+                                                    onDragEnd={handleDragEnd}
+                                                    onClick={() => handleOpenEdit(note)}
+                                                    className="group bg-card border border-border/50 rounded-xl p-4 cursor-grab active:cursor-grabbing hover:border-primary/30 hover:shadow-md transition-all duration-200"
+                                                >
+                                                    <div className="flex items-start gap-2.5">
+                                                        <GripVertical className="w-4 h-4 text-muted-foreground/30 mt-0.5 shrink-0 group-hover:text-muted-foreground transition-colors" />
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <div className="flex items-center gap-2 min-w-0">
+                                                                    <span className="text-sm shrink-0">{note.note_categories?.icon || '📝'}</span>
+                                                                    <h4 className="text-sm font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">{note.title}</h4>
+                                                                </div>
+                                                                <button onClick={(e) => handleDelete(note.note_id, e)} className="p-1 rounded-lg text-muted-foreground/40 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0" title="Move to Trash">
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
                                                             </div>
-                                                            <button onClick={(e) => handleDelete(note.note_id, e)} className="p-1 rounded-lg text-muted-foreground/40 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0" title="Move to Trash">
-                                                                <Trash2 className="w-3.5 h-3.5" />
-                                                            </button>
+                                                            {note.content && (
+                                                                <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
+                                                                    {note.content.replace(/<[^>]*>/g, '').trim().substring(0, 80)}
+                                                                </p>
+                                                            )}
+                                                            {/* Bottom: Deadline + Days remaining */}
+                                                            {deadline && (
+                                                                <div className="mt-2.5 flex items-center justify-between">
+                                                                    <span className="text-[10px] text-muted-foreground">
+                                                                        📅 {new Date(note.reminders!.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                                    </span>
+                                                                    <span className={cn(
+                                                                        "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                                                                        deadline.isOverdue ? "bg-rose-500/10 text-rose-600" : "bg-primary/10 text-primary"
+                                                                    )}>
+                                                                        {deadline.text}
+                                                                    </span>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                        {note.content && (
-                                                            <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
-                                                                {note.content.replace(/<[^>]*>/g, '').trim().substring(0, 80)}
-                                                            </p>
-                                                        )}
-                                                        {/* Bottom: Deadline + Days remaining */}
-                                                        {deadline && (
-                                                            <div className="mt-2.5 flex items-center justify-between">
-                                                                <span className="text-[10px] text-muted-foreground">
-                                                                    📅 {new Date(note.reminders!.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                                </span>
-                                                                <span className={cn(
-                                                                    "text-[10px] font-bold px-2 py-0.5 rounded-full",
-                                                                    deadline.isOverdue ? "bg-rose-500/10 text-rose-600" : "bg-primary/10 text-primary"
-                                                                )}>
-                                                                    {deadline.text}
-                                                                </span>
-                                                            </div>
-                                                        )}
                                                     </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
-                                    {columnNotes.length === 0 && (
-                                        <div className="py-8 text-center"><p className="text-xs text-muted-foreground/50 font-medium">{isDragOver ? 'Drop here' : 'No notes'}</p></div>
-                                    )}
+                                            );
+                                        })}
+                                        {columnNotes.length === 0 && (
+                                            <div className="py-8 text-center"><p className="text-xs text-muted-foreground/50 font-medium">{isDragOver ? 'Drop here' : 'No notes'}</p></div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
             )}
 

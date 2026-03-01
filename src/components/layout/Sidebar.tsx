@@ -125,16 +125,23 @@ const Sidebar: React.FC = () => {
                     if (hasSubItems) {
                         return (
                             <div key={item.href}>
-                                {/* Parent item */}
+                                {/* Parent item — on mobile, navigate directly; on desktop, toggle submenu */}
                                 <button
-                                    onClick={() => toggleExpand(item.label)}
+                                    onClick={() => {
+                                        // On mobile: navigate to main page directly
+                                        if (window.innerWidth < 1024) {
+                                            if (sidebarOpen) toggleSidebar();
+                                            window.location.href = item.href;
+                                            return;
+                                        }
+                                        toggleExpand(item.label);
+                                    }}
                                     className={cn(
                                         'w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium',
                                         'transition-all duration-200 group',
                                         isActive
                                             ? 'bg-primary/10 text-primary border border-primary/20'
                                             : 'text-muted-foreground hover:bg-primary/5 hover:text-primary',
-                                        'justify-center px-3 lg:justify-start lg:px-4',
                                         !sidebarOpen && 'lg:justify-center lg:px-3'
                                     )}
                                 >
@@ -143,7 +150,7 @@ const Sidebar: React.FC = () => {
                                     </span>
                                     {sidebarOpen && (
                                         <>
-                                            <span className="hidden lg:inline flex-1 text-left">{label}</span>
+                                            <span className="flex-1 text-left">{label}</span>
                                             <ChevronDown className={cn(
                                                 "w-4 h-4 hidden lg:inline transition-transform duration-200",
                                                 isExpanded && "rotate-180"
@@ -152,9 +159,9 @@ const Sidebar: React.FC = () => {
                                     )}
                                 </button>
 
-                                {/* Sub-items */}
+                                {/* Sub-items — visible on both mobile and desktop */}
                                 {isExpanded && sidebarOpen && (
-                                    <div className="hidden lg:block mt-1 ml-4 pl-4 border-l-2 border-border/50 space-y-1">
+                                    <div className="mt-1 ml-4 pl-4 border-l-2 border-border/50 space-y-1">
                                         {item.subItems!.map((sub) => {
                                             const isSubActive = sub.href === '/notes'
                                                 ? pathname === '/notes'
@@ -204,7 +211,7 @@ const Sidebar: React.FC = () => {
                             <span className={cn('transition-colors', isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-primary')}>
                                 {item.icon}
                             </span>
-                            {sidebarOpen && <span className="hidden lg:inline">{label}</span>}
+                            {sidebarOpen && <span>{label}</span>}
                         </Link>
                     );
                 })}
