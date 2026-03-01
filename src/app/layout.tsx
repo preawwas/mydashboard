@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Montserrat, Prompt } from "next/font/google";
+import { Albert_Sans, Prompt } from "next/font/google";
 import "./globals.css";
 import ValentineTheme from "@/components/ValentineTheme";
 
-const montserrat = Montserrat({
+const albertSans = Albert_Sans({
   subsets: ["latin"],
-  variable: "--font-montserrat",
+  variable: "--font-albert-sans",
   display: "swap",
 });
 
@@ -35,7 +35,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body
-        className={`${montserrat.variable} ${prompt.variable} font-sans antialiased`}
+        className={`${albertSans.variable} ${prompt.variable} font-sans antialiased`}
       >
         <ValentineTheme />
         {children}

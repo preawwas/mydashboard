@@ -55,14 +55,14 @@
   --color-error: var(--error);
   --color-warning: var(--warning);
 
-  --font-sans: var(--font-montserrat), var(--font-prompt), sans-serif;
+  --font-sans: var(--font-albert-sans), var(--font-prompt), sans-serif;
   --font-mono: monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-montserrat), var(--font-prompt), sans-serif;
+  font-family: var(--font-albert-sans), var(--font-prompt), sans-serif;
   min-height: 100vh;
 }
 

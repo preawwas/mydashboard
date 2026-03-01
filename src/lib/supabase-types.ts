@@ -85,3 +85,36 @@ export interface DbExpenseInstallment {
     created_at: string;
     updated_at: string;
 }
+
+export interface DbNoteCategory {
+    note_category_id: string;
+    user_id: string;
+    name: string;
+    color_code: string | null;
+    icon: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface DbNote {
+    note_id: string;
+    user_id: string;
+    note_category_id: string | null;
+    title: string;
+    content: string | null;
+    status: 'New' | 'In Progress' | 'Urgent' | 'Done';
+    is_favorite: boolean;
+    is_archived: boolean;
+    is_deleted: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface DbReminder {
+    reminder_id: string;
+    note_id: string;
+    due_date: string;
+    reminder_type: 'Daily' | 'Weekly';
+    created_at: string;
+    updated_at: string;
+}
