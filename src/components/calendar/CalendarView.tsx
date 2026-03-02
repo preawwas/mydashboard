@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
-    ChevronLeft, ChevronRight, Loader2, Clock
+    ChevronLeft, ChevronRight, Loader2, Clock, PanelRightOpen, PanelRightClose, Check
 } from 'lucide-react';
 import {
     Button, Card, CardHeader, CardTitle,
@@ -20,8 +20,9 @@ interface ExtendedNote extends DbNote {
 
 type ViewMode = 'month' | 'week' | 'day';
 
-const STATUS_OPTIONS = ['All', 'New', 'In Progress', 'Urgent', 'Done'];
 const ITEMS_PER_PAGE = 5;
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const STATUS_OPTIONS = ['All', 'New', 'In Progress', 'Urgent', 'Done'];
 
 const CalendarView: React.FC = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -32,14 +33,17 @@ const CalendarView: React.FC = () => {
     const [viewMode, setViewMode] = useState<ViewMode>('month');
     const [draggedNote, setDraggedNote] = useState<ExtendedNote | null>(null);
     const [dragOverDate, setDragOverDate] = useState<string | null>(null);
-    const [statusFilter, setStatusFilter] = useState('All');
     const [deadlineCount, setDeadlineCount] = useState(ITEMS_PER_PAGE);
     const [defaultDueDate, setDefaultDueDate] = useState('');
+    const [showDeadlines, setShowDeadlines] = useState(false);
+    const [showMonthPicker, setShowMonthPicker] = useState(false);
+    const [statusFilter, setStatusFilter] = useState('All');
+    const monthPickerRef = useRef<HTMLDivElement>(null);
 
     const fetchNotes = async () => {
         setLoading(true);
         try {
-            const res = await apiClient.fetch('/api/notes');
+            const res = await apiClient.fetch('/api/notes?filter=all');
             const json = await res.json();
             if (json.success) setNotes(json.data || []);
         } catch (error) { console.error('Error fetching notes:', error); }
@@ -48,17 +52,28 @@ const CalendarView: React.FC = () => {
 
     useEffect(() => { fetchNotes(); }, []);
 
-    // Filtered notes by status
-    const filteredNotes = useMemo(() => {
-        if (statusFilter === 'All') return notes;
-        return notes.filter(n => n.status === statusFilter);
-    }, [notes, statusFilter]);
+    // Close month picker on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (monthPickerRef.current && !monthPickerRef.current.contains(e.target as Node)) {
+                setShowMonthPicker(false);
+            }
+        };
+        if (showMonthPicker) document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [showMonthPicker]);
 
     // Helpers
     const daysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
     const firstDayOfMonth = (y: number, m: number) => new Date(y, m, 1).getDay();
     const formatDateStr = (y: number, m: number, d: number) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const getNotesForDate = (dateStr: string) => filteredNotes.filter(n => n.reminders?.due_date?.startsWith(dateStr));
+    const getNotesForDate = (dateStr: string) => {
+        return notes.filter(n => {
+            if (!n.reminders?.due_date?.startsWith(dateStr)) return false;
+            if (statusFilter !== 'All' && n.status !== statusFilter) return false;
+            return true;
+        });
+    };
 
     const today = new Date();
     const todayStr = formatDateStr(today.getFullYear(), today.getMonth(), today.getDate());
@@ -71,7 +86,15 @@ const CalendarView: React.FC = () => {
         else d.setDate(d.getDate() + dir);
         setCurrentDate(d);
     };
-    const goToToday = () => setCurrentDate(new Date());
+    const goToToday = () => { setCurrentDate(new Date()); setShowMonthPicker(false); };
+    const goToMonth = (month: number) => {
+        const d = new Date(currentDate); d.setMonth(month);
+        setCurrentDate(d); setShowMonthPicker(false);
+    };
+    const changeYear = (dir: number) => {
+        const d = new Date(currentDate); d.setFullYear(d.getFullYear() + dir);
+        setCurrentDate(d);
+    };
 
     // Drag and Drop
     const handleDragStart = (e: React.DragEvent, note: ExtendedNote) => {
@@ -84,11 +107,17 @@ const CalendarView: React.FC = () => {
         setDraggedNote(null); setDragOverDate(null);
     };
     const handleDragOver = (e: React.DragEvent, dateStr: string) => {
-        e.preventDefault(); setDragOverDate(dateStr);
+        e.preventDefault(); e.stopPropagation(); setDragOverDate(dateStr);
     };
-    const handleDragLeave = () => setDragOverDate(null);
+    const handleDragLeave = (e: React.DragEvent) => {
+        // Only clear if leaving the cell, not entering a child
+        const relatedTarget = e.relatedTarget as HTMLElement;
+        if (e.currentTarget instanceof HTMLElement && !e.currentTarget.contains(relatedTarget)) {
+            setDragOverDate(null);
+        }
+    };
     const handleDrop = async (e: React.DragEvent, dateStr: string) => {
-        e.preventDefault(); setDragOverDate(null);
+        e.preventDefault(); e.stopPropagation(); setDragOverDate(null);
         if (!draggedNote) return;
         const oldDate = draggedNote.reminders?.due_date?.split('T')[0];
         if (oldDate === dateStr) return;
@@ -106,25 +135,27 @@ const CalendarView: React.FC = () => {
         setDraggedNote(null);
     };
 
+    // Mark note as done
+    const handleMarkDone = async (note: ExtendedNote, e: React.MouseEvent) => {
+        e.stopPropagation();
+        const newStatus = note.status === 'Done' ? 'New' : 'Done';
+        setNotes(prev => prev.map(n => n.note_id === note.note_id ? { ...n, status: newStatus as ExtendedNote['status'] } : n));
+        try {
+            await apiClient.fetch(`/api/notes/${note.note_id}`, { method: 'PATCH', body: JSON.stringify({ status: newStatus }) });
+        } catch { fetchNotes(); }
+    };
+
     const handleEditNote = (note: ExtendedNote) => { setSelectedNote(note); setDefaultDueDate(''); setIsModalOpen(true); };
     const handleCreateOnDate = (dateStr: string) => { setSelectedNote(null); setDefaultDueDate(dateStr); setIsModalOpen(true); };
-
-    const getHeaderTitle = () => {
-        if (viewMode === 'month') return currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
-        if (viewMode === 'week') {
-            const start = getWeekStart(currentDate);
-            const end = new Date(start); end.setDate(end.getDate() + 6);
-            return `${start.toLocaleDateString('default', { month: 'short', day: 'numeric' })} - ${end.toLocaleDateString('default', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-        }
-        return currentDate.toLocaleDateString('default', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-    };
 
     const getWeekStart = (date: Date) => {
         const d = new Date(date); d.setDate(d.getDate() - d.getDay()); return d;
     };
 
+    // Note chip with radio
     const renderNoteChip = (note: ExtendedNote) => {
         const color = note.note_categories?.color_code || '#718096';
+        const isDone = note.status === 'Done';
         return (
             <div
                 key={note.note_id}
@@ -132,20 +163,31 @@ const CalendarView: React.FC = () => {
                 onDragStart={(e) => handleDragStart(e, note)}
                 onDragEnd={handleDragEnd}
                 onClick={(e) => { e.stopPropagation(); handleEditNote(note); }}
-                className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-extrabold truncate cursor-grab active:cursor-grabbing transition-all hover:scale-[1.03] hover:shadow-xl shadow-md"
+                className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-extrabold truncate cursor-grab active:cursor-grabbing transition-all hover:scale-[1.03] hover:shadow-xl shadow-md"
                 style={{
-                    backgroundColor: `${color}35`,
-                    borderLeft: `4px solid ${color}`,
+                    backgroundColor: isDone ? 'rgba(113,128,150,0.1)' : `${color}35`,
+                    borderLeft: `4px solid ${isDone ? '#a0aec0' : color}`,
                     boxShadow: `0 2px 6px ${color}20`,
-                    color: color,
+                    color: isDone ? '#a0aec0' : color,
                 }}
             >
-                <span className="text-sm">{note.note_categories?.icon || '•'}</span>
-                <span className="truncate">{note.title}</span>
+                {/* Radio checkbox */}
+                <button
+                    onClick={(e) => handleMarkDone(note, e)}
+                    className={cn(
+                        "w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+                        isDone ? "bg-green-500 border-green-500" : "border-current hover:border-green-400"
+                    )}
+                >
+                    {isDone && <Check className="w-2.5 h-2.5 text-white" />}
+                </button>
+                <span className="text-sm shrink-0">{note.note_categories?.icon || '•'}</span>
+                <span className={cn("truncate", isDone && "line-through opacity-60")}>{note.title}</span>
             </div>
         );
     };
 
+    // Day cell
     const renderDayCell = (dateStr: string, day: number, isCurrentMonth: boolean, minH = 'min-h-[130px]') => {
         const dayNotes = getNotesForDate(dateStr);
         const isToday = dateStr === todayStr;
@@ -154,10 +196,10 @@ const CalendarView: React.FC = () => {
             <div
                 key={dateStr}
                 className={cn(
-                    minH, "border border-border/40 p-2.5 transition-all group relative",
-                    isCurrentMonth ? "bg-card/60" : "bg-muted/20 opacity-40",
-                    isToday && "bg-primary/8 border-primary/30",
-                    isDragOver && "bg-primary/15 border-primary/40 ring-1 ring-primary/30"
+                    minH, "border border-border/60 p-2.5 transition-all group relative",
+                    isCurrentMonth ? "bg-white" : "bg-muted/30 opacity-40",
+                    isToday && "bg-primary/10 border-primary/40",
+                    isDragOver && "bg-primary/15 border-primary/40 ring-2 ring-primary/30"
                 )}
                 onDragOver={(e) => handleDragOver(e, dateStr)}
                 onDragLeave={handleDragLeave}
@@ -173,12 +215,12 @@ const CalendarView: React.FC = () => {
                         {day}
                     </span>
                     {dayNotes.length > 0 && (
-                        <span className="text-[10px] font-black text-white bg-primary/80 px-1.5 py-0.5 rounded-full shadow-sm min-w-[20px] text-center">
+                        <span className="text-[10px] font-black text-white bg-gray-500 px-1.5 py-0.5 rounded-full min-w-[20px] text-center shadow-sm">
                             {dayNotes.length}
                         </span>
                     )}
                 </div>
-                <div className="space-y-1.5 overflow-y-auto max-h-[90px] custom-scrollbar">
+                <div className="space-y-1.5 overflow-y-auto max-h-[90px] scrollbar-hide hover:scrollbar-show custom-scrollbar">
                     {dayNotes.map(renderNoteChip)}
                 </div>
             </div>
@@ -217,10 +259,10 @@ const CalendarView: React.FC = () => {
             rows.push(<div key={i} className="grid grid-cols-7">{cells.slice(i, i + 7)}</div>);
         }
         return (
-            <div className="border border-border/40 rounded-2xl overflow-hidden bg-card/30 backdrop-blur-sm shadow-lg">
-                <div className="grid grid-cols-7 bg-muted/30 border-b border-border/40">
+            <div className="border-2 border-border/60 rounded-2xl overflow-hidden bg-white shadow-xl">
+                <div className="grid grid-cols-7 bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15 border-b-2 border-border/50">
                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} className="text-center py-3 text-sm font-black text-foreground/60 uppercase tracking-widest">{day}</div>
+                        <div key={day} className="text-center py-3.5 text-sm font-black text-foreground/80 uppercase tracking-widest">{day}</div>
                     ))}
                 </div>
                 {rows}
@@ -242,9 +284,9 @@ const CalendarView: React.FC = () => {
                 <div
                     key={dateStr}
                     className={cn(
-                        "min-h-[300px] border border-border/40 p-4 transition-all bg-card/60",
-                        isToday && "bg-primary/8 border-primary/30",
-                        isDragOver && "bg-primary/15 ring-1 ring-primary/30"
+                        "min-h-[300px] border border-border/60 p-4 transition-all bg-white",
+                        isToday && "bg-primary/10 border-primary/40",
+                        isDragOver && "bg-primary/15 ring-2 ring-primary/30"
                     )}
                     onDragOver={(e) => handleDragOver(e, dateStr)}
                     onDragLeave={handleDragLeave}
@@ -256,14 +298,14 @@ const CalendarView: React.FC = () => {
                         <div className="text-xs font-bold text-muted-foreground uppercase">{d.toLocaleDateString('default', { weekday: 'short' })}</div>
                         <div className={cn("text-2xl font-black mx-auto w-10 h-10 flex items-center justify-center rounded-full mt-1", isToday ? "bg-primary text-primary-foreground" : "text-foreground")}>{d.getDate()}</div>
                     </div>
-                    <div className="space-y-2 overflow-y-auto max-h-[240px]">
+                    <div className="space-y-2 overflow-y-auto max-h-[240px] scrollbar-hide hover:scrollbar-show custom-scrollbar">
                         {dayNotes.map(renderNoteChip)}
                         {dayNotes.length === 0 && <p className="text-xs text-muted-foreground/40 text-center pt-4">No tasks</p>}
                     </div>
                 </div>
             );
         }
-        return (<div className="border border-border/40 rounded-2xl overflow-hidden bg-card/30 shadow-lg"><div className="grid grid-cols-7">{cells}</div></div>);
+        return (<div className="border-2 border-border/60 rounded-2xl overflow-hidden bg-white shadow-xl"><div className="grid grid-cols-7">{cells}</div></div>);
     };
 
     // DAY VIEW
@@ -274,7 +316,7 @@ const CalendarView: React.FC = () => {
         const isDragOver = dragOverDate === dateStr;
         return (
             <div
-                className={cn("border border-border/40 rounded-2xl bg-card/30 shadow-lg p-6 min-h-[500px] transition-all cursor-pointer", isDragOver && "bg-primary/15 ring-1 ring-primary/30")}
+                className={cn("border border-border/40 rounded-2xl bg-card/30 shadow-lg p-6 min-h-[500px] transition-all cursor-pointer", isDragOver && "bg-primary/15 ring-2 ring-primary/30")}
                 onDragOver={(e) => handleDragOver(e, dateStr)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, dateStr)}
@@ -289,14 +331,17 @@ const CalendarView: React.FC = () => {
                         <div
                             key={note.note_id}
                             draggable onDragStart={(e) => handleDragStart(e, note)} onDragEnd={handleDragEnd}
-                            onClick={() => handleEditNote(note)}
+                            onClick={(e) => { e.stopPropagation(); handleEditNote(note); }}
                             className="flex items-center gap-4 p-4 bg-card border border-border/50 rounded-xl cursor-pointer hover:border-primary/30 hover:shadow-md transition-all"
                         >
+                            <button onClick={(e) => handleMarkDone(note, e)} className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0", note.status === 'Done' ? "bg-green-500 border-green-500" : "border-muted-foreground/40 hover:border-green-400")}>
+                                {note.status === 'Done' && <Check className="w-3.5 h-3.5 text-white" />}
+                            </button>
                             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0" style={{ backgroundColor: `${note.note_categories?.color_code || '#718096'}15` }}>
                                 {note.note_categories?.icon || '📝'}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h4 className="text-sm font-bold text-foreground line-clamp-1">{note.title}</h4>
+                                <h4 className={cn("text-sm font-bold text-foreground line-clamp-1", note.status === 'Done' && "line-through opacity-50")}>{note.title}</h4>
                                 <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{note.content?.replace(/<[^>]*>/g, '').trim().substring(0, 60) || 'No content'}</p>
                             </div>
                             <Badge className={cn("text-[10px] font-bold uppercase shrink-0",
@@ -314,27 +359,23 @@ const CalendarView: React.FC = () => {
         );
     };
 
-    // Upcoming deadlines — from today onward, sorted by closest first
+    // Upcoming deadlines — from today onward
     const upcomingDeadlines = useMemo(() => {
         const todayDate = new Date(); todayDate.setHours(0, 0, 0, 0);
-        return filteredNotes
+        return notes
             .filter(n => {
                 if (!n.reminders) return false;
                 const due = new Date(n.reminders.due_date); due.setHours(0, 0, 0, 0);
-                return due >= todayDate;
+                if (due < todayDate) return false;
+                if (statusFilter !== 'All' && n.status !== statusFilter) return false;
+                return true;
             })
             .sort((a, b) => new Date(a.reminders!.due_date).getTime() - new Date(b.reminders!.due_date).getTime());
-    }, [filteredNotes]);
+    }, [notes, statusFilter]);
 
     const visibleDeadlines = upcomingDeadlines.slice(0, deadlineCount);
     const hasMoreDeadlines = deadlineCount < upcomingDeadlines.length;
-
-    const handleLoadMore = () => {
-        setDeadlineCount(prev => prev + ITEMS_PER_PAGE);
-    };
-
-    // Reset lazy load count when filter changes
-    useEffect(() => { setDeadlineCount(ITEMS_PER_PAGE); }, [statusFilter]);
+    const handleLoadMore = () => setDeadlineCount(prev => prev + ITEMS_PER_PAGE);
 
     const getStatusBadgeClass = (status: string) => {
         if (status === 'Urgent') return "bg-rose-500/10 text-rose-500";
@@ -344,26 +385,68 @@ const CalendarView: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col lg:flex-row gap-8">
-            <div className="flex-1">
-                {/* Header */}
+        <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 min-w-0">
+                {/* Header: < March 2026 > with month picker */}
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                    <div className="flex items-center gap-2 sm:gap-4">
-                        <div className="flex items-center bg-card/60 border border-border/40 rounded-xl overflow-hidden">
-                            <Button variant="ghost" onClick={() => navigate(-1)} className="h-9 sm:h-10 w-9 sm:w-10 p-0 rounded-none border-r border-border/40 hover:bg-primary/10">
-                                <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5" />
-                            </Button>
-                            <Button variant="ghost" onClick={() => navigate(1)} className="h-9 sm:h-10 w-9 sm:w-10 p-0 rounded-none hover:bg-primary/10">
-                                <ChevronRight className="w-4 sm:w-5 h-4 sm:h-5" />
-                            </Button>
+                    <div className="flex items-center gap-1 relative">
+                        <Button variant="ghost" onClick={() => navigate(-1)} className="h-9 w-9 p-0 rounded-xl hover:bg-primary/10">
+                            <ChevronLeft className="w-5 h-5" />
+                        </Button>
+
+                        {/* Month title — clickable to open picker */}
+                        <div className="relative" ref={monthPickerRef}>
+                            <button
+                                onClick={() => setShowMonthPicker(!showMonthPicker)}
+                                className="px-3 py-1.5 rounded-xl text-lg sm:text-2xl font-black text-foreground hover:bg-muted/30 transition-colors"
+                            >
+                                {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
+                            </button>
+
+                            {/* Month picker dropdown */}
+                            {showMonthPicker && (
+                                <div className="absolute top-full left-0 mt-2 bg-card border border-border/50 rounded-2xl shadow-2xl z-50 p-4 w-[280px] animate-in fade-in zoom-in-95 duration-200">
+                                    {/* Year nav */}
+                                    <div className="flex items-center justify-between mb-3">
+                                        <button onClick={() => changeYear(-1)} className="p-1 rounded-lg hover:bg-muted/30"><ChevronLeft className="w-4 h-4" /></button>
+                                        <span className="font-black text-foreground">{currentDate.getFullYear()}</span>
+                                        <button onClick={() => changeYear(1)} className="p-1 rounded-lg hover:bg-muted/30"><ChevronRight className="w-4 h-4" /></button>
+                                    </div>
+                                    {/* Month grid */}
+                                    <div className="grid grid-cols-3 gap-1.5">
+                                        {MONTHS.map((m, i) => (
+                                            <button
+                                                key={m}
+                                                onClick={() => goToMonth(i)}
+                                                className={cn(
+                                                    "py-2 rounded-lg text-xs font-bold transition-all",
+                                                    i === currentDate.getMonth()
+                                                        ? "bg-primary text-primary-foreground shadow-sm"
+                                                        : "text-muted-foreground hover:bg-muted/30 hover:text-foreground"
+                                                )}
+                                            >
+                                                {m.substring(0, 3)}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {/* Today button inside picker */}
+                                    <button
+                                        onClick={goToToday}
+                                        className="w-full mt-3 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold hover:bg-primary/20 transition-all"
+                                    >
+                                        Today
+                                    </button>
+                                </div>
+                            )}
                         </div>
-                        <h2 className="text-base sm:text-2xl font-black text-foreground">{getHeaderTitle()}</h2>
-                        <Button variant="outline" onClick={goToToday} className="h-8 sm:h-10 px-3 sm:px-4 rounded-xl border-border/40 bg-card/60 font-bold text-xs sm:text-sm hover:bg-primary/10">
-                            Today
+
+                        <Button variant="ghost" onClick={() => navigate(1)} className="h-9 w-9 p-0 rounded-xl hover:bg-primary/10">
+                            <ChevronRight className="w-5 h-5" />
                         </Button>
                     </div>
+
                     <div className="flex items-center gap-2 sm:gap-3">
-                        {/* Status Filter Dropdown */}
+                        {/* Status Filter */}
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
@@ -371,7 +454,7 @@ const CalendarView: React.FC = () => {
                             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center' }}
                         >
                             {STATUS_OPTIONS.map(s => (
-                                <option key={s} value={s}>{s === 'All' ? '🔍 All' : s}</option>
+                                <option key={s} value={s}>{s === 'All' ? '🔍 All Status' : s}</option>
                             ))}
                         </select>
 
@@ -384,12 +467,56 @@ const CalendarView: React.FC = () => {
                                 </Button>
                             ))}
                         </div>
+
+                        {/* Deadlines toggle button */}
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowDeadlines(!showDeadlines)}
+                            className={cn(
+                                "h-8 sm:h-9 px-3 rounded-xl border-border/40 font-bold text-xs gap-1.5",
+                                showDeadlines ? "bg-primary/10 text-primary border-primary/30" : "bg-card/60"
+                            )}
+                        >
+                            {showDeadlines ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
+                            <span className="hidden sm:inline">Deadlines</span>
+                            {upcomingDeadlines.length > 0 && (
+                                <span className="bg-primary/20 text-primary text-[10px] font-black px-1.5 py-0.5 rounded-full">{upcomingDeadlines.length}</span>
+                            )}
+                        </Button>
                     </div>
                 </div>
 
                 {/* Calendar Content */}
                 {loading ? (
-                    <div className="h-[600px] flex items-center justify-center bg-card/30 rounded-2xl border border-border/40"><Loader2 className="w-10 h-10 text-primary animate-spin" /></div>
+                    <div className="border border-border/40 rounded-2xl overflow-hidden bg-card/30 backdrop-blur-sm shadow-lg">
+                        {/* Day header skeleton */}
+                        <div className="grid grid-cols-7 bg-muted/30 border-b border-border/40">
+                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                                <div key={day} className="text-center py-3">
+                                    <div className="h-3 w-8 mx-auto rounded-md bg-muted/40 animate-pulse" />
+                                </div>
+                            ))}
+                        </div>
+                        {/* Calendar cells skeleton */}
+                        {[0, 1, 2, 3, 4].map(row => (
+                            <div key={row} className="grid grid-cols-7">
+                                {[0, 1, 2, 3, 4, 5, 6].map(col => (
+                                    <div key={col} className="min-h-[130px] border border-border/20 p-2.5 bg-card/40">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div className="w-8 h-8 rounded-full bg-muted/30 animate-pulse" style={{ animationDelay: `${row * 80 + col * 60}ms` }} />
+                                        </div>
+                                        {/* Random card placeholders */}
+                                        {(row + col) % 3 === 0 && (
+                                            <div className="space-y-1.5">
+                                                <div className="h-7 w-full rounded-lg bg-muted/20 animate-pulse" style={{ animationDelay: `${row * 100 + col * 80}ms` }} />
+                                                {col % 2 === 0 && <div className="h-7 w-4/5 rounded-lg bg-muted/15 animate-pulse" style={{ animationDelay: `${row * 120 + col * 90}ms` }} />}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
                 ) : (
                     <>
                         {viewMode === 'month' && renderMonthView()}
@@ -399,58 +526,56 @@ const CalendarView: React.FC = () => {
                 )}
             </div>
 
-            {/* Sidebar — Upcoming Deadlines */}
-            <div className="w-full lg:w-80 space-y-6">
-                <Card className="border-border/50 bg-card/80 backdrop-blur-md overflow-hidden shadow-xl">
-                    <CardHeader className="border-b border-border/50 bg-muted/30">
-                        <div className="flex items-center justify-between">
-                            <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground">Upcoming Deadlines</CardTitle>
-                            <span className="text-xs font-black text-primary bg-primary/15 px-2.5 py-1 rounded-full border border-primary/30">{upcomingDeadlines.length}</span>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                        <div className="space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar pr-1">
-                            {visibleDeadlines.length > 0 ? visibleDeadlines.map(note => (
-                                <div
-                                    key={note.note_id}
-                                    onClick={() => handleEditNote(note)}
-                                    className="group p-4 bg-card border-2 border-border/60 rounded-xl cursor-pointer hover:border-primary/50 transition-all hover:shadow-lg shadow-sm"
-                                >
-                                    <div className="flex items-center justify-between mb-2">
-                                        <Badge className={cn("text-[10px] font-black uppercase py-0.5", getStatusBadgeClass(note.status))}>
-                                            {note.status}
-                                        </Badge>
-                                        <span className="text-[10px] font-bold text-muted-foreground">
-                                            {new Date(note.reminders!.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                                        </span>
+            {/* Sidebar — Upcoming Deadlines (collapsible) */}
+            {showDeadlines && (
+                <div className="w-full lg:w-80 shrink-0 animate-in slide-in-from-right duration-300">
+                    <Card className="border-border/50 bg-card/80 backdrop-blur-md overflow-hidden shadow-xl sticky top-20">
+                        <CardHeader className="border-b border-border/50 bg-muted/30 py-3">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground">Upcoming Deadlines</CardTitle>
+                                <span className="text-xs font-black text-primary bg-primary/15 px-2.5 py-1 rounded-full border border-primary/30">{upcomingDeadlines.length}</span>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-4">
+                            <div className="space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar pr-1">
+                                {visibleDeadlines.length > 0 ? visibleDeadlines.map(note => (
+                                    <div
+                                        key={note.note_id}
+                                        onClick={() => handleEditNote(note)}
+                                        className="group p-3 bg-card border-2 border-border/60 rounded-xl cursor-pointer hover:border-primary/50 transition-all hover:shadow-lg shadow-sm"
+                                    >
+                                        <div className="flex items-center justify-between mb-2">
+                                            <Badge className={cn("text-[10px] font-black uppercase py-0.5", getStatusBadgeClass(note.status))}>
+                                                {note.status}
+                                            </Badge>
+                                            <span className="text-[10px] font-bold text-muted-foreground">
+                                                {new Date(note.reminders!.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                            </span>
+                                        </div>
+                                        <h4 className={cn("font-bold text-foreground text-sm group-hover:text-primary transition-colors line-clamp-1", note.status === 'Done' && "line-through opacity-50")}>{note.title}</h4>
+                                        <div className="flex items-center gap-1.5 mt-2 opacity-60">
+                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: note.note_categories?.color_code || '#718096' }} />
+                                            <span className="text-[10px] font-bold text-muted-foreground">{note.note_categories?.name || 'Uncategorized'}</span>
+                                        </div>
                                     </div>
-                                    <h4 className="font-bold text-foreground text-sm group-hover:text-primary transition-colors line-clamp-1">{note.title}</h4>
-                                    <div className="flex items-center gap-1.5 mt-2 opacity-60">
-                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: note.note_categories?.color_code || '#718096' }} />
-                                        <span className="text-[10px] font-bold text-muted-foreground">{note.note_categories?.name || 'Uncategorized'}</span>
+                                )) : (
+                                    <div className="py-12 text-center space-y-3 opacity-50">
+                                        <Clock className="w-8 h-8 mx-auto" />
+                                        <p className="text-xs font-bold uppercase">No Upcoming Deadlines</p>
                                     </div>
-                                </div>
-                            )) : (
-                                <div className="py-12 text-center space-y-3 opacity-50">
-                                    <Clock className="w-8 h-8 mx-auto" />
-                                    <p className="text-xs font-bold uppercase">No Upcoming Deadlines</p>
-                                </div>
-                            )}
+                                )}
 
-                            {/* Load More button */}
-                            {hasMoreDeadlines && (
-                                <Button
-                                    variant="outline"
-                                    onClick={handleLoadMore}
-                                    className="w-full rounded-xl border-primary/20 text-primary font-bold text-xs hover:bg-primary/5 mt-2"
-                                >
-                                    Load More ({upcomingDeadlines.length - deadlineCount} remaining)
-                                </Button>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+                                {hasMoreDeadlines && (
+                                    <Button variant="outline" onClick={handleLoadMore}
+                                        className="w-full rounded-xl border-primary/20 text-primary font-bold text-xs hover:bg-primary/5 mt-2">
+                                        Load More ({upcomingDeadlines.length - deadlineCount} remaining)
+                                    </Button>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
 
             <NoteModal
                 isOpen={isModalOpen}

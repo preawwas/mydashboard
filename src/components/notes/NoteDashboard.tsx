@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     Search, Plus, Loader2, Trash2, GripVertical,
-    Filter, X, CalendarDays, ChevronUp, ChevronDown
+    Filter, X, CalendarDays, ChevronUp, ChevronDown, Settings
 } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 import NoteModal from './NoteModal';
@@ -51,6 +51,7 @@ const NoteDashboard: React.FC = () => {
     const [selectedNote, setSelectedNote] = useState<ExtendedNote | null>(null);
     const [draggedNote, setDraggedNote] = useState<ExtendedNote | null>(null);
     const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
+    const [dragOverNoteId, setDragOverNoteId] = useState<string | null>(null);
 
     // Category filter
     const [showCategoryFilter, setShowCategoryFilter] = useState(false);
@@ -68,8 +69,14 @@ const NoteDashboard: React.FC = () => {
     // Trash popup
     const [showTrash, setShowTrash] = useState(false);
 
+    // Category settings popup
+    const [showCategorySettings, setShowCategorySettings] = useState(false);
+    const settingsRef = useRef<HTMLDivElement>(null);
+
     // Track whether categories have been initialized
     const categoriesInitialized = useRef(false);
+    const STORAGE_KEY_VISIBLE = 'note-dashboard-visible-categories';
+    const STORAGE_KEY_ORDER = 'note-dashboard-category-order';
 
     const fetchCategories = useCallback(async () => {
         try {
@@ -81,15 +88,33 @@ const NoteDashboard: React.FC = () => {
                 const allIds = cats.map(c => c.note_category_id);
 
                 if (!categoriesInitialized.current) {
-                    // First load: show all categories
                     categoriesInitialized.current = true;
-                    setCategoryOrder(allIds);
-                    setVisibleCategories(allIds);
+                    // Try to load saved settings from localStorage
+                    const savedVisible = localStorage.getItem(STORAGE_KEY_VISIBLE);
+                    const savedOrder = localStorage.getItem(STORAGE_KEY_ORDER);
+
+                    if (savedOrder) {
+                        const parsed = JSON.parse(savedOrder) as string[];
+                        const validOrder = parsed.filter(id => allIds.includes(id));
+                        const newIds = allIds.filter(id => !validOrder.includes(id));
+                        setCategoryOrder([...validOrder, ...newIds]);
+                    } else {
+                        setCategoryOrder(allIds);
+                    }
+
+                    if (savedVisible) {
+                        const parsed = JSON.parse(savedVisible) as string[];
+                        const validVisible = parsed.filter(id => allIds.includes(id));
+                        // Add any new categories as visible
+                        const newIds = allIds.filter(id => !parsed.includes(id));
+                        setVisibleCategories([...validVisible, ...newIds]);
+                    } else {
+                        setVisibleCategories(allIds);
+                    }
                 } else {
                     // Subsequent loads: only add NEW categories, preserve existing filter/order
                     setCategoryOrder(prev => {
                         const newIds = allIds.filter(id => !prev.includes(id));
-                        // Also remove any IDs that no longer exist
                         const existing = prev.filter(id => allIds.includes(id));
                         return [...existing, ...newIds];
                     });
@@ -112,7 +137,7 @@ const NoteDashboard: React.FC = () => {
     const fetchNotes = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await apiClient.fetch('/api/notes');
+            const res = await apiClient.fetch('/api/notes?filter=all');
             const json = await res.json();
             if (json.success) setNotes(json.data || []);
         } catch (error) {
@@ -133,6 +158,29 @@ const NoteDashboard: React.FC = () => {
     }, []);
 
     useEffect(() => { fetchCategories(); fetchNotes(); }, []);
+
+    // Close settings on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+                setShowCategorySettings(false);
+            }
+        };
+        if (showCategorySettings) document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [showCategorySettings]);
+
+    // Persist category settings to localStorage
+    useEffect(() => {
+        if (categoriesInitialized.current) {
+            localStorage.setItem(STORAGE_KEY_VISIBLE, JSON.stringify(visibleCategories));
+        }
+    }, [visibleCategories]);
+    useEffect(() => {
+        if (categoriesInitialized.current && categoryOrder.length > 0) {
+            localStorage.setItem(STORAGE_KEY_ORDER, JSON.stringify(categoryOrder));
+        }
+    }, [categoryOrder]);
 
     // Filtered notes
     const filteredNotes = notes.filter(n => {
@@ -214,22 +262,45 @@ const NoteDashboard: React.FC = () => {
         setDraggedCatId(null);
     };
 
-    // Note card Drag & Drop
+    // Note card Drag & Drop (cross-column + within-column reorder)
     const handleDragStart = (e: React.DragEvent, note: ExtendedNote) => {
         setDraggedNote(note); e.dataTransfer.effectAllowed = 'move';
-        if (e.currentTarget instanceof HTMLElement) e.currentTarget.style.opacity = '0.5';
+        if (e.currentTarget instanceof HTMLElement) e.currentTarget.style.opacity = '0.4';
     };
     const handleDragEnd = (e: React.DragEvent) => {
         if (e.currentTarget instanceof HTMLElement) e.currentTarget.style.opacity = '1';
-        setDraggedNote(null); setDragOverStatus(null);
+        setDraggedNote(null); setDragOverStatus(null); setDragOverNoteId(null);
     };
     const handleDragOver = (e: React.DragEvent, status: string) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDragOverStatus(status); };
-    const handleDragLeave = () => setDragOverStatus(null);
+    const handleCardDragOver = (e: React.DragEvent, noteId: string, status: string) => {
+        e.preventDefault(); e.stopPropagation();
+        setDragOverStatus(status); setDragOverNoteId(noteId);
+    };
+    const handleDragLeave = () => { setDragOverStatus(null); setDragOverNoteId(null); };
     const handleDrop = async (e: React.DragEvent, newStatus: string) => {
         e.preventDefault(); setDragOverStatus(null);
-        if (!draggedNote || draggedNote.status === newStatus) return;
-        setNotes(prev => prev.map(n => n.note_id === draggedNote.note_id ? { ...n, status: newStatus as ExtendedNote['status'] } : n));
-        try { await apiClient.fetch(`/api/notes/${draggedNote.note_id}`, { method: 'PATCH', body: JSON.stringify({ status: newStatus }) }); } catch { fetchNotes(); }
+        const targetNoteId = dragOverNoteId;
+        setDragOverNoteId(null);
+        if (!draggedNote) return;
+
+        if (draggedNote.status === newStatus) {
+            // Same column reorder
+            if (targetNoteId && targetNoteId !== draggedNote.note_id) {
+                setNotes(prev => {
+                    const arr = [...prev];
+                    const fromIdx = arr.findIndex(n => n.note_id === draggedNote.note_id);
+                    const toIdx = arr.findIndex(n => n.note_id === targetNoteId);
+                    if (fromIdx < 0 || toIdx < 0) return prev;
+                    const [moved] = arr.splice(fromIdx, 1);
+                    arr.splice(toIdx, 0, moved);
+                    return arr;
+                });
+            }
+        } else {
+            // Cross-column: change status
+            setNotes(prev => prev.map(n => n.note_id === draggedNote.note_id ? { ...n, status: newStatus as ExtendedNote['status'] } : n));
+            try { await apiClient.fetch(`/api/notes/${draggedNote.note_id}`, { method: 'PATCH', body: JSON.stringify({ status: newStatus }) }); } catch { fetchNotes(); }
+        }
         setDraggedNote(null);
     };
 
@@ -286,6 +357,86 @@ const NoteDashboard: React.FC = () => {
                         <Trash2 className="w-4 h-4" />
                         Trash
                     </Button>
+                    {/* Settings button */}
+                    <div className="relative" ref={settingsRef}>
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowCategorySettings(!showCategorySettings)}
+                            className={cn(
+                                "h-10 w-10 p-0 rounded-xl border-border/50 bg-card/50 text-muted-foreground hover:text-primary",
+                                showCategorySettings && "border-primary/30 text-primary bg-primary/5"
+                            )}
+                        >
+                            <Settings className="w-4 h-4" />
+                        </Button>
+
+                        {/* Category Settings Dropdown */}
+                        {showCategorySettings && (
+                            <div className="absolute right-0 top-full mt-2 w-80 bg-card border border-border/50 rounded-2xl shadow-2xl z-50 p-4 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="flex items-center justify-between mb-3">
+                                    <p className="text-sm font-black text-foreground">Category Settings</p>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setVisibleCategories(categoryOrder)}
+                                            className="text-[10px] font-bold text-primary hover:underline"
+                                        >
+                                            Show All
+                                        </button>
+                                        <span className="text-border">|</span>
+                                        <button
+                                            onClick={() => setVisibleCategories([])}
+                                            className="text-[10px] font-bold text-rose-500 hover:underline"
+                                        >
+                                            Hide All
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="space-y-1 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                    {categoryOrder.map((id) => {
+                                        const cat = categories.find(c => c.note_category_id === id);
+                                        if (!cat) return null;
+                                        const isVisible = visibleCategories.includes(id);
+                                        return (
+                                            <label
+                                                key={id}
+                                                className={cn(
+                                                    "flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all",
+                                                    isVisible ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-muted/30 opacity-50"
+                                                )}
+                                            >
+                                                <div
+                                                    className={cn(
+                                                        "w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0 transition-all",
+                                                        isVisible ? "shadow-sm" : "grayscale"
+                                                    )}
+                                                    style={{ backgroundColor: isVisible ? `${cat.color_code}20` : '#e2e8f0' }}
+                                                >
+                                                    {cat.icon || '📝'}
+                                                </div>
+                                                <span className={cn("flex-1 text-sm font-bold", isVisible ? "text-foreground" : "text-muted-foreground line-through")}>
+                                                    {cat.name}
+                                                </span>
+                                                {/* Toggle switch */}
+                                                <div
+                                                    onClick={(e) => { e.preventDefault(); toggleCategoryVisibility(id); }}
+                                                    className={cn(
+                                                        "w-10 h-6 rounded-full relative transition-all cursor-pointer shrink-0",
+                                                        isVisible ? "bg-primary" : "bg-muted-foreground/30"
+                                                    )}
+                                                >
+                                                    <div className={cn(
+                                                        "absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow-md transition-all",
+                                                        isVisible ? "left-[19px]" : "left-[3px]"
+                                                    )} />
+                                                </div>
+                                            </label>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-[10px] text-muted-foreground mt-3 text-center">Settings are saved automatically</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -300,54 +451,7 @@ const NoteDashboard: React.FC = () => {
                         <button onClick={() => { setDateFrom(''); setDateTo(''); }} className="p-1 text-muted-foreground hover:text-rose-500"><X className="w-3.5 h-3.5" /></button>
                     )}
                 </div>
-                <Button variant="outline" onClick={() => setShowCategoryFilter(!showCategoryFilter)}
-                    className={cn("h-10 px-4 rounded-xl border-border/50 bg-card/50 flex items-center gap-2 text-sm font-bold", showCategoryFilter && "border-primary/30 text-primary")}>
-                    <Filter className="w-4 h-4" />
-                    Category Filter
-                </Button>
             </div>
-
-            {/* Category Filter Panel */}
-            {showCategoryFilter && (
-                <div className="bg-card/50 border border-border/50 rounded-2xl p-4 space-y-2">
-                    <div className="flex items-center justify-between mb-3">
-                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Show / Hide & Reorder</p>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setVisibleCategories(categoryOrder)}
-                                className="text-[10px] font-bold text-primary hover:underline"
-                            >
-                                Select All
-                            </button>
-                            <span className="text-border">|</span>
-                            <button
-                                onClick={() => setVisibleCategories([])}
-                                className="text-[10px] font-bold text-rose-500 hover:underline"
-                            >
-                                Clear All
-                            </button>
-                        </div>
-                    </div>
-                    {categoryOrder.map((id, idx) => {
-                        const cat = categories.find(c => c.note_category_id === id);
-                        if (!cat) return null;
-                        const isVisible = visibleCategories.includes(id);
-                        return (
-                            <div key={id} className="flex items-center gap-3 py-1.5">
-                                <label className="flex items-center gap-2 flex-1 cursor-pointer">
-                                    <input type="checkbox" checked={isVisible} onChange={() => toggleCategoryVisibility(id)} className="w-4 h-4 rounded accent-primary" />
-                                    <span className="text-sm">{cat.icon || '📝'}</span>
-                                    <span className={cn("text-sm font-medium", isVisible ? "text-foreground" : "text-muted-foreground line-through")}>{cat.name}</span>
-                                </label>
-                                <div className="flex items-center gap-1">
-                                    <button onClick={() => moveCategoryUp(id)} disabled={idx === 0} className="p-1 text-muted-foreground hover:text-primary disabled:opacity-20"><ChevronUp className="w-4 h-4" /></button>
-                                    <button onClick={() => moveCategoryDown(id)} disabled={idx === categoryOrder.length - 1} className="p-1 text-muted-foreground hover:text-primary disabled:opacity-20"><ChevronDown className="w-4 h-4" /></button>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
 
             {/* Category Tabs — Draggable */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
@@ -384,9 +488,41 @@ const NoteDashboard: React.FC = () => {
 
             {/* Kanban Board */}
             {loading ? (
-                <div className="flex flex-col items-center justify-center py-32 space-y-4">
-                    <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                    <p className="text-muted-foreground font-medium">Loading notes...</p>
+                <div className="overflow-x-auto pb-4 -mx-2 px-2">
+                    <div className="flex gap-5 md:grid md:grid-cols-2 xl:grid-cols-4">
+                        {[0, 1, 2, 3].map(col => (
+                            <div key={col} className="min-w-[280px] flex-1 bg-card/30 border border-border/30 rounded-2xl p-4 space-y-4">
+                                {/* Column header skeleton */}
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-3 h-3 rounded-full bg-muted/60 animate-pulse" />
+                                        <div className="h-4 w-20 rounded-lg bg-muted/40 animate-pulse" />
+                                    </div>
+                                    <div className="h-6 w-8 rounded-full bg-muted/30 animate-pulse" />
+                                </div>
+                                {/* Card skeletons */}
+                                {[0, 1, 2].map(card => (
+                                    <div key={card} className="bg-card/50 border border-border/20 rounded-xl p-4 space-y-3" style={{ animationDelay: `${col * 100 + card * 150}ms` }}>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-lg bg-muted/40 animate-pulse" />
+                                            <div className="flex-1 space-y-1.5">
+                                                <div className="h-3.5 w-3/4 rounded-md bg-muted/40 animate-pulse" />
+                                                <div className="h-2.5 w-1/2 rounded-md bg-muted/30 animate-pulse" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <div className="h-2.5 w-full rounded-md bg-muted/25 animate-pulse" />
+                                            <div className="h-2.5 w-2/3 rounded-md bg-muted/20 animate-pulse" />
+                                        </div>
+                                        <div className="flex items-center justify-between pt-1">
+                                            <div className="h-5 w-16 rounded-full bg-muted/30 animate-pulse" />
+                                            <div className="h-3 w-20 rounded-md bg-muted/20 animate-pulse" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             ) : (
                 <div className="overflow-x-auto pb-4 -mx-2 px-2">
@@ -419,48 +555,56 @@ const NoteDashboard: React.FC = () => {
                                         {columnNotes.map(note => {
                                             const deadline = note.reminders ? getDaysRemainingText(note.reminders.due_date) : null;
                                             return (
-                                                <div
-                                                    key={note.note_id}
-                                                    draggable
-                                                    onDragStart={(e) => handleDragStart(e, note)}
-                                                    onDragEnd={handleDragEnd}
-                                                    onClick={() => handleOpenEdit(note)}
-                                                    className="group bg-card border border-border/50 rounded-xl p-4 cursor-grab active:cursor-grabbing hover:border-primary/30 hover:shadow-md transition-all duration-200"
-                                                >
-                                                    <div className="flex items-start gap-2.5">
-                                                        <GripVertical className="w-4 h-4 text-muted-foreground/30 mt-0.5 shrink-0 group-hover:text-muted-foreground transition-colors" />
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-start justify-between gap-2">
-                                                                <div className="flex items-center gap-2 min-w-0">
-                                                                    <span className="text-sm shrink-0">{note.note_categories?.icon || '📝'}</span>
-                                                                    <h4 className="text-sm font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">{note.title}</h4>
+                                                <React.Fragment key={note.note_id}>
+                                                    {/* Drop indicator */}
+                                                    {dragOverNoteId === note.note_id && draggedNote?.note_id !== note.note_id && (
+                                                        <div className="h-1 rounded-full bg-primary/50 -mt-1 mb-1 mx-2 animate-pulse" />
+                                                    )}
+                                                    <div
+                                                        draggable
+                                                        onDragStart={(e) => handleDragStart(e, note)}
+                                                        onDragEnd={handleDragEnd}
+                                                        onDragOver={(e) => handleCardDragOver(e, note.note_id, status)}
+                                                        onClick={() => handleOpenEdit(note)}
+                                                        className={cn(
+                                                            "group bg-card border border-border/50 rounded-xl p-4 cursor-grab active:cursor-grabbing hover:border-primary/30 hover:shadow-md transition-all duration-200",
+                                                            draggedNote?.note_id === note.note_id && "opacity-40 scale-95"
+                                                        )}
+                                                    >
+                                                        <div className="flex items-start gap-2.5">
+                                                            <GripVertical className="w-4 h-4 text-muted-foreground/30 mt-0.5 shrink-0 group-hover:text-muted-foreground transition-colors" />
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-start justify-between gap-2">
+                                                                    <div className="flex items-center gap-2 min-w-0">
+                                                                        <span className="text-sm shrink-0">{note.note_categories?.icon || '📝'}</span>
+                                                                        <h4 className="text-sm font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">{note.title}</h4>
+                                                                    </div>
+                                                                    <button onClick={(e) => handleDelete(note.note_id, e)} className="p-1 rounded-lg text-muted-foreground/40 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0" title="Move to Trash">
+                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                    </button>
                                                                 </div>
-                                                                <button onClick={(e) => handleDelete(note.note_id, e)} className="p-1 rounded-lg text-muted-foreground/40 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0" title="Move to Trash">
-                                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                                </button>
+                                                                {note.content && (
+                                                                    <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
+                                                                        {note.content.replace(/<[^>]*>/g, '').trim().substring(0, 80)}
+                                                                    </p>
+                                                                )}
+                                                                {deadline && (
+                                                                    <div className="mt-2.5 flex items-center justify-between">
+                                                                        <span className="text-[10px] text-muted-foreground">
+                                                                            📅 {new Date(note.reminders!.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                                        </span>
+                                                                        <span className={cn(
+                                                                            "text-[10px] font-bold px-2 py-0.5 rounded-full",
+                                                                            deadline.isOverdue ? "bg-rose-500/10 text-rose-600" : "bg-primary/10 text-primary"
+                                                                        )}>
+                                                                            {deadline.text}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                            {note.content && (
-                                                                <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
-                                                                    {note.content.replace(/<[^>]*>/g, '').trim().substring(0, 80)}
-                                                                </p>
-                                                            )}
-                                                            {/* Bottom: Deadline + Days remaining */}
-                                                            {deadline && (
-                                                                <div className="mt-2.5 flex items-center justify-between">
-                                                                    <span className="text-[10px] text-muted-foreground">
-                                                                        📅 {new Date(note.reminders!.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                                                    </span>
-                                                                    <span className={cn(
-                                                                        "text-[10px] font-bold px-2 py-0.5 rounded-full",
-                                                                        deadline.isOverdue ? "bg-rose-500/10 text-rose-600" : "bg-primary/10 text-primary"
-                                                                    )}>
-                                                                        {deadline.text}
-                                                                    </span>
-                                                                </div>
-                                                            )}
                                                         </div>
                                                     </div>
-                                                </div>
+                                                </React.Fragment>
                                             );
                                         })}
                                         {columnNotes.length === 0 && (

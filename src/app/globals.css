@@ -2,7 +2,7 @@
 
 :root {
   /* Default Light Theme (White-Purple) */
-  --background: #FDFBFF;
+  --background: #FFFFFF;
   --background-subtle: #F5F3FF;
   --foreground: #1E1B4B;
 
@@ -172,6 +172,34 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.2);
+}
+
+/* Custom scrollbar: hidden by default, shown on hover */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.custom-scrollbar:hover {
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 10px;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Slide in from right animation */
+.slide-in-from-right {
+  animation: slide-in-from-right 0.3s ease-out both;
 }
 
 /* Focus styles */

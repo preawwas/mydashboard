@@ -16,7 +16,10 @@ export const GET = withAuth(async (request: NextRequest, user: AuthUser) => {
             .eq('user_id', user.id);
 
         // Apply filters
-        if (filter === 'favorites') {
+        if (filter === 'all') {
+            // All non-deleted, non-archived notes (INCLUDING Done)
+            query = query.eq('is_deleted', false).eq('is_archived', false);
+        } else if (filter === 'favorites') {
             query = query.eq('is_favorite', true).eq('is_deleted', false).eq('is_archived', false);
         } else if (filter === 'archived') {
             query = query.eq('is_archived', true).eq('is_deleted', false);
