@@ -18,6 +18,7 @@ import {
     Wallet,
     StickyNote,
     CalendarDays,
+    Zap,
 } from 'lucide-react';
 
 interface NavItem {
@@ -49,9 +50,14 @@ const navItems: NavItem[] = [
         icon: <StickyNote className="w-5 h-5" />,
         subItems: [
             {
-                label: 'Notes Dashboard',
+                label: 'Journey',
                 href: '/notes',
                 icon: <StickyNote className="w-4 h-4" />,
+            },
+            {
+                label: 'Notes',
+                href: '/notes/short-note',
+                icon: <Zap className="w-4 h-4" />,
             },
             {
                 label: 'Calendar',

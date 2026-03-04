@@ -8,21 +8,18 @@ export const PATCH = withAuth(async (request: NextRequest, user: AuthUser, conte
         const { id } = await (context as { params: Promise<{ id: string }> }).params;
         const supabase = createSupabaseAdminClient();
         const body = await request.json();
-        const { title, content, note_category_id, status, is_favorite, is_archived, is_deleted, due_date } = body;
+        const { title, content, tags, is_favorite } = body;
 
-        // 1. Update Note
+        // 1. Update Short Note
         const updateData: Record<string, unknown> = {};
 
-        const isContentUpdate = title !== undefined || content !== undefined || note_category_id !== undefined || status !== undefined || is_archived !== undefined || is_deleted !== undefined || due_date !== undefined;
+        // Define if any major content field is being updated
+        const isContentUpdate = title !== undefined || content !== undefined;
 
         if (isContentUpdate) updateData.updated_at = new Date().toISOString();
         if (title !== undefined) updateData.title = title;
         if (content !== undefined) updateData.content = content;
-        if (note_category_id !== undefined) updateData.note_category_id = note_category_id;
-        if (status !== undefined) updateData.status = status;
         if (is_favorite !== undefined) updateData.is_favorite = is_favorite;
-        if (is_archived !== undefined) updateData.is_archived = is_archived;
-        if (is_deleted !== undefined) updateData.is_deleted = is_deleted;
 
         const { data: note, error: noteError } = await supabase
             .from('notes')
@@ -33,26 +30,24 @@ export const PATCH = withAuth(async (request: NextRequest, user: AuthUser, conte
             .single();
 
         if (noteError) {
-            console.error('Update note error:', noteError);
+            console.error('Update short note error:', noteError);
             return NextResponse.json({ success: false, error: noteError.message }, { status: 500 });
         }
 
-        // 2. Update/Upsert Reminder if due_date provided
-        if (due_date !== undefined) {
-            if (due_date === null) {
-                await supabase.from('reminders').delete().eq('note_id', id);
-            } else {
-                const { error: reminderError } = await supabase
-                    .from('reminders')
-                    .upsert({
-                        note_id: id,
-                        due_date,
-                        reminder_type: 'Daily',
-                        updated_at: new Date().toISOString()
-                    }, { onConflict: 'note_id' });
+        // 2. Update tags if provided
+        if (tags !== undefined) {
+            // First delete existing tags
+            await supabase.from('note_tags').delete().eq('note_id', id);
 
-                if (reminderError) {
-                    console.error('Update reminder error:', reminderError);
+            // Then insert new tags
+            if (Array.isArray(tags) && tags.length > 0) {
+                const tagInserts = tags.map(tagId => ({
+                    note_id: id,
+                    tag_id: tagId
+                }));
+                const { error: tagError } = await supabase.from('note_tags').insert(tagInserts);
+                if (tagError) {
+                    console.error('Update note tags error:', tagError);
                 }
             }
         }
@@ -60,7 +55,7 @@ export const PATCH = withAuth(async (request: NextRequest, user: AuthUser, conte
         // Return note with relations
         const { data: completeNote, error: fetchError } = await supabase
             .from('notes')
-            .select('*, note_categories(*), reminders(*), note_tags(tags(*))')
+            .select('*, note_tags(tags(*))')
             .eq('note_id', id)
             .single();
 
@@ -80,14 +75,29 @@ export const DELETE = withAuth(async (request: NextRequest, user: AuthUser, cont
         const { id } = await (context as { params: Promise<{ id: string }> }).params;
         const supabase = createSupabaseAdminClient();
 
-        const { error } = await supabase
-            .from('notes')
-            .delete()
-            .eq('note_id', id)
-            .eq('user_id', user.id);
+        const { searchParams } = new URL(request.url);
+        const permanent = searchParams.get('permanent') === 'true';
+
+        let error;
+
+        if (permanent) {
+            const { error: deleteError } = await supabase
+                .from('notes')
+                .delete()
+                .eq('note_id', id)
+                .eq('user_id', user.id);
+            error = deleteError;
+        } else {
+            const { error: updateError } = await supabase
+                .from('notes')
+                .update({ is_deleted: true })
+                .eq('note_id', id)
+                .eq('user_id', user.id);
+            error = updateError;
+        }
 
         if (error) {
-            console.error('Delete note error:', error);
+            console.error('Delete short note error:', error);
             return NextResponse.json({ success: false, error: error.message }, { status: 500 });
         }
 

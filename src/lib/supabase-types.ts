@@ -118,3 +118,39 @@ export interface DbReminder {
     created_at: string;
     updated_at: string;
 }
+export interface DbTag {
+    id: string;
+    user_id: string;
+    name: string;
+    created_at: string;
+}
+
+export interface DbNoteTag {
+    note_id: string;
+    tag_id: string;
+}
+
+export interface DbNoteWithTags extends DbNote {
+    note_categories?: DbNoteCategory;
+    reminders?: DbReminder;
+    tags?: DbTag[];
+}
+
+export interface DbShortNote {
+    note_id: string;
+    user_id: string;
+    title: string;
+    content: string | null;
+    is_favorite: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface DbShortNoteTag {
+    note_id: string;
+    tag_id: string;
+}
+
+export interface DbShortNoteWithTags extends DbShortNote {
+    tags?: DbTag[];
+}
