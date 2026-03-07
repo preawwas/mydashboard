@@ -27,14 +27,21 @@ export default function ExpensesPage() {
         deleteExpense, refreshAll,
     } = useExpenses();
 
-    // Sync loading state with global LoadingOverlay
+    // Start global loading overlay on mount, stop when data is loaded
     useEffect(() => {
-        if (loading && expenses.length === 0) {
+        // Small delay to ensure this runs after RouteChangeListener's stopLoading
+        const timer = setTimeout(() => {
             startLoading();
-        } else {
+        }, 50);
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (!loading || expenses.length > 0) {
             stopLoading();
         }
-    }, [loading, expenses.length, startLoading, stopLoading]);
+    }, [loading, expenses.length, stopLoading]);
 
     // UI-only state
     const [isModalOpen, setIsModalOpen] = useState(false);

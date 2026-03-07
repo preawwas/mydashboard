@@ -45,14 +45,21 @@ export default function InvestmentsPage() {
         closeFormModal,
     } = useInvestments();
 
-    // Sync investment loading state with the global LoadingOverlay
+    // Start global loading overlay on mount, stop when data is loaded
     useEffect(() => {
-        if (isLoading && investments.length === 0) {
+        // Small delay to ensure this runs after RouteChangeListener's stopLoading
+        const timer = setTimeout(() => {
             startLoading();
-        } else {
+        }, 50);
+        return () => clearTimeout(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        if (!isLoading || investments.length > 0) {
             stopLoading();
         }
-    }, [isLoading, investments.length, startLoading, stopLoading]);
+    }, [isLoading, investments.length, stopLoading]);
 
     return (
         <DashboardLayout>

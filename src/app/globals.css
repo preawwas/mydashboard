@@ -53,6 +53,7 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-success: var(--success);
   --color-error: var(--error);
+  --color-destructive: var(--error);
   --color-warning: var(--warning);
 
   --font-sans: var(--font-albert-sans), var(--font-prompt), sans-serif;
