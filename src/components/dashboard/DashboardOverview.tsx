@@ -13,6 +13,7 @@ import {
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils';
 import { useDashboardData } from '@/hooks';
+import { useLoading } from '@/components/providers/LoadingProvider';
 
 // Color palette for charts
 const COLORS = {
@@ -38,6 +39,15 @@ const CATEGORY_COLORS = [
 
 export default function DashboardOverview() {
     const { loading, investmentStats, expenseData } = useDashboardData();
+    const { startLoading, stopLoading } = useLoading();
+
+    React.useEffect(() => {
+        if (loading) {
+            startLoading();
+        } else {
+            stopLoading();
+        }
+    }, [loading, startLoading, stopLoading]);
 
     if (loading) {
         return <DashboardSkeleton />;

@@ -6,11 +6,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, Input, Loading } from '@/components/ui';
 import { useAuthStore } from '@/lib/store';
 import { TrendingUp, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useLoading } from '@/components/providers/LoadingProvider';
 
 function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+    // Add global loading state trigger
+    const { startLoading, stopLoading } = useLoading();
 
     const [rememberMe, setRememberMe] = useState(false);
 
@@ -68,6 +72,7 @@ function LoginForm() {
         if (!validateForm()) return;
 
         setIsLoading(true);
+        startLoading(); // Start global loading overlay
         setErrors({});
 
         try {
@@ -81,6 +86,8 @@ function LoginForm() {
 
             if (!response.ok) {
                 setErrors({ submit: data.error || 'เข้าสู่ระบบไม่สำเร็จ' });
+                // Only stop global loading on error, let it run until navigation completes on success.
+                stopLoading();
                 return;
             }
 
@@ -93,11 +100,13 @@ function LoginForm() {
 
             setUser(data.user);
             setToken(data.token);
+            // The loading overlay will automatically stop once the next page renders due to the `useEffect` in the layout.
             router.push('/dashboard');
         } catch {
             setErrors({ submit: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+            stopLoading();
         } finally {
-            setIsLoading(false);
+            setIsLoading(false); // Keeps the button loading state for a split second before unmounting
         }
     };
 

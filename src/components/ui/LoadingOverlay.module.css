@@ -1,0 +1,137 @@
+/* LoadingOverlay.module.css */
+
+.fluffy-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Base text: light purple-white */
+.text {
+    font-family: 'Comic Sans MS', 'Fredoka One', 'Nunito', 'Arial Rounded MT Bold', sans-serif;
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: #f0e8ff;
+    -webkit-text-stroke: 0.5px rgba(139, 92, 246, 0.3);
+    paint-order: stroke fill;
+    text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.4),
+        0 -1px 1px rgba(0, 0, 0, 0.1),
+        0 2px 3px rgba(0, 0, 0, 0.25),
+        0 4px 8px rgba(139, 92, 246, 0.35),
+        0 0 20px rgba(139, 92, 246, 0.15);
+    white-space: nowrap;
+}
+
+/* Heart SVG wrapper */
+.heart-wrap {
+    display: inline-flex;
+    align-items: center;
+    width: 28px;
+    height: 28px;
+    animation: heartbeat 1.4s ease-in-out infinite;
+    filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.4));
+}
+
+.heart-svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Animated stroke running along heart border */
+.heart-stroke {
+    stroke-dasharray: 18 42;
+    stroke-dashoffset: 0;
+    animation: dash-run 2s linear infinite;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9));
+}
+
+/* Loading text: shimmer with main website purple */
+.text-loading {
+    background: linear-gradient(90deg,
+            #f0e8ff 0%,
+            #f0e8ff 38%,
+            #8B5CF6 48%,
+            #7C3AED 55%,
+            #5B21B6 62%,
+            #7C3AED 69%,
+            #8B5CF6 76%,
+            #f0e8ff 86%,
+            #f0e8ff 100%);
+    background-size: 200% 100%;
+
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    animation: shimmer 2.5s linear infinite;
+    will-change: background-position;
+    transform: translateZ(0);
+
+    -webkit-text-stroke: 0;
+    paint-order: stroke fill;
+    text-shadow: none;
+    filter: drop-shadow(0 0 12px rgba(91, 33, 182, 0.7));
+}
+
+/* Dash running along border from left to right */
+@keyframes dash-run {
+    0% {
+        stroke-dashoffset: 60;
+    }
+
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+/* Text shimmer */
+@keyframes shimmer {
+    0% {
+        background-position: 0% center;
+    }
+
+    100% {
+        background-position: -100% center;
+    }
+}
+
+/* Heartbeat */
+@keyframes heartbeat {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    14% {
+        transform: scale(1.15);
+    }
+
+    28% {
+        transform: scale(1);
+    }
+
+    42% {
+        transform: scale(1.1);
+    }
+
+    56% {
+        transform: scale(1);
+    }
+}

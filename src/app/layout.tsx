@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Albert_Sans, Prompt } from "next/font/google";
 import "./globals.css";
 import ValentineTheme from "@/components/ValentineTheme";
+import { LoadingProvider } from "@/components/providers/LoadingProvider";
 
 const albertSans = Albert_Sans({
   subsets: ["latin"],
@@ -38,7 +39,9 @@ export default function RootLayout({
         className={`${albertSans.variable} ${prompt.variable} font-sans antialiased`}
       >
         <ValentineTheme />
-        {children}
+        <LoadingProvider>
+          {children}
+        </LoadingProvider>
       </body>
     </html>
   );
