@@ -65,6 +65,10 @@ export default function SettingsPage() {
         e.preventDefault();
         setSettingsMessage(null);
 
+        if (!currentPassword) {
+            setSettingsMessage({ type: 'error', text: 'กรุณากรอกรหัสผ่านปัจจุบัน' });
+            return;
+        }
         if (newPassword !== confirmPassword) {
             setSettingsMessage({ type: 'error', text: 'รหัสผ่านใหม่ไม่ตรงกัน' });
             return;
@@ -76,13 +80,33 @@ export default function SettingsPage() {
 
         setIsSettingsLoading(true);
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            setSettingsMessage({ type: 'success', text: 'เปลี่ยนรหัสผ่านสำเร็จ' });
-            setCurrentPassword('');
-            setNewPassword('');
-            setConfirmPassword('');
+            const token = useAuthStore.getState().token;
+            if (!token) {
+                setSettingsMessage({ type: 'error', text: 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่' });
+                return;
+            }
+
+            const res = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                setSettingsMessage({ type: 'success', text: 'เปลี่ยนรหัสผ่านสำเร็จ' });
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+            } else {
+                setSettingsMessage({ type: 'error', text: data.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
+            }
         } catch {
-            setSettingsMessage({ type: 'error', text: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
+            setSettingsMessage({ type: 'error', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่' });
         } finally {
             setIsSettingsLoading(false);
         }
