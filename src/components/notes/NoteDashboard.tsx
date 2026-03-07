@@ -139,7 +139,12 @@ const NoteDashboard: React.FC = () => {
         try {
             const res = await apiClient.fetch('/api/notes?filter=all');
             const json = await res.json();
-            if (json.success) setNotes(json.data || []);
+            if (json.success) {
+                // Filter out notes that have tags (they belong in Short Notes)
+                const allNotes = json.data || [];
+                const journeyNotes = allNotes.filter((n: any) => !n.note_tags || n.note_tags.length === 0);
+                setNotes(journeyNotes);
+            }
         } catch (error) {
             console.error('Error fetching notes:', error);
         } finally {
@@ -329,7 +334,7 @@ const NoteDashboard: React.FC = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-foreground tracking-tight">Notes Dashboard</h1>
+                    <h1 className="text-3xl font-black text-foreground tracking-tight">Journey</h1>
                     {/* Status Summary — name before count, colored pill background */}
                     <div className="flex items-center gap-2 mt-3 flex-wrap">
                         {statusSummary.map(({ status, count }) => {

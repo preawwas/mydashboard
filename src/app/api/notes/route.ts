@@ -12,7 +12,7 @@ export const GET = withAuth(async (request: NextRequest, user: AuthUser) => {
 
         let query = supabase
             .from('notes')
-            .select('*, note_categories(*), reminders(*)')
+            .select('*, note_categories(*), reminders(*), note_tags(tags(*))')
             .eq('user_id', user.id);
 
         // Apply filters
@@ -57,7 +57,7 @@ export const POST = withAuth(async (request: NextRequest, user: AuthUser) => {
     try {
         const supabase = createSupabaseAdminClient();
         const body = await request.json();
-        const { title, content, note_category_id, status, is_favorite, due_date } = body;
+        const { title, content, note_category_id, status, is_favorite, due_date, tagIds } = body;
 
         if (!title) {
             return NextResponse.json({ success: false, error: 'Title is required' }, { status: 400 });
@@ -97,10 +97,19 @@ export const POST = withAuth(async (request: NextRequest, user: AuthUser) => {
             }
         }
 
+        // 3. Insert tags if tagIds provided
+        if (tagIds && Array.isArray(tagIds) && tagIds.length > 0) {
+            const tagInserts = tagIds.map(tagId => ({
+                note_id: note.note_id,
+                tag_id: tagId
+            }));
+            await supabase.from('note_tags').insert(tagInserts);
+        }
+
         // Return note with relations
         const { data: completeNote, error: fetchError } = await supabase
             .from('notes')
-            .select('*, note_categories(*), reminders(*)')
+            .select('*, note_categories(*), reminders(*), note_tags(tags(*))')
             .eq('note_id', note.note_id)
             .single();
 
