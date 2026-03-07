@@ -40,6 +40,7 @@ const CalendarView: React.FC = () => {
     const [showDeadlines, setShowDeadlines] = useState(false);
     const [showMonthPicker, setShowMonthPicker] = useState(false);
     const [statusFilter, setStatusFilter] = useState('All');
+    const [showOverdue, setShowOverdue] = useState(false);
     const monthPickerRef = useRef<HTMLDivElement>(null);
 
     const fetchNotes = async () => {
@@ -164,8 +165,18 @@ const CalendarView: React.FC = () => {
     };
 
     // Note chip with radio
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'New': return '#eab308'; // yellow-500
+            case 'In Progress': return '#f97316'; // orange-500
+            case 'Urgent': return '#f43f5e'; // rose-500
+            case 'Done': return '#0ea5e9'; // sky-500
+            default: return '#eab308';
+        }
+    };
+
     const renderNoteChip = (note: ExtendedNote) => {
-        const color = note.note_categories?.color_code || '#718096';
+        const color = getStatusColor(note.status);
         const isDone = note.status === 'Done';
         return (
             <div
@@ -176,10 +187,10 @@ const CalendarView: React.FC = () => {
                 onClick={(e) => { e.stopPropagation(); handleEditNote(note); }}
                 className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-extrabold truncate cursor-grab active:cursor-grabbing transition-all hover:scale-[1.03] hover:shadow-xl shadow-md"
                 style={{
-                    backgroundColor: isDone ? 'rgba(113,128,150,0.1)' : `${color}35`,
-                    borderLeft: `4px solid ${isDone ? '#a0aec0' : color}`,
+                    backgroundColor: `${color}25`,
+                    borderLeft: `4px solid ${color}`,
                     boxShadow: `0 2px 6px ${color}20`,
-                    color: isDone ? '#a0aec0' : color,
+                    color: color,
                 }}
             >
                 {/* Radio checkbox */}
@@ -193,7 +204,7 @@ const CalendarView: React.FC = () => {
                     {isDone && <Check className="w-2.5 h-2.5 text-white" />}
                 </button>
                 <span className="text-sm shrink-0">{note.note_categories?.icon || '•'}</span>
-                <span className={cn("truncate", isDone && "line-through opacity-60")}>{note.title}</span>
+                <span className={cn("truncate", isDone && "opacity-60")}>{note.title}</span>
             </div>
         );
     };
@@ -231,7 +242,7 @@ const CalendarView: React.FC = () => {
                         </span>
                     )}
                 </div>
-                <div className="space-y-1.5 overflow-y-auto max-h-[90px] scrollbar-hide hover:scrollbar-show custom-scrollbar">
+                <div className="space-y-1.5 mt-1 pb-1">
                     {dayNotes.map(renderNoteChip)}
                 </div>
             </div>
@@ -309,7 +320,7 @@ const CalendarView: React.FC = () => {
                         <div className="text-xs font-bold text-muted-foreground uppercase">{d.toLocaleDateString('default', { weekday: 'short' })}</div>
                         <div className={cn("text-2xl font-black mx-auto w-10 h-10 flex items-center justify-center rounded-full mt-1", isToday ? "bg-primary text-primary-foreground" : "text-foreground")}>{d.getDate()}</div>
                     </div>
-                    <div className="space-y-2 overflow-y-auto max-h-[240px] scrollbar-hide hover:scrollbar-show custom-scrollbar">
+                    <div className="space-y-2 pb-2">
                         {dayNotes.map(renderNoteChip)}
                         {dayNotes.length === 0 && <p className="text-xs text-muted-foreground/40 text-center pt-4">No tasks</p>}
                     </div>
@@ -352,7 +363,7 @@ const CalendarView: React.FC = () => {
                                 {note.note_categories?.icon || '📝'}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h4 className={cn("text-sm font-bold text-foreground line-clamp-1", note.status === 'Done' && "line-through opacity-50")}>{note.title}</h4>
+                                <h4 className={cn("text-sm font-bold text-foreground line-clamp-1", note.status === 'Done' && "opacity-50")}>{note.title}</h4>
                                 <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{note.content?.replace(/<[^>]*>/g, '').trim().substring(0, 60) || 'No content'}</p>
                             </div>
                             <Badge className={cn("text-[10px] font-bold uppercase shrink-0",
@@ -370,19 +381,36 @@ const CalendarView: React.FC = () => {
         );
     };
 
-    // Upcoming deadlines — from today onward
+    // Upcoming vs Overdue deadlines
     const upcomingDeadlines = useMemo(() => {
         const todayDate = new Date(); todayDate.setHours(0, 0, 0, 0);
         return notes
             .filter(n => {
                 if (!n.reminders) return false;
                 const due = new Date(n.reminders.due_date); due.setHours(0, 0, 0, 0);
-                if (due < todayDate) return false;
+                
+                if (showOverdue) {
+                    // Overdue: past dates, not Done
+                    if (due >= todayDate) return false;
+                    if (n.status === 'Done') return false;
+                } else {
+                    // Upcoming: today or future
+                    if (due < todayDate) return false;
+                }
+                
                 if (statusFilter !== 'All' && n.status !== statusFilter) return false;
                 return true;
             })
-            .sort((a, b) => new Date(a.reminders!.due_date).getTime() - new Date(b.reminders!.due_date).getTime());
-    }, [notes, statusFilter]);
+            .sort((a, b) => {
+                if (showOverdue) {
+                    // Sort overdue: oldest first (most overdue)
+                    return new Date(a.reminders!.due_date).getTime() - new Date(b.reminders!.due_date).getTime();
+                } else {
+                    // Sort upcoming: soonest first
+                    return new Date(a.reminders!.due_date).getTime() - new Date(b.reminders!.due_date).getTime();
+                }
+            });
+    }, [notes, statusFilter, showOverdue]);
 
     const visibleDeadlines = upcomingDeadlines.slice(0, deadlineCount);
     const hasMoreDeadlines = deadlineCount < upcomingDeadlines.length;
@@ -409,7 +437,7 @@ const CalendarView: React.FC = () => {
                         <div className="relative" ref={monthPickerRef}>
                             <button
                                 onClick={() => setShowMonthPicker(!showMonthPicker)}
-                                className="px-3 py-1.5 rounded-xl text-lg sm:text-2xl font-black text-foreground hover:bg-muted/30 transition-colors"
+                                className="px-3 py-1.5 rounded-xl text-lg sm:text-2xl font-black text-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200"
                             >
                                 {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
                             </button>
@@ -543,8 +571,28 @@ const CalendarView: React.FC = () => {
                     <Card className="border-border/50 bg-card/80 backdrop-blur-md overflow-hidden shadow-xl sticky top-20">
                         <CardHeader className="border-b border-border/50 bg-muted/30 py-3">
                             <div className="flex items-center justify-between">
-                                <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground">Upcoming Deadlines</CardTitle>
-                                <span className="text-xs font-black text-primary bg-primary/15 px-2.5 py-1 rounded-full border border-primary/30">{upcomingDeadlines.length}</span>
+                                <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground">
+                                    {showOverdue ? 'Overdue Deadlines' : 'Upcoming Deadlines'}
+                                </CardTitle>
+                                <span className={cn("text-xs font-black px-2.5 py-1 rounded-full border", 
+                                    showOverdue ? "text-rose-500 bg-rose-500/15 border-rose-500/30" : "text-primary bg-primary/15 border-primary/30"
+                                )}>
+                                    {upcomingDeadlines.length}
+                                </span>
+                            </div>
+                            <div className="flex bg-muted/40 p-1 rounded-xl mt-3 border border-border/40">
+                                <button
+                                    onClick={() => { setShowOverdue(false); setDeadlineCount(ITEMS_PER_PAGE); }}
+                                    className={cn("flex-1 text-[11px] font-black py-1.5 rounded-lg transition-all uppercase tracking-wider", !showOverdue ? "bg-white text-primary shadow-sm" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground")}
+                                >
+                                    Upcoming
+                                </button>
+                                <button
+                                    onClick={() => { setShowOverdue(true); setDeadlineCount(ITEMS_PER_PAGE); }}
+                                    className={cn("flex-1 text-[11px] font-black py-1.5 rounded-lg transition-all uppercase tracking-wider", showOverdue ? "bg-rose-500 text-white shadow-sm" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground")}
+                                >
+                                    Overdue
+                                </button>
                             </div>
                         </CardHeader>
                         <CardContent className="p-4">
@@ -563,7 +611,7 @@ const CalendarView: React.FC = () => {
                                                 {new Date(note.reminders!.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                             </span>
                                         </div>
-                                        <h4 className={cn("font-bold text-foreground text-sm group-hover:text-primary transition-colors line-clamp-1", note.status === 'Done' && "line-through opacity-50")}>{note.title}</h4>
+                                        <h4 className={cn("font-bold text-foreground text-sm group-hover:text-primary transition-colors line-clamp-1", note.status === 'Done' && "opacity-50")}>{note.title}</h4>
                                         <div className="flex items-center gap-1.5 mt-2 opacity-60">
                                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: note.note_categories?.color_code || '#718096' }} />
                                             <span className="text-[10px] font-bold text-muted-foreground">{note.note_categories?.name || 'Uncategorized'}</span>
@@ -572,7 +620,7 @@ const CalendarView: React.FC = () => {
                                 )) : (
                                     <div className="py-12 text-center space-y-3 opacity-50">
                                         <Clock className="w-8 h-8 mx-auto" />
-                                        <p className="text-xs font-bold uppercase">No Upcoming Deadlines</p>
+                                        <p className="text-xs font-bold uppercase">No {showOverdue ? 'Overdue' : 'Upcoming'} Deadlines</p>
                                     </div>
                                 )}
 

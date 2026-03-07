@@ -27,8 +27,12 @@ const statusStyles: Record<string, { bg: string; text: string; border: string; d
     'Done': { bg: 'bg-sky-500/5', text: 'text-sky-600', border: 'border-sky-500/20', dot: 'bg-sky-500', countBg: 'bg-sky-500/15', pillBg: 'bg-sky-500/10' },
 };
 
-function getDaysRemainingText(dueDate: string): { text: string; isOverdue: boolean } {
-    const now = new Date(); now.setHours(0, 0, 0, 0);
+function getDaysRemainingText(dueDate: string, status?: string, updatedAt?: string): { text: string; isOverdue: boolean } {
+    const now = new Date(); 
+    if (status === 'Done' && updatedAt) {
+        now.setTime(new Date(updatedAt).getTime());
+    }
+    now.setHours(0, 0, 0, 0);
     const due = new Date(dueDate); due.setHours(0, 0, 0, 0);
     const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     if (diffDays < 0) {
@@ -48,7 +52,7 @@ const NoteDashboard: React.FC = () => {
     const [categories, setCategories] = useState<DbNoteCategory[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedNote, setSelectedNote] = useState<ExtendedNote | null>(null);
     const [draggedNote, setDraggedNote] = useState<ExtendedNote | null>(null);
@@ -64,9 +68,21 @@ const NoteDashboard: React.FC = () => {
     const [draggedCatId, setDraggedCatId] = useState<string | null>(null);
     const [dragOverCatId, setDragOverCatId] = useState<string | null>(null);
 
-    // Date filter
-    const [dateFrom, setDateFrom] = useState('');
-    const [dateTo, setDateTo] = useState('');
+    // Date filter - Default to 3 months ago and 6 months ahead
+    const currentDate = new Date();
+    const pastDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, currentDate.getDate());
+    const futureDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 6, currentDate.getDate());
+    
+    // Format to YYYY-MM-DD
+    const formatDate = (d: Date) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    const [dateFrom, setDateFrom] = useState(formatDate(pastDate));
+    const [dateTo, setDateTo] = useState(formatDate(futureDate));
 
     // Trash popup
     const [showTrash, setShowTrash] = useState(false);
@@ -77,6 +93,7 @@ const NoteDashboard: React.FC = () => {
 
     // Track whether categories have been initialized
     const categoriesInitialized = useRef(false);
+    const hasUserChangedSettings = useRef(false);
     const STORAGE_KEY_VISIBLE = 'note-dashboard-visible-categories';
     const STORAGE_KEY_ORDER = 'note-dashboard-category-order';
 
@@ -92,49 +109,50 @@ const NoteDashboard: React.FC = () => {
                 if (!categoriesInitialized.current) {
                     categoriesInitialized.current = true;
                     // Try to load saved settings from localStorage
-                    const savedVisible = localStorage.getItem(STORAGE_KEY_VISIBLE);
-                    const savedOrder = localStorage.getItem(STORAGE_KEY_ORDER);
+                    const savedVisibleStr = localStorage.getItem(STORAGE_KEY_VISIBLE);
+                    const savedOrderStr = localStorage.getItem(STORAGE_KEY_ORDER);
 
-                    if (savedOrder) {
-                        const parsed = JSON.parse(savedOrder) as string[];
-                        const validOrder = parsed.filter(id => allIds.includes(id));
+                    let orderArr: string[] = [];
+                    if (savedOrderStr) {
+                        try { orderArr = JSON.parse(savedOrderStr); } catch { orderArr = []; }
+                        const validOrder = orderArr.filter(id => allIds.includes(id));
                         const newIds = allIds.filter(id => !validOrder.includes(id));
                         setCategoryOrder([...validOrder, ...newIds]);
                     } else {
                         setCategoryOrder(allIds);
                     }
 
-                    if (savedVisible) {
-                        const parsed = JSON.parse(savedVisible) as string[];
-                        const validVisible = parsed.filter(id => allIds.includes(id));
-                        // Add any new categories as visible
-                        const newIds = allIds.filter(id => !parsed.includes(id));
-                        setVisibleCategories([...validVisible, ...newIds]);
+                    if (savedVisibleStr !== null) {
+                        try {
+                            const parsedVisible = JSON.parse(savedVisibleStr) as string[];
+                            const validVisible = parsedVisible.filter(id => allIds.includes(id));
+                            // Only show what the user has explicitly set to be visible
+                            setVisibleCategories(validVisible);
+                        } catch {
+                            setVisibleCategories(allIds);
+                        }
                     } else {
                         setVisibleCategories(allIds);
                     }
                 } else {
-                    // Subsequent loads: only add NEW categories, preserve existing filter/order
+                    // Subsequent loads: preserve existing filter/order exactly as it is without auto-adding
                     setCategoryOrder(prev => {
                         const newIds = allIds.filter(id => !prev.includes(id));
                         const existing = prev.filter(id => allIds.includes(id));
-                        return [...existing, ...newIds];
+                        return [...existing, ...newIds]; // order safely appends at the end
                     });
-                    setVisibleCategories(prev => {
-                        const newIds = allIds.filter(id => !prev.includes(id));
-                        const existing = prev.filter(id => allIds.includes(id));
-                        return [...existing, ...newIds];
-                    });
-                }
-
-                if (!selectedCategoryId && cats.length > 0) {
-                    setSelectedCategoryId(cats[0].note_category_id);
+                    
+                    // Don't modify visibleCategories automatically so they stay hidden until explicitly enabled
+                    setVisibleCategories(prev => prev.filter(id => allIds.includes(id)));
                 }
             }
         } catch (error) {
             console.error('Error fetching categories:', error);
         }
-    }, [selectedCategoryId]);
+        
+        // Cleanup old localstorage key if it exists
+        localStorage.removeItem('note-dashboard-selected-categories');
+    }, []);
 
     const fetchNotes = useCallback(async () => {
         setLoading(true);
@@ -186,21 +204,27 @@ const NoteDashboard: React.FC = () => {
         return () => document.removeEventListener('mousedown', handler);
     }, [showCategorySettings]);
 
-    // Persist category settings to localStorage
     useEffect(() => {
-        if (categoriesInitialized.current) {
+        if (categoriesInitialized.current && hasUserChangedSettings.current) {
             localStorage.setItem(STORAGE_KEY_VISIBLE, JSON.stringify(visibleCategories));
         }
     }, [visibleCategories]);
+    
     useEffect(() => {
-        if (categoriesInitialized.current && categoryOrder.length > 0) {
+        if (categoriesInitialized.current && hasUserChangedSettings.current) {
             localStorage.setItem(STORAGE_KEY_ORDER, JSON.stringify(categoryOrder));
         }
     }, [categoryOrder]);
 
+    const toggleCategorySelection = (id: string) => {
+        setSelectedCategoryIds(prev => 
+            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+        );
+    };
+
     // Filtered notes
     const filteredNotes = notes.filter(n => {
-        const matchesCat = selectedCategoryId ? n.note_category_id === selectedCategoryId : true;
+        const matchesCat = selectedCategoryIds.length > 0 ? (n.note_category_id ? selectedCategoryIds.includes(n.note_category_id) : false) : true;
         const matchesSearch = searchQuery
             ? n.title.toLowerCase().includes(searchQuery.toLowerCase()) || n.content?.toLowerCase().includes(searchQuery.toLowerCase())
             : true;
@@ -233,17 +257,20 @@ const NoteDashboard: React.FC = () => {
 
     // Category filter helpers
     const toggleCategoryVisibility = (id: string) => {
+        hasUserChangedSettings.current = true;
         setVisibleCategories(prev =>
             prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
         );
     };
     const moveCategoryUp = (id: string) => {
+        hasUserChangedSettings.current = true;
         setCategoryOrder(prev => {
             const idx = prev.indexOf(id); if (idx <= 0) return prev;
             const arr = [...prev];[arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]; return arr;
         });
     };
     const moveCategoryDown = (id: string) => {
+        hasUserChangedSettings.current = true;
         setCategoryOrder(prev => {
             const idx = prev.indexOf(id); if (idx < 0 || idx >= prev.length - 1) return prev;
             const arr = [...prev];[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]; return arr;
@@ -266,6 +293,7 @@ const NoteDashboard: React.FC = () => {
     const handleCatDrop = (e: React.DragEvent, targetCatId: string) => {
         e.preventDefault(); setDragOverCatId(null);
         if (!draggedCatId || draggedCatId === targetCatId) return;
+        hasUserChangedSettings.current = true;
         setCategoryOrder(prev => {
             const arr = [...prev];
             const fromIdx = arr.indexOf(draggedCatId);
@@ -393,14 +421,14 @@ const NoteDashboard: React.FC = () => {
                                     <p className="text-sm font-black text-foreground">Category Settings</p>
                                     <div className="flex items-center gap-2">
                                         <button
-                                            onClick={() => setVisibleCategories(categoryOrder)}
+                                            onClick={() => { hasUserChangedSettings.current = true; setVisibleCategories(categoryOrder); }}
                                             className="text-[10px] font-bold text-primary hover:underline"
                                         >
                                             Show All
                                         </button>
                                         <span className="text-border">|</span>
                                         <button
-                                            onClick={() => setVisibleCategories([])}
+                                            onClick={() => { hasUserChangedSettings.current = true; setVisibleCategories([]); }}
                                             className="text-[10px] font-bold text-rose-500 hover:underline"
                                         >
                                             Hide All
@@ -473,7 +501,7 @@ const NoteDashboard: React.FC = () => {
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 {orderedCategories.map(cat => {
                     const count = getCategoryCount(cat.note_category_id);
-                    const isSelected = selectedCategoryId === cat.note_category_id;
+                    const isSelected = selectedCategoryIds.includes(cat.note_category_id);
                     const isDragOverCat = dragOverCatId === cat.note_category_id;
                     return (
                         <button
@@ -483,7 +511,7 @@ const NoteDashboard: React.FC = () => {
                             onDragEnd={handleCatDragEnd}
                             onDragOver={(e) => handleCatDragOver(e, cat.note_category_id)}
                             onDrop={(e) => handleCatDrop(e, cat.note_category_id)}
-                            onClick={() => setSelectedCategoryId(cat.note_category_id)}
+                            onClick={() => toggleCategorySelection(cat.note_category_id)}
                             className={cn(
                                 'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap border cursor-grab active:cursor-grabbing',
                                 isSelected
@@ -550,7 +578,7 @@ const NoteDashboard: React.FC = () => {
                             return (
                                 <div
                                     key={status}
-                                    className={cn("rounded-2xl border transition-all duration-200 min-h-[350px] min-w-[280px] md:min-w-0", style.border, style.bg, isDragOver && "ring-2 ring-primary/30 border-primary/30 scale-[1.01]")}
+                                    className={cn("rounded-2xl border transition-all duration-200 min-h-[350px] min-w-[280px] md:min-w-0", style.border, isDragOver ? "bg-primary/5 border-primary shadow-[inset_0_0_0_1px_rgba(var(--primary-rgb),0.5)]" : style.bg)}
                                     onDragOver={(e) => handleDragOver(e, status)}
                                     onDragLeave={handleDragLeave}
                                     onDrop={(e) => handleDrop(e, status)}
@@ -569,7 +597,7 @@ const NoteDashboard: React.FC = () => {
                                     {/* Cards */}
                                     <div className="p-3 space-y-3">
                                         {columnNotes.map(note => {
-                                            const deadline = note.reminders ? getDaysRemainingText(note.reminders.due_date) : null;
+                                            const deadline = note.reminders ? getDaysRemainingText(note.reminders.due_date, note.status, note.updated_at) : null;
                                             return (
                                                 <React.Fragment key={note.note_id}>
                                                     {/* Drop indicator */}
