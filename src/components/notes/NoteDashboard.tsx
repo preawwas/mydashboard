@@ -10,6 +10,7 @@ import NoteModal from './NoteModal';
 import { DbNote, DbNoteCategory, DbReminder } from '@/lib/supabase-types';
 import { apiClient } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
+import { useLoading } from '@/components/providers/LoadingProvider';
 
 interface ExtendedNote extends DbNote {
     note_categories?: DbNoteCategory;
@@ -41,6 +42,7 @@ function getDaysRemainingText(dueDate: string): { text: string; isOverdue: boole
 }
 
 const NoteDashboard: React.FC = () => {
+    const { startLoading, stopLoading } = useLoading();
     const [notes, setNotes] = useState<ExtendedNote[]>([]);
     const [trashedNotes, setTrashedNotes] = useState<ExtendedNote[]>([]);
     const [categories, setCategories] = useState<DbNoteCategory[]>([]);
@@ -163,6 +165,15 @@ const NoteDashboard: React.FC = () => {
     }, []);
 
     useEffect(() => { fetchCategories(); fetchNotes(); }, []);
+
+    // Sync loading state with global LoadingOverlay
+    useEffect(() => {
+        if (loading && notes.length === 0) {
+            startLoading();
+        } else {
+            stopLoading();
+        }
+    }, [loading, notes.length, startLoading, stopLoading]);
 
     // Close settings on outside click
     useEffect(() => {

@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { DbNote, DbNoteCategory, DbReminder } from '@/lib/supabase-types';
 import NoteModal from '../notes/NoteModal';
 import { apiClient } from '@/lib/api-client';
+import { useLoading } from '@/components/providers/LoadingProvider';
 
 interface ExtendedNote extends DbNote {
     note_categories?: DbNoteCategory;
@@ -25,6 +26,7 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 const STATUS_OPTIONS = ['All', 'New', 'In Progress', 'Urgent', 'Done'];
 
 const CalendarView: React.FC = () => {
+    const { startLoading, stopLoading } = useLoading();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [notes, setNotes] = useState<ExtendedNote[]>([]);
     const [loading, setLoading] = useState(true);
@@ -51,6 +53,15 @@ const CalendarView: React.FC = () => {
     };
 
     useEffect(() => { fetchNotes(); }, []);
+
+    // Sync loading state with global LoadingOverlay
+    useEffect(() => {
+        if (loading && notes.length === 0) {
+            startLoading();
+        } else {
+            stopLoading();
+        }
+    }, [loading, notes.length, startLoading, stopLoading]);
 
     // Close month picker on outside click
     useEffect(() => {

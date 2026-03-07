@@ -15,7 +15,7 @@ export default function LoadingTestClient() {
             </button>
 
             {/* The overlay is always visible for testing, but we toggle the loading state */}
-            <LoadingOverlay text="fluffy-ty" isVisible={true} isLoading={isLoading} />
+            <LoadingOverlay isVisible={true} isLoading={isLoading} />
         </>
     );
 }

@@ -35,6 +35,12 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     // Track when loading started to ensure a minimum display time
     const loadingStartTimeRef = React.useRef<number>(0);
     const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+    const isLoadingRef = React.useRef(false);
+
+    // Keep ref in sync with state
+    React.useEffect(() => {
+        isLoadingRef.current = isLoading;
+    }, [isLoading]);
 
     const startLoading = React.useCallback(() => {
         if (timeoutRef.current) {
@@ -45,14 +51,14 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const stopLoading = React.useCallback(() => {
-        const MIN_LOADING_TIME = 1500; // Increased to 1500ms (1.5s) minimum display time
+        const MIN_LOADING_TIME = 500;
         const timeElapsed = Date.now() - loadingStartTimeRef.current;
 
         if (timeoutRef.current) {
             clearTimeout(timeoutRef.current);
         }
 
-        if (isLoading && timeElapsed < MIN_LOADING_TIME) {
+        if (isLoadingRef.current && timeElapsed < MIN_LOADING_TIME) {
             // Wait for the remaining time before hiding
             timeoutRef.current = setTimeout(() => {
                 setIsLoading(false);
@@ -61,7 +67,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
             // Hide immediately if not currently loading or minimum time has passed
             setIsLoading(false);
         }
-    }, [isLoading]);
+    }, []);
 
     // Clean up timeouts on unmount
     useEffect(() => {

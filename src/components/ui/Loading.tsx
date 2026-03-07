@@ -25,7 +25,7 @@ const Loading: React.FC<LoadingProps> = ({ size = 'md', text, fullScreen = false
     );
 
     if (fullScreen) {
-        return <LoadingOverlay isVisible={true} isLoading={true} text={text || 'fluffy-ty'} />;
+        return <LoadingOverlay isVisible={true} isLoading={true} />;
     }
 
     return content;

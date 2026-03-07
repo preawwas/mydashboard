@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useLoading } from '@/components/providers/LoadingProvider';
 import { Search, Plus, Filter, Tag as TagIcon, StickyNote, Zap, Settings, Trash2, Send } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 import { apiClient } from '@/lib/api-client';
@@ -11,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { parseTag, stringifyTag, TAG_COLORS } from '@/lib/tag-helpers';
 
 const ShortNoteDashboard: React.FC = () => {
+    const { startLoading, stopLoading } = useLoading();
     const [notes, setNotes] = useState<DbShortNoteWithTags[]>([]);
     const [tags, setTags] = useState<DbTag[]>([]);
     const [loading, setLoading] = useState(false);
@@ -81,6 +83,15 @@ const ShortNoteDashboard: React.FC = () => {
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    // Sync loading state with global LoadingOverlay
+    useEffect(() => {
+        if (loading && notes.length === 0) {
+            startLoading();
+        } else {
+            stopLoading();
+        }
+    }, [loading, notes.length, startLoading, stopLoading]);
 
     const [isCreatingQuickNote, setIsCreatingQuickNote] = useState(false);
 

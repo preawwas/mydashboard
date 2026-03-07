@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Button, Card, CardHeader, CardTitle, CardContent, Input, Table, Modal } from '@/components/ui';
 import { Plus, Search, Filter, Calendar, Edit, Trash2, Bell } from 'lucide-react';
@@ -9,10 +9,12 @@ import { cn, getMonthlyPendingAmount } from '@/lib/utils';
 import { useTranslation } from '@/lib/useTranslation';
 import ExpenseFormModal from '@/components/expenses/ExpenseFormModal';
 import { useExpenses, Expense } from '@/hooks';
+import { useLoading } from '@/components/providers/LoadingProvider';
 
 export default function ExpensesPage() {
     const { language } = useLanguageStore();
     const { t } = useTranslation();
+    const { startLoading, stopLoading } = useLoading();
 
     const {
         expenses, categories, paymentChannels,
@@ -24,6 +26,15 @@ export default function ExpensesPage() {
         setFilters, clearFilters, toggleSort,
         deleteExpense, refreshAll,
     } = useExpenses();
+
+    // Sync loading state with global LoadingOverlay
+    useEffect(() => {
+        if (loading && expenses.length === 0) {
+            startLoading();
+        } else {
+            stopLoading();
+        }
+    }, [loading, expenses.length, startLoading, stopLoading]);
 
     // UI-only state
     const [isModalOpen, setIsModalOpen] = useState(false);

@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { SummaryCards, AssetAllocation, InvestmentTable, InvestmentForm } from '@/components/investments';
-import { Button, Input, Select, Modal, Loading } from '@/components/ui';
+import { Button, Input, Select, Modal } from '@/components/ui';
+import { useLoading } from '@/components/providers/LoadingProvider';
 import { useTranslation } from '@/lib/useTranslation';
 import { InvestmentFilters } from '@/types';
 import { Plus, Search, Filter, X } from 'lucide-react';
@@ -11,6 +12,7 @@ import { useInvestments } from '@/hooks';
 
 export default function InvestmentsPage() {
     const { t } = useTranslation();
+    const { startLoading, stopLoading } = useLoading();
     const {
         investments,
         summaryData,
@@ -42,6 +44,15 @@ export default function InvestmentsPage() {
         openEditModal,
         closeFormModal,
     } = useInvestments();
+
+    // Sync investment loading state with the global LoadingOverlay
+    useEffect(() => {
+        if (isLoading && investments.length === 0) {
+            startLoading();
+        } else {
+            stopLoading();
+        }
+    }, [isLoading, investments.length, startLoading, stopLoading]);
 
     return (
         <DashboardLayout>
@@ -85,11 +96,7 @@ export default function InvestmentsPage() {
                 </div>
 
                 {/* Content */}
-                {isLoading && investments.length === 0 ? (
-                    <div className="flex items-center justify-center py-20">
-                        <Loading size="lg" text={t('common.loading')} />
-                    </div>
-                ) : activeTab === 'overview' ? (
+                {isLoading && investments.length === 0 ? null : activeTab === 'overview' ? (
                     <div className="space-y-6">
                         <SummaryCards data={summaryData} />
                         <AssetAllocation data={allocationData} />
