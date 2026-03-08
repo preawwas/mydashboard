@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore, useInvestmentStore, useUIStore, useToastStore } from '@/lib/store';
-import { useTranslation } from '@/lib/useTranslation';
 import { apiClient } from '@/lib/api-client';
 import { Investment, InvestmentFormData, InvestmentFilters } from '@/types';
 
@@ -66,7 +65,6 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export function useInvestments(): UseInvestmentsReturn {
     const { token } = useAuthStore();
-    const { t } = useTranslation();
     const store = useInvestmentStore();
     const { modalOpen, modalType, openModal, closeModal } = useUIStore();
     const { addToast } = useToastStore();
@@ -169,15 +167,15 @@ export function useInvestments(): UseInvestmentsReturn {
                 store.addInvestment(result.data);
                 fetchInvestments();
                 closeModal();
-                addToast(t('investment.addSuccess'), 'success');
+                addToast('Investment added successfully', 'success');
             } else {
-                addToast(result.error || t('common.error'), 'error');
+                addToast(result.error || 'Error', 'error');
             }
         } catch (error) {
             console.error('Add investment error:', error);
-            addToast(t('common.error'), 'error');
+            addToast('Error', 'error');
         }
-    }, [token, store, fetchInvestments, closeModal, addToast, t]);
+    }, [token, store, fetchInvestments, closeModal, addToast]);
 
     const handleEditInvestment = useCallback(async (data: InvestmentFormData) => {
         if (!token || !store.selectedInvestment || store.isLoading) return;
@@ -191,9 +189,9 @@ export function useInvestments(): UseInvestmentsReturn {
             fetchInvestments();
             closeModal();
             store.setSelectedInvestment(null);
-            addToast(t('investment.updateSuccess'), 'success');
+            addToast('Investment updated successfully', 'success');
         }
-    }, [token, store, fetchInvestments, closeModal, addToast, t]);
+    }, [token, store, fetchInvestments, closeModal, addToast]);
 
     const handleDeleteInvestment = useCallback(async () => {
         if (!token || !deleteConfirm || deleting) return;
@@ -205,12 +203,12 @@ export function useInvestments(): UseInvestmentsReturn {
                 store.removeInvestment(deleteConfirm.id);
                 setDeleteConfirm(null);
                 fetchInvestments();
-                addToast(t('investment.deleteSuccess'), 'success');
+                addToast('Investment deleted successfully', 'success');
             }
         } finally {
             setDeleting(false);
         }
-    }, [token, deleteConfirm, deleting, store, fetchInvestments, addToast, t]);
+    }, [token, deleteConfirm, deleting, store, fetchInvestments, addToast]);
 
     // Modal helpers
     const openAddModal = useCallback(() => {

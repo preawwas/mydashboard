@@ -5,7 +5,6 @@ import { Table, Badge, Button } from '@/components/ui';
 import { Investment, InvestmentFilters } from '@/types';
 import { formatCurrency, formatDate, getCategoryColor, getStrategyColor, getStatusColor, calculateProfitLoss } from '@/lib/utils';
 import { Eye, Edit, Trash2 } from 'lucide-react';
-import { useTranslation } from '@/lib/useTranslation';
 
 interface InvestmentTableProps {
     investments: Investment[];
@@ -31,11 +30,10 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
     onEdit,
     onDelete,
 }) => {
-    const { t } = useTranslation();
     const columns = [
         {
             key: 'asset',
-            header: t('investment.asset'),
+            header: 'Asset',
             render: (item: Investment) => (
                 <div className="flex items-center gap-3">
                     <div>
@@ -47,7 +45,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         },
         {
             key: 'market',
-            header: t('investment.market'),
+            header: 'Market',
             className: 'hidden lg:table-cell',
             render: (item: Investment) => (
                 <span className="text-foreground">{item.market}</span>
@@ -55,22 +53,22 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         },
         {
             key: 'category',
-            header: t('investment.type.label'),
+            header: 'Type',
             className: 'hidden md:table-cell',
             render: (item: Investment) => (
                 <Badge className={getCategoryColor(item.asset_category)}>
-                    {item.asset_category === 'GOLD' ? t('investment.type.gold') :
-                        item.asset_category === 'CRYPTO' ? t('investment.type.crypto') :
-                            item.asset_category === 'STOCK' ? t('investment.type.stock') :
-                                item.asset_category === 'FUND' ? t('investment.type.fund') :
+                    {item.asset_category === 'GOLD' ? 'Gold' :
+                        item.asset_category === 'CRYPTO' ? 'Crypto' :
+                            item.asset_category === 'STOCK' ? 'Stock' :
+                                item.asset_category === 'FUND' ? 'Fund' :
                                     item.asset_category === 'USD' ? 'USD' :
-                                        t('common.others')}
+                                        'Others'}
                 </Badge>
             ),
         },
         {
             key: 'strategy',
-            header: t('investment.strategy'),
+            header: 'Strategy',
             className: 'hidden xl:table-cell',
             render: (item: Investment) => (
                 <Badge className={getStrategyColor(item.strategy_type)}>
@@ -80,7 +78,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         },
         {
             key: 'buy_info',
-            header: t('investment.buy'),
+            header: 'Buy',
             className: 'hidden sm:table-cell',
             render: (item: Investment) => (
                 <div>
@@ -93,7 +91,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         },
         {
             key: 'total_cost',
-            header: t('investment.totalCost'),
+            header: 'Total Cost',
             className: 'hidden md:table-cell',
             render: (item: Investment) => {
                 const totalCost = item.buy_quantity * item.buy_price_per_unit + item.buy_fee;
@@ -106,7 +104,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         },
         {
             key: 'profit_loss',
-            header: t('common.profit'),
+            header: 'Profit/Loss',
             render: (item: Investment) => {
                 const { profitLoss, percentage } = calculateProfitLoss(
                     item.buy_quantity,
@@ -129,11 +127,11 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         },
         {
             key: 'status',
-            header: t('common.status'),
+            header: 'Status',
             className: 'hidden sm:table-cell',
             render: (item: Investment) => (
                 <Badge className={getStatusColor(item.status)}>
-                    {item.status === 'OPEN' ? t('investment.status.open') : t('investment.status.closed')}
+                    {item.status === 'OPEN' ? 'Open' : 'Closed'}
                 </Badge>
             ),
         },
@@ -149,7 +147,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                             onEdit(item);
                         }}
                         className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                        title={t('common.edit')}
+                        title="Edit"
                     >
                         <Edit className="w-4 h-4" />
                     </button>
@@ -159,7 +157,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                             onDelete(item);
                         }}
                         className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                        title={t('common.delete')}
+                        title="Delete"
                     >
                         <Trash2 className="w-4 h-4" />
                     </button>
@@ -174,7 +172,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
             columns={columns}
             keyExtractor={(item) => item.id}
             isLoading={isLoading}
-            emptyMessage={t('investment.noItems')}
+            emptyMessage="No investment found."
             pagination={{
                 ...pagination,
                 onPageChange,

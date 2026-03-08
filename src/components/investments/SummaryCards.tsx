@@ -3,7 +3,6 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui';
 import { TrendingUp, TrendingDown, Wallet, PieChart, Activity, DollarSign } from 'lucide-react';
-import { useTranslation } from '@/lib/useTranslation';
 
 interface SummaryCardsProps {
     data: {
@@ -16,9 +15,8 @@ interface SummaryCardsProps {
 }
 
 const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
-    const { t } = useTranslation();
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('th-TH', {
+        return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: 'THB',
             minimumFractionDigits: 0,
@@ -38,7 +36,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                                 <div className="p-2 rounded-lg bg-primary/10">
                                     <Wallet className="w-6 h-6 text-primary" />
                                 </div>
-                                <span className="text-muted-foreground font-semibold text-base sm:text-lg">{t('common.totalBalance')}</span>
+                                <span className="text-muted-foreground font-semibold text-base sm:text-lg">Total Portfolio Value</span>
                             </div>
                             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-foreground tracking-tight mt-2">
                                 {formatCurrency(data.totalValue)}
@@ -47,7 +45,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
 
                         <div className="flex items-center gap-4 bg-card p-4 sm:p-5 rounded-2xl border border-border shadow-lg shrink-0">
                             <div>
-                                <p className="text-xs sm:text-sm text-muted-foreground font-medium mb-1">{t('common.totalProfit')}</p>
+                                <p className="text-xs sm:text-sm text-muted-foreground font-medium mb-1">Total Profit/Loss</p>
                                 <div className={`flex items-center gap-2 sm:gap-3 ${data.totalProfitLoss >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                                     <span className="text-xl sm:text-2xl font-bold">
                                         {data.totalProfitLoss >= 0 ? '+' : ''}{formatCurrency(data.totalProfitLoss)}
@@ -72,9 +70,9 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                         </div>
                         <span className="text-[10px] sm:text-xs font-bold text-blue-500 bg-blue-500/5 px-2.5 py-1 rounded uppercase tracking-wider">Assets</span>
                     </div>
-                    <p className="text-muted-foreground text-xs sm:text-sm font-medium mb-1">{t('common.totalAssets')}</p>
+                    <p className="text-muted-foreground text-xs sm:text-sm font-medium mb-1">Total Assets</p>
                     <h3 className="text-2xl sm:text-3xl font-bold text-foreground truncate tracking-tight">
-                        {data.totalAssets} <span className="text-sm sm:text-lg font-normal text-muted-foreground">{t('common.items')}</span>
+                        {data.totalAssets} <span className="text-sm sm:text-lg font-normal text-muted-foreground">Items</span>
                     </h3>
                 </CardContent>
             </Card>
@@ -87,7 +85,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                         </div>
                         <span className="text-[10px] sm:text-xs font-bold text-primary bg-primary/5 px-2.5 py-1 rounded uppercase tracking-wider">Active</span>
                     </div>
-                    <p className="text-muted-foreground text-xs sm:text-sm font-medium mb-1">{t('common.statusOpen')}</p>
+                    <p className="text-muted-foreground text-xs sm:text-sm font-medium mb-1">Status Open</p>
                     <h3 className="text-2xl sm:text-3xl font-bold text-foreground truncate tracking-tight">
                         {data.openPositions} <span className="text-sm sm:text-lg font-normal text-muted-foreground">Positions</span>
                     </h3>

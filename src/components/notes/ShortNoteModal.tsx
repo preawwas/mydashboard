@@ -80,13 +80,13 @@ const ShortNoteModal: React.FC<ShortNoteModalProps> = ({ isOpen, onClose, note, 
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={note ? 'Edit Short Note' : 'Create Short Note'}>
+        <Modal isOpen={isOpen} onClose={onClose} title={note ? 'Edit Note' : 'Create Note'}>
             <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Title */}
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-muted-foreground ml-1">Title</label>
                     <Input
-                        placeholder="Enter note title..."
+                        placeholder="Enter title..."
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         className="h-12 bg-card/50 border-border/50 rounded-xl"
@@ -128,7 +128,7 @@ const ShortNoteModal: React.FC<ShortNoteModalProps> = ({ isOpen, onClose, note, 
                         key={editorKey}
                         content={content}
                         onChange={setContent}
-                        placeholder="Start writing your thoughts..."
+                        placeholder="Write your note here..."
                     />
                 </div>
 
@@ -142,7 +142,7 @@ const ShortNoteModal: React.FC<ShortNoteModalProps> = ({ isOpen, onClose, note, 
                         disabled={loading}
                         className="rounded-xl px-8 h-12 bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20"
                     >
-                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (note ? 'Update Note' : 'Create Note')}
+                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (note ? 'Edit Note' : 'Create Note')}
                     </Button>
                 </div>
             </form>

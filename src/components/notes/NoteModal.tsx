@@ -126,7 +126,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
     const selectedCategory = categories.find(c => c.note_category_id === noteCategoryId);
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={note ? 'Edit Note' : 'Create New Note'}>
+        <Modal isOpen={isOpen} onClose={onClose} title={note ? 'Edit Note' : 'Create Note'}>
             <form onSubmit={handleSubmit} className="space-y-5">
                 {/* 1. Category Dropdown (first) */}
                 <div className="space-y-2">
@@ -159,7 +159,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                 <div className="space-y-1">
                     <label className="text-sm font-bold text-muted-foreground ml-1">Title <span className="text-rose-500">*</span></label>
                     <Input
-                        placeholder="Enter note title..."
+                        placeholder="Enter title..."
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         className={`h-12 bg-card/50 rounded-xl ${submitted && !title.trim() ? 'border-rose-500 focus:ring-rose-500/20' : 'border-border/50'}`}
@@ -167,7 +167,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                     {submitted && !title.trim() && (
                         <p className="text-xs text-rose-500 font-medium ml-1 mt-1 flex items-center gap-1">
                             <AlertCircle className="w-3.5 h-3.5" />
-                            กรุณากรอก Title
+                            Title is required
                         </p>
                     )}
                 </div>
@@ -201,7 +201,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                         {submitted && !dueDate && (
                             <p className="text-xs text-rose-500 font-medium ml-1 mt-1 flex items-center gap-1">
                                 <AlertCircle className="w-3.5 h-3.5" />
-                                กรุณากรอก Deadline
+                                Deadline is required
                             </p>
                         )}
                     </div>
@@ -214,7 +214,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                         key={editorKey}
                         content={content}
                         onChange={setContent}
-                        placeholder="Start writing your thoughts..."
+                        placeholder="Write your note here..."
                     />
                 </div>
 
@@ -228,7 +228,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                         disabled={loading}
                         className="rounded-xl px-8 h-12 bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20"
                     >
-                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (note ? 'Update Note' : 'Create Note')}
+                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (note ? 'Edit Note' : 'Create Note')}
                     </Button>
                 </div>
             </form>

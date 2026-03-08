@@ -6,12 +6,10 @@ import { TrendingUp, BarChart3, PieChart, Target, ArrowRight } from 'lucide-reac
 import Link from 'next/link';
 import { useAuthStore } from '@/lib/store';
 import { PortfolioSummary } from '@/types';
-import { useTranslation } from '@/lib/useTranslation';
 import { apiClient } from '@/lib/api-client';
 
 export default function InvestmentDashboard() {
     const { token } = useAuthStore();
-    const { t } = useTranslation();
     const [stats, setStats] = useState<PortfolioSummary | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -48,7 +46,7 @@ export default function InvestmentDashboard() {
             {/* Header */}
             <div>
                 <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-semibold text-[#FAFAFA]">{t('common.investment')}</h2>
+                    <h2 className="text-xl font-semibold text-[#FAFAFA]">Investment</h2>
                     <span className="text-lg">📊</span>
                 </div>
                 <p className="text-[#A1A1AA] text-sm">Track your portfolio performance</p>
@@ -57,7 +55,7 @@ export default function InvestmentDashboard() {
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <QuickStatCard
-                    title={t('common.totalBalance')}
+                    title="Total Portfolio Value"
                     value={loading ? "..." : formatCurrency(stats?.totalValue || 0)}
                     change={!loading && stats?.totalProfitLoss ? `${stats.totalProfitLoss > 0 ? '+' : ''}${formatCurrency(stats.totalProfitLoss)}` : undefined}
                     icon={<BarChart3 className="w-6 h-6" />}
@@ -66,7 +64,7 @@ export default function InvestmentDashboard() {
                     loading={loading}
                 />
                 <QuickStatCard
-                    title={t('common.totalProfit')}
+                    title="Total Profit/Loss"
                     value={loading ? "..." : formatCurrency(stats?.totalProfitLoss || 0)}
                     change={!loading && stats?.profitLossPercentage ? `${stats.profitLossPercentage > 0 ? '+' : ''}${stats.profitLossPercentage.toFixed(2)}%` : undefined}
                     icon={<TrendingUp className="w-6 h-6" />}
@@ -75,18 +73,18 @@ export default function InvestmentDashboard() {
                     loading={loading}
                 />
                 <QuickStatCard
-                    title={t('common.totalAssets')}
+                    title="Total Assets"
                     value={loading ? "..." : (stats?.totalAssets || 0).toString()}
-                    subtitle={t('common.items')}
+                    subtitle="Items"
                     icon={<PieChart className="w-6 h-6" />}
                     color="purple"
                     emoji="✨"
                     loading={loading}
                 />
                 <QuickStatCard
-                    title={t('common.openPositions')}
+                    title="Open Positions"
                     value={loading ? "..." : (stats?.openPositions || 0).toString()}
-                    subtitle={t('common.items')}
+                    subtitle="Items"
                     icon={<Target className="w-6 h-6" />}
                     color="orange"
                     emoji="🎯"
@@ -99,19 +97,19 @@ export default function InvestmentDashboard() {
                 <Card variant="gradient" className="card-hover">
                     <CardHeader>
                         <div className="flex items-center gap-2">
-                            <CardTitle>{t('common.started')}</CardTitle>
+                            <CardTitle>Get Started</CardTitle>
                             <span>🚀</span>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <p className="text-[#A1A1AA]">
-                            {t('dashboard.investmentIntro')}
+                            Start adding investments to see allocation.
                         </p>
                         <Link
                             href="/dashboard/investments"
                             className="inline-flex items-center gap-2 text-[#F5C542] hover:text-[#FFC83D] font-medium group"
                         >
-                            {t('dashboard.goToInvestment')}
+                            Go to Investment
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </CardContent>
@@ -120,7 +118,7 @@ export default function InvestmentDashboard() {
                 <Card variant="gradient" className="card-hover">
                     <CardHeader>
                         <div className="flex items-center gap-2">
-                            <CardTitle>{t('dashboard.mainFeatures')}</CardTitle>
+                            <CardTitle>Main Features</CardTitle>
                             <span>💡</span>
                         </div>
                     </CardHeader>
@@ -128,19 +126,19 @@ export default function InvestmentDashboard() {
                         <ul className="space-y-2 text-[#A1A1AA]">
                             <li className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-blue-500" />
-                                {t('dashboard.trackAssets')}
+                                Track your assets
                             </li>
                             <li className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                                {t('dashboard.recordHistory')}
+                                Record history
                             </li>
                             <li className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-purple-500" />
-                                {t('dashboard.analyzePortfolio')}
+                                Analyze portfolio
                             </li>
                             <li className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-amber-500" />
-                                {t('dashboard.calculateProfit')}
+                                Calculate profit
                             </li>
                         </ul>
                     </CardContent>

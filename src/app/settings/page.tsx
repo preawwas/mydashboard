@@ -4,8 +4,7 @@ import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardHeader, CardTitle, CardContent, Button, Input } from '@/components/ui';
 import { User, Mail, Save, Camera, Lock, Bell, Shield, Eye, EyeOff, Settings, PieChart, CreditCard, Languages, ToggleLeft, ToggleRight, Heart, Plus, Trash2, Image as ImageIcon, Smile } from 'lucide-react';
-import { useAuthStore, useSettingsStore, useLanguageStore } from '@/lib/store';
-import { useTranslation } from '@/lib/useTranslation';
+import { useAuthStore, useSettingsStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { EmojiPicker } from '@/components/EmojiPicker';
 
@@ -13,9 +12,7 @@ export default function SettingsPage() {
     const { user, setUser } = useAuthStore();
     const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'preferences'>('profile');
     const { enableInvestment, enableExpense, toggleInvestment, toggleExpense } = useSettingsStore();
-    const { language, setLanguage } = useLanguageStore();
     const { valentineEnabled, valentineItems, setValentineEnabled, setValentineItems } = useSettingsStore();
-    const { t } = useTranslation();
 
     const [newItem, setNewItem] = useState({ type: 'emoji' as 'emoji' | 'image', value: '' });
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -53,9 +50,9 @@ export default function SettingsPage() {
             // Simulate API call
             await new Promise((resolve) => setTimeout(resolve, 1000));
             setUser({ ...user!, name: profileData.name });
-            setProfileMessage({ type: 'success', text: 'บันทึกข้อมูลสำเร็จ' });
+            setProfileMessage({ type: 'success', text: 'Settings saved successfully' });
         } catch {
-            setProfileMessage({ type: 'error', text: 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
+            setProfileMessage({ type: 'error', text: 'An error occurred. Please try again.' });
         } finally {
             setIsProfileLoading(false);
         }
@@ -66,15 +63,15 @@ export default function SettingsPage() {
         setSettingsMessage(null);
 
         if (!currentPassword) {
-            setSettingsMessage({ type: 'error', text: 'กรุณากรอกรหัสผ่านปัจจุบัน' });
+            setSettingsMessage({ type: 'error', text: 'Please enter your current password' });
             return;
         }
         if (newPassword !== confirmPassword) {
-            setSettingsMessage({ type: 'error', text: 'รหัสผ่านใหม่ไม่ตรงกัน' });
+            setSettingsMessage({ type: 'error', text: 'New passwords do not match' });
             return;
         }
         if (newPassword.length < 6) {
-            setSettingsMessage({ type: 'error', text: 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร' });
+            setSettingsMessage({ type: 'error', text: 'Password must be at least 6 characters' });
             return;
         }
 
@@ -82,7 +79,7 @@ export default function SettingsPage() {
         try {
             const token = useAuthStore.getState().token;
             if (!token) {
-                setSettingsMessage({ type: 'error', text: 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่' });
+                setSettingsMessage({ type: 'error', text: 'Session expired. Please login again.' });
                 return;
             }
 
@@ -98,15 +95,15 @@ export default function SettingsPage() {
             const data = await res.json();
 
             if (res.ok && data.success) {
-                setSettingsMessage({ type: 'success', text: 'เปลี่ยนรหัสผ่านสำเร็จ' });
+                setSettingsMessage({ type: 'success', text: 'Password changed successfully' });
                 setCurrentPassword('');
                 setNewPassword('');
                 setConfirmPassword('');
             } else {
-                setSettingsMessage({ type: 'error', text: data.error || 'เกิดข้อผิดพลาด กรุณาลองใหม่' });
+                setSettingsMessage({ type: 'error', text: data.error || 'An error occurred. Please try again.' });
             }
         } catch {
-            setSettingsMessage({ type: 'error', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่' });
+            setSettingsMessage({ type: 'error', text: 'Connection error. Please try again.' });
         } finally {
             setIsSettingsLoading(false);
         }
@@ -118,7 +115,7 @@ export default function SettingsPage() {
                 {/* Header */}
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-                    <p className="text-muted-foreground">จัดการข้อมูลส่วนตัวและการตั้งค่าบัญชี</p>
+                    <p className="text-muted-foreground">Manage your profile and account settings.</p>
                 </div>
 
                 {/* Tabs */}
@@ -130,7 +127,7 @@ export default function SettingsPage() {
                             : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
                     >
-                        ข้อมูลส่วนตัว
+                        Profile
                     </button>
                     <button
                         onClick={() => setActiveTab('account')}
@@ -139,7 +136,7 @@ export default function SettingsPage() {
                             : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
                     >
-                        ความปลอดภัยและการแจ้งเตือน
+                        Security & Notifications
                     </button>
                     <button
                         onClick={() => setActiveTab('preferences')}
@@ -148,7 +145,7 @@ export default function SettingsPage() {
                             : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
                     >
-                        การตั้งค่าทั่วไป
+                        General Settings
                     </button>
                 </div>
 
@@ -178,7 +175,7 @@ export default function SettingsPage() {
                         {/* Edit Form */}
                         <Card>
                             <CardHeader>
-                                <CardTitle className="text-foreground">แก้ไขข้อมูล</CardTitle>
+                                <CardTitle className="text-foreground">Edit Profile</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <form onSubmit={handleProfileSubmit} className="space-y-4">
@@ -194,23 +191,23 @@ export default function SettingsPage() {
                                     )}
 
                                     <Input
-                                        label="ชื่อ"
+                                        label="Name"
                                         value={profileData.name}
                                         onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
                                         leftIcon={<User className="w-4 h-4" />}
                                     />
 
                                     <Input
-                                        label="อีเมล"
+                                        label="Email"
                                         value={profileData.email}
                                         disabled
                                         leftIcon={<Mail className="w-4 h-4" />}
-                                        helperText="ไม่สามารถเปลี่ยนอีเมลได้"
+                                        helperText="Email cannot be changed"
                                     />
 
                                     <div className="pt-4">
                                         <Button type="submit" isLoading={isProfileLoading} leftIcon={<Save className="w-4 h-4" />}>
-                                            บันทึกข้อมูล
+                                            Save Changes
                                         </Button>
                                     </div>
                                 </form>
@@ -224,7 +221,7 @@ export default function SettingsPage() {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-foreground">
                                     <Lock className="w-5 h-5 text-primary" />
-                                    เปลี่ยนรหัสผ่าน
+                                    Change Password
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -241,7 +238,7 @@ export default function SettingsPage() {
                                     )}
 
                                     <Input
-                                        label="รหัสผ่านปัจจุบัน"
+                                        label="Current Password"
                                         type={showPassword ? 'text' : 'password'}
                                         value={currentPassword}
                                         onChange={(e) => setCurrentPassword(e.target.value)}
@@ -258,7 +255,7 @@ export default function SettingsPage() {
                                     />
 
                                     <Input
-                                        label="รหัสผ่านใหม่"
+                                        label="New Password"
                                         type={showPassword ? 'text' : 'password'}
                                         value={newPassword}
                                         onChange={(e) => setNewPassword(e.target.value)}
@@ -266,7 +263,7 @@ export default function SettingsPage() {
                                     />
 
                                     <Input
-                                        label="ยืนยันรหัสผ่านใหม่"
+                                        label="Confirm New Password"
                                         type={showPassword ? 'text' : 'password'}
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
@@ -274,7 +271,7 @@ export default function SettingsPage() {
                                     />
 
                                     <Button type="submit" isLoading={isSettingsLoading}>
-                                        เปลี่ยนรหัสผ่าน
+                                        Change Password
                                     </Button>
                                 </form>
                             </CardContent>
@@ -285,14 +282,14 @@ export default function SettingsPage() {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-foreground">
                                     <Bell className="w-5 h-5 text-primary" />
-                                    การแจ้งเตือน
+                                    Notifications
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted/20 border border-border">
                                     <div>
-                                        <p className="font-medium text-foreground">แจ้งเตือนทางอีเมล</p>
-                                        <p className="text-sm text-muted-foreground">รับข่าวสารและอัปเดตทางอีเมล</p>
+                                        <p className="font-medium text-foreground">Email Notifications</p>
+                                        <p className="text-sm text-muted-foreground">Receive news and updates via email</p>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
                                         <input
@@ -307,8 +304,8 @@ export default function SettingsPage() {
 
                                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted/20 border border-border">
                                     <div>
-                                        <p className="font-medium text-foreground">Push Notification</p>
-                                        <p className="text-sm text-muted-foreground">รับการแจ้งเตือนบนเบราว์เซอร์</p>
+                                        <p className="font-medium text-foreground">Push Notifications</p>
+                                        <p className="text-sm text-muted-foreground">Receive browser notifications</p>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
                                         <input
@@ -323,8 +320,8 @@ export default function SettingsPage() {
 
                                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted/20 border border-border">
                                     <div>
-                                        <p className="font-medium text-foreground">แจ้งเตือนราคา</p>
-                                        <p className="text-sm text-muted-foreground">แจ้งเตือนเมื่อราคาถึงเป้าหมาย</p>
+                                        <p className="font-medium text-foreground">Price Alerts</p>
+                                        <p className="text-sm text-muted-foreground">Notify when price reaches target</p>
                                     </div>
                                     <label className="relative inline-flex items-center cursor-pointer">
                                         <input
@@ -344,13 +341,13 @@ export default function SettingsPage() {
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2 text-foreground">
                                     <Shield className="w-5 h-5 text-primary" />
-                                    ความปลอดภัย
+                                    Security
                                 </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
                                     <p className="text-sm text-primary">
-                                        บัญชีของคุณมีการป้องกันด้วย JWT Authentication
+                                        Your account is protected with JWT Authentication
                                     </p>
                                 </div>
                             </CardContent>
@@ -363,10 +360,10 @@ export default function SettingsPage() {
                             <CardHeader>
                                 <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
                                     <Settings className="w-5 h-5 text-primary" />
-                                    {t('settings.featureManagement')}
+                                    Feature Management
                                 </CardTitle>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                    {t('settings.featureDesc')}
+                                    Enable or disable application features.
                                 </p>
                             </CardHeader>
                             <CardContent className="space-y-6">
@@ -381,8 +378,8 @@ export default function SettingsPage() {
                                             <PieChart className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-bold text-foreground">{t('settings.investmentTitle')}</h3>
-                                            <p className="text-xs text-muted-foreground">{t('settings.investmentDesc')}</p>
+                                            <h3 className="text-sm font-bold text-foreground">Investment Module</h3>
+                                            <p className="text-xs text-muted-foreground">Track and manage your investments</p>
                                         </div>
                                     </div>
                                     <button
@@ -410,8 +407,8 @@ export default function SettingsPage() {
                                             <CreditCard className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-bold text-foreground">{t('settings.expenseTitle')}</h3>
-                                            <p className="text-xs text-muted-foreground">{t('settings.expenseDesc')}</p>
+                                            <h3 className="text-sm font-bold text-foreground">Expense Module</h3>
+                                            <p className="text-xs text-muted-foreground">Track and manage your daily spending</p>
                                         </div>
                                     </div>
                                     <button
@@ -432,65 +429,6 @@ export default function SettingsPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Language Card */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
-                                    <Languages className="w-5 h-5 text-primary" />
-                                    {t('settings.language')}
-                                </CardTitle>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    {t('settings.languageDesc')}
-                                </p>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-
-                                {/* Language Toggle */}
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-border">
-                                    <div className="flex items-center gap-4">
-                                        <div className={cn(
-                                            "p-3 rounded-lg transition-colors",
-                                            "bg-primary/10 text-primary"
-                                        )}>
-                                            <Languages className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-bold text-foreground">
-                                                {language === 'en' ? 'English' : 'Thai'}
-                                            </h3>
-                                            <p className="text-xs text-muted-foreground">
-                                                {language === 'en' ? 'English Language' : 'ภาษาไทย'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 bg-background p-1 rounded-lg border border-border">
-                                        <button
-                                            onClick={() => setLanguage('en')}
-                                            className={cn(
-                                                "px-3 py-1.5 rounded text-xs font-bold transition-all",
-                                                language === 'en'
-                                                    ? "bg-primary text-primary-foreground"
-                                                    : "text-muted-foreground hover:text-foreground"
-                                            )}
-                                        >
-                                            EN
-                                        </button>
-                                        <button
-                                            onClick={() => setLanguage('th')}
-                                            className={cn(
-                                                "px-3 py-1.5 rounded text-xs font-bold transition-all",
-                                                language === 'th'
-                                                    ? "bg-primary text-primary-foreground"
-                                                    : "text-muted-foreground hover:text-foreground"
-                                            )}
-                                        >
-                                            TH
-                                        </button>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
                         {/* Theme Card */}
                         <Card>
                             <CardHeader>
@@ -499,7 +437,7 @@ export default function SettingsPage() {
                                     Theme
                                 </CardTitle>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                    ตั้งค่าเอฟเฟกต์
+                                    Effect Settings
                                 </p>
                             </CardHeader>
                             <CardContent className="space-y-6">
@@ -513,8 +451,8 @@ export default function SettingsPage() {
                                             <Heart className="w-6 h-6" />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-bold text-foreground">เปิดใช้งานธีม</h3>
-                                            <p className="text-xs text-muted-foreground">แสดงเอฟเฟกต์ทั่วหน้าจอ</p>
+                                            <h3 className="text-sm font-bold text-foreground">Enable Theme</h3>
+                                            <p className="text-xs text-muted-foreground">Show effects across the screen</p>
                                         </div>
                                     </div>
                                     <button
@@ -536,19 +474,19 @@ export default function SettingsPage() {
                                 {valentineEnabled && (
                                     <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
                                         <div className="flex items-center justify-between">
-                                            <h3 className="text-sm font-bold text-foreground">รายการไอคอน</h3>
+                                            <h3 className="text-sm font-bold text-foreground">Icon List</h3>
                                             <div className="flex items-center gap-3">
-                                                <span className="text-xs text-muted-foreground">{valentineItems.length} รายการ</span>
+                                                <span className="text-xs text-muted-foreground">{valentineItems.length} items</span>
                                                 {valentineItems.length > 0 && (
                                                     <button
                                                         onClick={() => {
-                                                            if (confirm('ต้องการลบไอคอนทั้งหมดใช่ไหม?')) {
+                                                            if (confirm('Do you want to delete all icons?')) {
                                                                 setValentineItems([]);
                                                             }
                                                         }}
                                                         className="text-[10px] text-red-400 hover:text-red-500 transition-colors uppercase font-bold"
                                                     >
-                                                        ล้างทั้งหมด
+                                                        Clear All
                                                     </button>
                                                 )}
                                             </div>
@@ -574,7 +512,7 @@ export default function SettingsPage() {
                                                             className="w-full flex items-center justify-between bg-background border border-border rounded-lg px-3 h-9 text-sm text-left hover:border-primary/50 transition-colors"
                                                         >
                                                             <span className={newItem.value ? "text-foreground" : "text-muted-foreground"}>
-                                                                {newItem.value || "เลือกอิโมจิ..."}
+                                                                {newItem.value || "Select emoji..."}
                                                             </span>
                                                             <Smile className="w-4 h-4 text-muted-foreground" />
                                                         </button>
@@ -593,7 +531,7 @@ export default function SettingsPage() {
                                                     </div>
                                                 ) : (
                                                     <Input
-                                                        placeholder="ใส่ Link รูปภาพ..."
+                                                        placeholder="Enter image URL..."
                                                         value={newItem.value}
                                                         onChange={(e) => setNewItem({ ...newItem, value: e.target.value })}
                                                         className="h-9 text-sm"

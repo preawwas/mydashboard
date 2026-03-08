@@ -51,15 +51,15 @@ function LoginForm() {
         const newErrors: Record<string, string> = {};
 
         if (!formData.email) {
-            newErrors.email = 'กรุณากรอกอีเมล';
+            newErrors.email = 'Please enter your email';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = 'รูปแบบอีเมลไม่ถูกต้อง';
+            newErrors.email = 'Invalid email format';
         }
 
         if (!formData.password) {
-            newErrors.password = 'กรุณากรอกรหัสผ่าน';
+            newErrors.password = 'Please enter your password';
         } else if (formData.password.length < 6) {
-            newErrors.password = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
+            newErrors.password = 'Password must be at least 6 characters';
         }
 
         setErrors(newErrors);
@@ -85,7 +85,7 @@ function LoginForm() {
             const data = await response.json();
 
             if (!response.ok) {
-                setErrors({ submit: data.error || 'เข้าสู่ระบบไม่สำเร็จ' });
+                setErrors({ submit: data.error || 'Login failed' });
                 // Only stop global loading on error, let it run until navigation completes on success.
                 stopLoading();
                 return;
@@ -103,7 +103,7 @@ function LoginForm() {
             // The loading overlay will automatically stop once the next page renders due to the `useEffect` in the layout.
             router.push('/dashboard');
         } catch {
-            setErrors({ submit: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+            setErrors({ submit: 'An error occurred. Please try again.' });
             stopLoading();
         } finally {
             setIsLoading(false); // Keeps the button loading state for a split second before unmounting
@@ -115,9 +115,9 @@ function LoginForm() {
             {/* Logo */}
             <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                    เข้าสู่ระบบ
+                    Login
                 </h1>
-                <p className="text-muted-foreground mt-2">ระบบบริหารและจัดการข้อมูล</p>
+                <p className="text-muted-foreground mt-2">Management System</p>
             </div>
 
             {/* Success Message for Registration */}
@@ -129,9 +129,9 @@ function LoginForm() {
                         </svg>
                     </div>
                     <div>
-                        <h3 className="text-sm font-medium text-emerald-500">สมัครสมาชิกสำเร็จ!</h3>
+                        <h3 className="text-sm font-medium text-emerald-500">Registration successful!</h3>
                         <p className="text-sm text-emerald-500/80 mt-1">
-                            กรุณาตรวจสอบอีเมลของคุณเพื่อยืนยันตัวตนก่อนเข้าสู่ระบบ
+                            Please check your email to verify your identity before logging in.
                         </p>
                     </div>
                 </div>
@@ -147,7 +147,7 @@ function LoginForm() {
                     )}
 
                     <Input
-                        label="อีเมล"
+                        label="Email"
                         type="email"
                         placeholder="you@example.com"
                         value={formData.email}
@@ -157,7 +157,7 @@ function LoginForm() {
                     />
 
                     <Input
-                        label="รหัสผ่าน"
+                        label="Password"
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
                         value={formData.password}
@@ -188,13 +188,13 @@ function LoginForm() {
                                 onChange={(e) => setRememberMe(e.target.checked)}
                                 className="w-4 h-4 rounded border-border bg-input text-primary focus:ring-primary"
                             />
-                            <span className="text-sm text-muted-foreground">จดจำฉัน</span>
+                            <span className="text-sm text-muted-foreground">Remember Me</span>
                         </label>
                         <Link
                             href="/forgot-password"
                             className="text-sm text-primary hover:text-primary-hover font-medium"
                         >
-                            ลืมรหัสผ่าน?
+                            Forgot Password?
                         </Link>
                     </div>
 
@@ -204,18 +204,18 @@ function LoginForm() {
                         size="lg"
                         isLoading={isLoading}
                     >
-                        เข้าสู่ระบบ
+                        Login
                     </Button>
                 </form>
 
                 <div className="mt-6 text-center">
                     <p className="text-sm text-muted-foreground">
-                        ยังไม่มีบัญชี?{' '}
+                        Don't have an account?{' '}
                         <Link
                             href="/register"
                             className="text-primary hover:text-primary-hover font-medium"
                         >
-                            สมัครสมาชิก
+                            Register
                         </Link>
                     </p>
                 </div>

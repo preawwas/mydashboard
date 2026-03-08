@@ -24,7 +24,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             error,
             helperText,
             options,
-            placeholder = 'เลือก...',
+            placeholder = 'Select...',
             onChange,
             value,
             ...props

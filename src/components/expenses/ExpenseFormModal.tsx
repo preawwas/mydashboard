@@ -17,7 +17,6 @@ import {
 import { useAuthStore, useToastStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Category, PaymentChannel } from '@/types';
-import { useTranslation } from '@/lib/useTranslation';
 import { apiClient } from '@/lib/api-client';
 
 interface ExpenseFormModalProps {
@@ -30,7 +29,6 @@ interface ExpenseFormModalProps {
 export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }: ExpenseFormModalProps) {
     const { token, user } = useAuthStore();
     const { addToast } = useToastStore();
-    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
@@ -285,10 +283,10 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
         if (!token || loading) return;
 
         const newErrors: Record<string, string> = {};
-        if (!formData.categoryId) newErrors.categoryId = t('expenses.errors.categoryRequired');
-        if (!formData.paymentChannelId) newErrors.paymentChannelId = t('expenses.errors.paymentRequired');
-        if (!formData.itemName) newErrors.itemName = t('expenses.errors.itemRequired');
-        if (!formData.amount) newErrors.amount = t('expenses.errors.amountRequired');
+        if (!formData.categoryId) newErrors.categoryId = 'Category is required';
+        if (!formData.paymentChannelId) newErrors.paymentChannelId = 'Payment channel is required';
+        if (!formData.itemName) newErrors.itemName = 'Item name is required';
+        if (!formData.amount) newErrors.amount = 'Amount is required';
 
         if (formData.paymentType === 'INSTALLMENT') {
             if (!formData.installmentPeriods || parseInt(formData.installmentPeriods) <= 0) {
@@ -300,7 +298,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
-            addToast(t('expenses.errors.fillRequired'), 'warning');
+            addToast('Please fill in all required fields', 'warning');
             return;
         }
 
@@ -331,7 +329,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
 
             const result = await response.json();
             if (result.success) {
-                addToast(editId ? t('expenses.errors.updateSuccess') : t('expenses.errors.addSuccess'), 'success');
+                addToast(editId ? 'Expense updated successfully' : 'Expense added successfully', 'success');
                 onSuccess();
                 onClose();
             } else {
@@ -398,7 +396,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={editId ? t('expenses.editTitle') : t('expenses.addTitle')}
+            title={editId ? 'Edit Expense' : 'Add Expense'}
             size="lg"
         >
             {fetching ? (
@@ -411,7 +409,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     <div className="space-y-2">
                         <div className="flex items-center justify-between gap-2">
                             <label className={cn("text-xs font-medium", errors.categoryId ? "text-destructive" : "text-muted-foreground")}>
-                                {t('expenses.category')} {errors.categoryId && <span className="text-destructive">*</span>}
+                                Category {errors.categoryId && <span className="text-destructive">*</span>}
                             </label>
                             <div className="flex items-center gap-2">
                                 {/* Necessity Toggle - Compact */}
@@ -428,7 +426,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                                     : "text-muted-foreground hover:text-foreground"
                                             )}
                                         >
-                                            {type === 'NEED' ? t('expenses.need') : t('expenses.want')}
+                                            {type === 'NEED' ? 'Need' : 'Want'}
                                         </button>
                                     ))}
                                 </div>
@@ -449,7 +447,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                     )}
                                 >
                                     <Settings2 className="w-3 h-3" />
-                                    {isReorderMode ? t('common.done') : t('common.rearrange')}
+                                    {isReorderMode ? 'Done' : 'Rearrange'}
                                 </button>
                             </div>
                         </div>
@@ -471,7 +469,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary transition-all text-xs"
                             >
                                 <Plus className="w-3.5 h-3.5" />
-                                <span>{t('common.custom')}</span>
+                                <span>Custom</span>
                             </button>
                         </div>
 
@@ -480,7 +478,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                 <Input
                                     value={newCategoryName}
                                     onChange={(e) => setNewCategoryName(e.target.value)}
-                                    placeholder={t('expenses.enterCategoryName')}
+                                    placeholder="Enter category name"
                                     className="h-8 text-xs bg-background border-border flex-1"
                                     autoFocus
                                 />
@@ -497,7 +495,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     {/* Item Name */}
                     <div className="space-y-1.5">
                         <label className={cn("text-xs font-medium", errors.itemName ? "text-destructive" : "text-muted-foreground")}>
-                            {t('expenses.itemName')} {errors.itemName && <span className="text-destructive">*</span>}
+                            Item Name {errors.itemName && <span className="text-destructive">*</span>}
                         </label>
                         <Input
                             value={formData.itemName}
@@ -514,7 +512,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <label className={cn("text-xs font-medium", errors.amount ? "text-destructive" : "text-muted-foreground")}>
-                                {t('expenses.amount')} {errors.amount && <span className="text-destructive">*</span>}
+                                Amount {errors.amount && <span className="text-destructive">*</span>}
                             </label>
                             <div className="relative">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted text-sm font-medium">฿</span>
@@ -533,7 +531,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-muted-foreground">{t('expenses.qty')}</label>
+                            <label className="text-xs font-medium text-muted-foreground">Qty</label>
                             <Input
                                 type="number"
                                 inputMode="numeric"
@@ -549,7 +547,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     {/* Date & Total Row */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-muted-foreground">{t('common.date')}</label>
+                            <label className="text-xs font-medium text-muted-foreground">Date</label>
                             <Input
                                 type="date"
                                 value={formData.transactionDate}
@@ -558,7 +556,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-primary">{t('expenses.totalAmount')}</label>
+                            <label className="text-xs font-medium text-primary">Total Amount</label>
                             <div className="h-10 px-3 flex items-center bg-background border border-primary/30 rounded-lg text-primary font-bold">
                                 ฿{((parseFloat(formData.amount) || 0) * (parseInt(formData.duration) || 1)).toLocaleString()}
                             </div>
@@ -568,7 +566,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     {/* Payment Channel - Grid Wrap */}
                     <div className="space-y-2">
                         <label className={cn("text-xs font-medium", errors.paymentChannelId ? "text-destructive" : "text-muted-foreground")}>
-                            {t('expenses.paymentChannel')} {errors.paymentChannelId && <span className="text-destructive">*</span>}
+                            Payment Channel {errors.paymentChannelId && <span className="text-destructive">*</span>}
                         </label>
 
                         <div className="flex flex-wrap gap-2">
@@ -588,7 +586,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary transition-all text-xs"
                             >
                                 <Plus className="w-3.5 h-3.5" />
-                                <span>{t('expenses.addChannel')}</span>
+                                <span>Add Channel</span>
                             </button>
                         </div>
 
@@ -597,7 +595,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                 <Input
                                     value={newChannelName}
                                     onChange={(e) => setNewChannelName(e.target.value)}
-                                    placeholder={t('expenses.enterChannelName')}
+                                    placeholder="Enter channel name"
                                     className="h-8 text-xs bg-background border-border flex-1"
                                     autoFocus
                                 />
@@ -614,11 +612,11 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     {/* Payment Type - Compact Toggle */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                            <label className="text-xs font-medium text-muted-foreground">{t('expenses.paymentType')}</label>
+                            <label className="text-xs font-medium text-muted-foreground">Payment Type</label>
                             <div className="flex bg-background p-0.5 rounded-lg border border-border">
                                 {[
-                                    { key: 'FULL', icon: <CheckCircle className="w-3.5 h-3.5" />, label: t('expenses.fullPayment') },
-                                    { key: 'INSTALLMENT', icon: <CalendarDays className="w-3.5 h-3.5" />, label: t('expenses.installment') }
+                                    { key: 'FULL', icon: <CheckCircle className="w-3.5 h-3.5" />, label: 'Full' },
+                                    { key: 'INSTALLMENT', icon: <CalendarDays className="w-3.5 h-3.5" />, label: 'Installment' }
                                 ].map((type) => (
                                     <button
                                         key={type.key}
@@ -642,7 +640,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
 
                         {formData.paymentType === 'INSTALLMENT' ? (
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-muted-foreground">{t('expenses.installmentPeriods')}</label>
+                                <label className="text-xs font-medium text-muted-foreground">Periods</label>
                                 <Input
                                     type="number"
                                     inputMode="numeric"
@@ -660,7 +658,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                             </div>
                         ) : (
                             <div className="space-y-1.5">
-                                <label className="text-xs font-medium text-muted-foreground">{t('common.status')}</label>
+                                <label className="text-xs font-medium text-muted-foreground">Status</label>
                                 <div className="flex bg-background p-0.5 rounded-lg border border-border">
                                     {['PAID', 'PENDING'].map((s) => (
                                         <button
@@ -675,7 +673,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                             )}
                                         >
                                             {s === 'PAID' && <CheckCircle className="w-3 h-3" />}
-                                            {s === 'PAID' ? t('expenses.filters.paid') : t('expenses.filters.pending')}
+                                            {s === 'PAID' ? 'Paid' : 'Pending'}
                                         </button>
                                     ))}
                                 </div>
@@ -693,7 +691,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                             className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                         >
                             <StickyNote className="w-3.5 h-3.5" />
-                            {t('expenses.notes')}
+                            Notes
                             {formData.note && <span className="w-1.5 h-1.5 rounded-full bg-primary" />}
                             {showNotes ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                         </button>
@@ -702,7 +700,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                 value={formData.note}
                                 onChange={(e) => handleChange('note', e.target.value)}
                                 className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary min-h-[60px] outline-none resize-none animate-in fade-in slide-in-from-top-1"
-                                placeholder={t('expenses.notesPlaceholder')}
+                                placeholder="Add some notes..."
                             />
                         )}
                     </div>
@@ -716,7 +714,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                             >
                                 <CalendarDays className="w-3.5 h-3.5" />
-                                {t('expenses.installmentSchedule')} ({installments.length})
+                                Installment Schedule ({installments.length})
                                 {showInstallments ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                             </button>
                             {showInstallments && (
@@ -759,14 +757,14 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                             onClick={onClose}
                             className="flex-1 h-11"
                         >
-                            {t('common.cancel')}
+                            Cancel
                         </Button>
                         <Button
                             type="submit"
                             isLoading={loading}
                             className="flex-1 h-11 uppercase tracking-wider"
                         >
-                            {editId ? t('common.save') : t('expenses.addExpense')}
+                            {editId ? 'Save' : 'Add Expense'}
                         </Button>
                     </div>
                 </form>

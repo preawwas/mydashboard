@@ -120,7 +120,7 @@ export const GET = withAuth(async (request: NextRequest, user: AuthUser) => {
     } catch (error: unknown) {
         console.error('Get investments error:', error);
         return NextResponse.json(
-            { success: false, error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+            { success: false, error: 'An error occurred. Please try again.' },
             { status: 500 }
         );
     }
@@ -163,12 +163,12 @@ export const POST = withAuth(async (request: NextRequest, user: AuthUser) => {
         return NextResponse.json({
             success: true,
             data: investment,
-            message: 'เพิ่มการลงทุนสำเร็จ',
+            message: 'Investment added successfully',
         });
     } catch (error: unknown) {
         console.error('Create investment error:', error);
         return NextResponse.json(
-            { success: false, error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+            { success: false, error: 'An error occurred. Please try again.' },
             { status: 500 }
         );
     }

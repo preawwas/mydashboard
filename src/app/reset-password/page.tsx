@@ -20,17 +20,17 @@ export default function ResetPasswordPage() {
         e.preventDefault();
 
         if (!password) {
-            setError('กรุณากรอกรหัสผ่านใหม่');
+            setError('Please enter a new password');
             return;
         }
 
         if (password.length < 6) {
-            setError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');
+            setError('Password must be at least 6 characters');
             return;
         }
 
         if (password !== confirmPassword) {
-            setError('รหัสผ่านไม่ตรงกัน');
+            setError('Passwords do not match');
             return;
         }
 
@@ -54,7 +54,7 @@ export default function ResetPasswordPage() {
                 router.push('/login');
             }, 3000);
         } catch (err: any) {
-            setError(err.message || 'เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน');
+            setError(err.message || 'An error occurred while changing password');
         } finally {
             setIsLoading(false);
         }
@@ -67,16 +67,16 @@ export default function ResetPasswordPage() {
                     <div className="flex justify-center mb-6">
                         <CheckCircle className="w-16 h-16 text-green-500" />
                     </div>
-                    <h3 className="text-xl font-semibold text-[#FAFAFA] mb-2">เปลี่ยนรหัสผ่านสำเร็จ!</h3>
+                    <h3 className="text-xl font-semibold text-[#FAFAFA] mb-2">Password changed!</h3>
                     <p className="text-[#A1A1AA] mb-6">
-                        รหัสผ่านของคุณได้รับการเปลี่ยนแปลงเรียบร้อยแล้ว<br />
-                        กำลังนำคุณไปที่หน้าเข้าสู่ระบบ...
+                        Your password has been successfully changed.<br />
+                        Redirecting you to the login page...
                     </p>
                     <Button
                         onClick={() => router.push('/login')}
                         className="w-full"
                     >
-                        ไปที่หน้าเข้าสู่ระบบทันที
+                        Go to Login
                     </Button>
                 </div>
             </div>
@@ -92,10 +92,10 @@ export default function ResetPasswordPage() {
                         <TrendingUp className="w-8 h-8 text-white" />
                     </div>
                     <h1 className="text-2xl font-bold text-[#FAFAFA]">
-                        ตั้งรหัสผ่านใหม่
+                        Reset Password
                     </h1>
                     <p className="text-gray-500 mt-2">
-                        กรุณากรอกรหัสผ่านใหม่ที่คุณต้องการใช้งาน
+                        Please enter your new password
                     </p>
                 </div>
 
@@ -108,7 +108,7 @@ export default function ResetPasswordPage() {
                         )}
 
                         <Input
-                            label="รหัสผ่านใหม่"
+                            label="New Password"
                             type={showPassword ? 'text' : 'password'}
                             placeholder="••••••••"
                             value={password}
@@ -130,7 +130,7 @@ export default function ResetPasswordPage() {
                         />
 
                         <Input
-                            label="ยืนยันรหัสผ่านใหม่"
+                            label="Confirm New Password"
                             type={showConfirmPassword ? 'text' : 'password'}
                             placeholder="••••••••"
                             value={confirmPassword}
@@ -157,7 +157,7 @@ export default function ResetPasswordPage() {
                             size="lg"
                             isLoading={isLoading}
                         >
-                            บันทึกรหัสผ่านใหม่
+                            Save New Password
                         </Button>
                     </form>
                 </div>

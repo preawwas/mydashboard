@@ -38,7 +38,7 @@ function createTransporter() {
 
 // Format date for Thai timezone
 function formatThaiDate(date: Date): string {
-    return date.toLocaleDateString('th-TH', {
+    return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -79,13 +79,13 @@ function generateBackupEmailHtml(
         <div style="background: linear-gradient(135deg, #1C1B16 0%, #15140F 100%); border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 1px solid #2E2C24;">
             <h1 style="color: #F5C542; margin: 0 0 8px 0; font-size: 24px;">💾 Database Backup</h1>
             <p style="color: #A1A1AA; margin: 0; font-size: 14px;">
-                สำรองข้อมูลเมื่อ <strong style="color: #FAFAFA;">${backupDate}</strong>
+                Backup created on <strong style="color: #FAFAFA;">${backupDate}</strong>
             </p>
         </div>
 
         <!-- Summary Card -->
         <div style="background-color: #15140F; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #F5C542; text-align: center;">
-            <p style="color: #A1A1AA; margin: 0 0 8px 0; font-size: 12px; text-transform: uppercase;">จำนวน Records ทั้งหมด</p>
+            <p style="color: #A1A1AA; margin: 0 0 8px 0; font-size: 12px; text-transform: uppercase;">Total Records</p>
             <p style="color: #F5C542; margin: 0; font-size: 32px; font-weight: 700;">${totalRecords.toLocaleString()}</p>
         </div>
 
@@ -107,16 +107,16 @@ function generateBackupEmailHtml(
         <!-- Info -->
         <div style="margin-top: 20px; padding: 16px; background-color: #15140F; border-radius: 12px; border: 1px solid #2E2C24;">
             <p style="color: #A1A1AA; margin: 0; font-size: 13px;">
-                📎 ไฟล์ backup แนบมาพร้อมอีเมลนี้ในรูปแบบ JSON<br>
-                🔒 กรุณาเก็บรักษาไฟล์ไว้ในที่ปลอดภัย
+                📎 Backup file is attached to this email in JSON format.<br>
+                🔒 Please keep the file in a safe place.
             </p>
         </div>
 
         <!-- Footer -->
         <div style="text-align: center; margin-top: 32px; padding-top: 20px; border-top: 1px solid #2E2C24;">
             <p style="color: #71717A; font-size: 12px; margin: 0;">
-                ส่งจาก PWSN Dashboard<br>
-                <span style="color: #A1A1AA;">อีเมลนี้ส่งอัตโนมัติ กรุณาอย่าตอบกลับ</span>
+                Sent from PWSN Dashboard<br>
+                <span style="color: #A1A1AA;">This is an automated email. Please do not reply.</span>
             </p>
         </div>
     </div>

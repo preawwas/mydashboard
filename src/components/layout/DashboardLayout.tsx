@@ -34,11 +34,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     }, [router, setLoading, token, user, isHydrated]);
 
     if (!mounted || isLoading || !isHydrated) {
-        return <Loading fullScreen text="กำลังโหลด..." />;
+        return <Loading fullScreen text="Loading..." />;
     }
 
     if (!user || !token) {
-        return <Loading fullScreen text="กำลังดำเนินการ..." />;
+        return <Loading fullScreen text="Processing..." />;
     }
 
     return (

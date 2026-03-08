@@ -94,7 +94,7 @@ const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCance
     return (
         <div className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-6 bg-card border border-border/50 rounded-3xl p-6 shadow-sm">
-                
+
                 {/* Header & Actions at the top */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border/50">
                     <div className="flex items-center gap-4">
@@ -134,7 +134,7 @@ const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCance
                     {submitted && !title.trim() && (
                         <p className="text-xs font-bold text-rose-500 flex items-center gap-1.5 mt-1.5 ml-1">
                             <AlertCircle className="w-3.5 h-3.5" />
-                            กรุณากรอก Title
+                            Title is required
                         </p>
                     )}
                 </div>

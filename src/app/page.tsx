@@ -26,5 +26,5 @@ export default function HomePage() {
     router.push('/login');
   }, [router]);
 
-  return <Loading fullScreen text="กำลังโหลด..." />;
+  return <Loading fullScreen text="Loading..." />;
 }

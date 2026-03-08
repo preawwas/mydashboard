@@ -16,12 +16,12 @@ export default function ForgotPasswordPage() {
         e.preventDefault();
 
         if (!email) {
-            setError('กรุณากรอกอีเมล');
+            setError('Please enter your email');
             return;
         }
 
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setError('รูปแบบอีเมลไม่ถูกต้อง');
+            setError('Invalid email format');
             return;
         }
 
@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
 
             setIsSubmitted(true);
         } catch (err: any) {
-            setError(err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+            setError(err.message || 'An error occurred. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -63,10 +63,10 @@ export default function ForgotPasswordPage() {
                         <TrendingUp className="w-8 h-8 text-[#15140F]" />
                     </div>
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-[#F5C542] to-[#FFD54F] bg-clip-text text-transparent">
-                        ลืมรหัสผ่าน?
+                        Forgot Password?
                     </h1>
                     <p className="text-[#A1A1AA] mt-2">
-                        กรอกอีเมลของคุณเพื่อรับลิงก์สำหรับตั้งรหัสผ่านใหม่
+                        Enter your email to receive a password reset link
                     </p>
                 </div>
 
@@ -77,19 +77,19 @@ export default function ForgotPasswordPage() {
                                 <CheckCircle className="w-16 h-16 text-[#059669]" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-semibold text-[#FAFAFA]">ส่งลิงก์รีเซ็ตแล้ว!</h3>
+                                <h3 className="text-xl font-semibold text-[#FAFAFA]">Reset link sent!</h3>
                                 <p className="text-[#A1A1AA] mt-2">
-                                    เราได้ส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ไปที่อีเมล<br />
+                                    We have sent a password reset link to<br />
                                     <span className="font-medium text-[#FAFAFA]">{email}</span>
                                 </p>
                             </div>
                             <div className="text-sm text-[#71717A]">
-                                หากไม่ได้รับอีเมล กรุณาตรวจสอบในโฟลเดอร์ขยะ (Spam/Junk)
+                                If you don't receive the email, please check your Spam/Junk folder.
                             </div>
                             <div className="pt-4">
                                 <Link href="/login">
                                     <Button variant="secondary" className="w-full">
-                                        กลับไปหน้าเข้าสู่ระบบ
+                                        Back to Login
                                     </Button>
                                 </Link>
                             </div>
@@ -103,7 +103,7 @@ export default function ForgotPasswordPage() {
                             )}
 
                             <Input
-                                label="อีเมล"
+                                label="Email"
                                 type="email"
                                 placeholder="you@example.com"
                                 value={email}
@@ -118,7 +118,7 @@ export default function ForgotPasswordPage() {
                                 size="lg"
                                 isLoading={isLoading}
                             >
-                                ส่งลิงก์รีเซ็ตรหัสผ่าน
+                                Send Reset Link
                             </Button>
 
                             <div className="text-center mt-4">
@@ -127,7 +127,7 @@ export default function ForgotPasswordPage() {
                                     className="inline-flex items-center text-sm text-[#71717A] hover:text-[#FAFAFA] transition-colors"
                                 >
                                     <ArrowLeft className="w-4 h-4 mr-1" />
-                                    กลับไปหน้าเข้าสู่ระบบ
+                                    Back to Login
                                 </Link>
                             </div>
                         </form>

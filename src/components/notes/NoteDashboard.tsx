@@ -28,7 +28,7 @@ const statusStyles: Record<string, { bg: string; text: string; border: string; d
 };
 
 function getDaysRemainingText(dueDate: string, status?: string, updatedAt?: string): { text: string; isOverdue: boolean; isDueToday?: boolean } {
-    const now = new Date(); 
+    const now = new Date();
     if (status === 'Done' && updatedAt) {
         now.setTime(new Date(updatedAt).getTime());
     }
@@ -72,7 +72,7 @@ const NoteDashboard: React.FC = () => {
     const currentDate = new Date();
     const pastDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, currentDate.getDate());
     const futureDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 6, currentDate.getDate());
-    
+
     // Format to YYYY-MM-DD
     const formatDate = (d: Date) => {
         const year = d.getFullYear();
@@ -141,7 +141,7 @@ const NoteDashboard: React.FC = () => {
                         const existing = prev.filter(id => allIds.includes(id));
                         return [...existing, ...newIds]; // order safely appends at the end
                     });
-                    
+
                     // Don't modify visibleCategories automatically so they stay hidden until explicitly enabled
                     setVisibleCategories(prev => prev.filter(id => allIds.includes(id)));
                 }
@@ -149,7 +149,7 @@ const NoteDashboard: React.FC = () => {
         } catch (error) {
             console.error('Error fetching categories:', error);
         }
-        
+
         // Cleanup old localstorage key if it exists
         localStorage.removeItem('note-dashboard-selected-categories');
     }, []);
@@ -209,7 +209,7 @@ const NoteDashboard: React.FC = () => {
             localStorage.setItem(STORAGE_KEY_VISIBLE, JSON.stringify(visibleCategories));
         }
     }, [visibleCategories]);
-    
+
     useEffect(() => {
         if (categoriesInitialized.current && hasUserChangedSettings.current) {
             localStorage.setItem(STORAGE_KEY_ORDER, JSON.stringify(categoryOrder));
@@ -217,7 +217,7 @@ const NoteDashboard: React.FC = () => {
     }, [categoryOrder]);
 
     const toggleCategorySelection = (id: string) => {
-        setSelectedCategoryIds(prev => 
+        setSelectedCategoryIds(prev =>
             prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
         );
     };
@@ -392,10 +392,10 @@ const NoteDashboard: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 flex-wrap shrink-0">
                     <div className="group/search">
-                        <Input 
-                            placeholder="Search..." 
-                            className="h-10 w-64 md:w-80 bg-card/50 border-border/50 rounded-xl text-sm transition-all" 
-                            value={searchQuery} 
+                        <Input
+                            placeholder="Search..."
+                            className="h-10 w-64 md:w-80 bg-card/50 border-border/50 rounded-xl text-sm transition-all"
+                            value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             leftIcon={<Search className="w-4 h-4 ml-1" />}
                             rightIcon={
@@ -596,8 +596,8 @@ const NoteDashboard: React.FC = () => {
                                 <div
                                     key={status}
                                     className={cn(
-                                        "rounded-2xl border border-t-[3px] transition-all min-h-[400px] min-w-[280px] md:min-w-0 flex flex-col overflow-hidden shadow-sm hover:shadow bg-card/90", 
-                                        style.border, 
+                                        "rounded-2xl border border-t-[3px] transition-all min-h-[400px] min-w-[280px] md:min-w-0 flex flex-col overflow-hidden shadow-sm hover:shadow bg-card/90",
+                                        style.border,
                                         isDragOver ? cn("bg-primary/5 border-primary shadow-[inset_0_0_0_1px_rgba(var(--primary-rgb),0.5)]") : style.bg
                                     )}
                                     onDragOver={(e) => handleDragOver(e, status)}
@@ -616,7 +616,7 @@ const NoteDashboard: React.FC = () => {
                                             {columnNotes.length}
                                         </div>
                                     </div>
-                                    
+
                                     {/* Cards */}
                                     <div className="flex-1 p-3 space-y-3">
                                         {columnNotes.map(note => {
@@ -627,7 +627,7 @@ const NoteDashboard: React.FC = () => {
                                                     {dragOverNoteId === note.note_id && draggedNote?.note_id !== note.note_id && (
                                                         <div className="h-1 rounded-full bg-primary/50 -mt-1 mb-1 mx-2 animate-pulse" />
                                                     )}
-                                                        <div
+                                                    <div
                                                         draggable
                                                         onDragStart={(e) => handleDragStart(e, note)}
                                                         onDragEnd={handleDragEnd}
@@ -663,8 +663,8 @@ const NoteDashboard: React.FC = () => {
                                                                         <span className={cn(
                                                                             "text-[10px] font-bold px-2 py-0.5 rounded-full",
                                                                             deadline.isOverdue ? "bg-rose-500/10 text-rose-600" :
-                                                                            (deadline as any).isDueToday ? "bg-orange-500/15 text-orange-600" :
-                                                                            "bg-primary/10 text-primary"
+                                                                                (deadline as any).isDueToday ? "bg-orange-500/15 text-orange-600" :
+                                                                                    "bg-primary/10 text-primary"
                                                                         )}>
                                                                             {deadline.text}
                                                                         </span>

@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
         if (!user) {
             return NextResponse.json(
-                { success: false, error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
+                { success: false, error: 'Invalid email or password' },
                 { status: 401 }
             );
         }
@@ -33,18 +33,18 @@ export async function POST(request: NextRequest) {
             success: true,
             user,
             token,
-            message: 'เข้าสู่ระบบสำเร็จ',
+            message: 'Login successful',
         });
     } catch (error: unknown) {
         console.error('Login error:', error);
         if (error instanceof Error && error.message === 'Please verify your email address.') {
             return NextResponse.json(
-                { success: false, error: 'กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ' },
+                { success: false, error: 'Please verify your email before logging in' },
                 { status: 403 }
             );
         }
         return NextResponse.json(
-            { success: false, error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+            { success: false, error: 'An error occurred. Please try again.' },
             { status: 500 }
         );
     }

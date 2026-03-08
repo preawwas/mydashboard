@@ -74,7 +74,7 @@ export default function ExpenseDashboard() {
                     <h2 className="text-lg sm:text-xl font-bold text-foreground uppercase tracking-wide">Expense Analytics</h2>
                     <span className="text-lg">💸</span>
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground">วิเคราะห์ค่าใช้จ่ายของคุณ ✨</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">Analyze your spending ✨</p>
             </div>
 
             {/* Top Categories */}

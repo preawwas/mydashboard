@@ -8,11 +8,11 @@ import { cn } from '@/lib/utils';
 
 const ROUTE_LABELS: Record<string, string> = {
     dashboard: 'Dashboard',
-    investments: 'การลงทุน',
-    expenses: 'ค่าใช้จ่าย',
-    settings: 'ตั้งค่า',
-    rent: 'ค่าเช่า',
-    memories: 'ความทรงจำ',
+    investments: 'Investments',
+    expenses: 'Expenses',
+    settings: 'Settings',
+    rent: 'Rent',
+    memories: 'Memories',
 };
 
 const Breadcrumb: React.FC = () => {

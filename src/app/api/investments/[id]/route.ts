@@ -34,7 +34,7 @@ export async function GET(
             .single();
 
         if (error || !investment) {
-            return NextResponse.json({ error: 'ไม่พบข้อมูล' }, { status: 404 });
+            return NextResponse.json({ error: 'Data not found' }, { status: 404 });
         }
 
         const dbInvestment = investment as DbInvestment;
@@ -115,7 +115,7 @@ export async function PATCH(
         if (updateError) {
             console.error('Update investment error:', updateError);
             return NextResponse.json(
-                { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+                { error: 'An error occurred. Please try again.' },
                 { status: 500 }
             );
         }
@@ -123,12 +123,12 @@ export async function PATCH(
         return NextResponse.json({
             success: true,
             data: updatedInvestment,
-            message: 'อัปเดตการลงทุนสำเร็จ',
+            message: 'Investment updated successfully',
         });
     } catch (error) {
         console.error('Update investment error:', error);
         return NextResponse.json(
-            { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+            { error: 'An error occurred. Please try again.' },
             { status: 500 }
         );
     }
@@ -156,7 +156,7 @@ export async function DELETE(
             .single();
 
         if (fetchError || !investment) {
-            return NextResponse.json({ error: 'ไม่พบข้อมูล' }, { status: 404 });
+            return NextResponse.json({ error: 'Data not found' }, { status: 404 });
         }
 
         if (investment.user_id !== user.id) {
@@ -172,19 +172,19 @@ export async function DELETE(
         if (deleteError) {
             console.error('Delete investment error:', deleteError);
             return NextResponse.json(
-                { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+                { error: 'An error occurred. Please try again.' },
                 { status: 500 }
             );
         }
 
         return NextResponse.json({
             success: true,
-            message: 'ลบการลงทุนสำเร็จ',
+            message: 'Investment deleted successfully',
         });
     } catch (error) {
         console.error('Delete investment error:', error);
         return NextResponse.json(
-            { error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+            { error: 'An error occurred. Please try again.' },
             { status: 500 }
         );
     }

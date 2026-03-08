@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useUIStore, useAuthStore, useSettingsStore } from '@/lib/store';
-import { useTranslation } from '@/lib/useTranslation';
 import {
     LayoutDashboard,
     TrendingUp,
@@ -55,14 +54,14 @@ const navItems: NavItem[] = [
                 icon: <StickyNote className="w-4 h-4" />,
             },
             {
-                label: 'Notes',
-                href: '/notes/short-note',
-                icon: <Zap className="w-4 h-4" />,
-            },
-            {
                 label: 'Calendar',
                 href: '/notes/calendar',
                 icon: <CalendarDays className="w-4 h-4" />,
+            },
+            {
+                label: 'Notes',
+                href: '/notes/short-note',
+                icon: <Zap className="w-4 h-4" />,
             },
         ],
     }
@@ -73,7 +72,6 @@ const Sidebar: React.FC = () => {
     const { sidebarOpen, toggleSidebar } = useUIStore();
     const { logout } = useAuthStore();
     const { enableInvestment, enableExpense } = useSettingsStore();
-    const { t } = useTranslation();
     const [expandedMenu, setExpandedMenu] = useState<string | null>(
         pathname.startsWith('/notes') ? 'Notes' : null
     );
@@ -87,12 +85,16 @@ const Sidebar: React.FC = () => {
         setExpandedMenu(prev => prev === label ? null : label);
     };
 
-    const getLabel = (item: NavItem) => {
-        if (item.label === 'Dashboard') return t('common.dashboard');
-        if (item.label === 'Investment') return t('common.investment');
-        if (item.label === 'Expense') return t('common.expense');
-        if (item.label === 'Settings') return t('common.settings');
-        return item.label;
+    const getLabel = (label: string, href: string) => {
+        if (label === 'Dashboard') return 'Dashboard';
+        if (label === 'Investment') return 'Investment';
+        if (label === 'Expense') return 'Expense';
+        if (label === 'Settings') return 'Settings';
+        if (label === 'Notes' && href === '/notes') return 'Notes';
+        if (label === 'Notes' && href === '/notes/short-note') return 'Notes';
+        if (label === 'Journey') return 'Journey';
+        if (label === 'Calendar') return 'Calendar';
+        return label;
     };
 
     const isItemActive = (item: NavItem) => {
@@ -107,7 +109,7 @@ const Sidebar: React.FC = () => {
         if (item.label === 'Investment' && !enableInvestment) return null;
         if (item.label === 'Expense' && !enableExpense) return null;
 
-        const label = getLabel(item);
+        const label = getLabel(item.label, item.href);
         const hasSubItems = item.subItems && item.subItems.length > 0;
         const isExpanded = expandedMenu === item.label;
         const isActive = isItemActive(item);
@@ -167,7 +169,7 @@ const Sidebar: React.FC = () => {
                                         )}
                                     >
                                         {sub.icon}
-                                        <span>{sub.label}</span>
+                                        <span>{getLabel(sub.label, sub.href)}</span>
                                     </Link>
                                 );
                             })}
@@ -230,14 +232,14 @@ const Sidebar: React.FC = () => {
                         )}
                     >
                         <Settings className="w-5 h-5" />
-                        <span>{t('common.settings')}</span>
+                        <span>Settings</span>
                     </Link>
                     <button
                         onClick={() => { toggleSidebar(); handleLogout(); }}
                         className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium text-rose-500 hover:bg-rose-500/10 transition-all duration-200"
                     >
                         <LogOut className="w-5 h-5" />
-                        <span>{t('common.logout')}</span>
+                        <span>Logout</span>
                     </button>
                 </div>
             </div>
@@ -284,7 +286,7 @@ const Sidebar: React.FC = () => {
                         )}
                     >
                         <Settings className={cn("w-5 h-5 transition-colors", pathname === '/settings' ? "text-secondary-foreground" : "text-muted-foreground group-hover:text-foreground")} />
-                        {sidebarOpen && <span className="hidden lg:inline">{t('common.settings')}</span>}
+                        {sidebarOpen && <span className="hidden lg:inline">Settings</span>}
                     </Link>
 
                     <button
@@ -297,7 +299,7 @@ const Sidebar: React.FC = () => {
                         )}
                     >
                         <LogOut className="w-5 h-5" />
-                        {sidebarOpen && <span className="hidden lg:inline">{t('common.logout')}</span>}
+                        {sidebarOpen && <span className="hidden lg:inline">Logout</span>}
                     </button>
                 </div>
 

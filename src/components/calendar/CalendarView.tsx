@@ -397,7 +397,7 @@ const CalendarView: React.FC = () => {
             .filter(n => {
                 if (!n.reminders) return false;
                 const due = new Date(n.reminders.due_date); due.setHours(0, 0, 0, 0);
-                
+
                 if (showOverdue) {
                     // Overdue: past dates, not Done
                     if (due >= todayDate) return false;
@@ -406,7 +406,7 @@ const CalendarView: React.FC = () => {
                     // Upcoming: today or future
                     if (due < todayDate) return false;
                 }
-                
+
                 if (statusFilter !== 'All' && n.status !== statusFilter) return false;
                 return true;
             })
@@ -583,7 +583,7 @@ const CalendarView: React.FC = () => {
                                 <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground">
                                     {showOverdue ? 'Overdue Deadlines' : 'Upcoming Deadlines'}
                                 </CardTitle>
-                                <span className={cn("text-xs font-black px-2.5 py-1 rounded-full border", 
+                                <span className={cn("text-xs font-black px-2.5 py-1 rounded-full border",
                                     showOverdue ? "text-rose-500 bg-rose-500/15 border-rose-500/30" : "text-primary bg-primary/15 border-primary/30"
                                 )}>
                                     {upcomingDeadlines.length}

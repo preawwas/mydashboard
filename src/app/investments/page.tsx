@@ -5,13 +5,11 @@ import { DashboardLayout } from '@/components/layout';
 import { SummaryCards, AssetAllocation, InvestmentTable, InvestmentForm } from '@/components/investments';
 import { Button, Input, Select, Modal } from '@/components/ui';
 import { useLoading } from '@/components/providers/LoadingProvider';
-import { useTranslation } from '@/lib/useTranslation';
 import { InvestmentFilters } from '@/types';
 import { Plus, Search, Filter, X } from 'lucide-react';
 import { useInvestments } from '@/hooks';
 
 export default function InvestmentsPage() {
-    const { t } = useTranslation();
     const { startLoading, stopLoading } = useLoading();
     const {
         investments,
@@ -67,14 +65,14 @@ export default function InvestmentsPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-foreground">{t('common.investment')}</h1>
-                        <p className="text-muted-foreground">{t('investment.managePortfolio')}</p>
+                        <h1 className="text-2xl font-bold text-foreground">Investment</h1>
+                        <p className="text-muted-foreground">Manage your investment portfolio effectively.</p>
                     </div>
                     <Button
                         onClick={openAddModal}
                         leftIcon={<Plus className="w-4 h-4" />}
                     >
-                        {t('investment.addInvestment')}
+                        Add Investment
                     </Button>
                 </div>
 
@@ -88,7 +86,7 @@ export default function InvestmentsPage() {
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
                                 }`}
                         >
-                            {t('common.overview')}
+                            Overview
                         </button>
                         <button
                             onClick={() => setActiveTab('list')}
@@ -97,7 +95,7 @@ export default function InvestmentsPage() {
                                 : 'border-transparent text-muted-foreground hover:text-foreground'
                                 }`}
                         >
-                            {t('investment.investmentList')}
+                            Investment List
                         </button>
                     </nav>
                 </div>
@@ -114,7 +112,7 @@ export default function InvestmentsPage() {
                         <div className="flex flex-col md:flex-row gap-4">
                             <div className="flex-1">
                                 <Input
-                                    placeholder={t('investment.searchPlaceholder')}
+                                    placeholder="Search"
                                     value={searchQuery}
                                     onChange={(e) => handleSearch(e.target.value)}
                                     leftIcon={<Search className="w-4 h-4" />}
@@ -137,14 +135,14 @@ export default function InvestmentsPage() {
                                         : 'bg-transparent border-border text-muted-foreground hover:text-primary hover:border-primary hover:bg-muted/5'
                                     }
                                 >
-                                    {t('common.filter')}
+                                    Filter
                                     {hasActiveFilters && (
                                         <span className="ml-1.5 w-2 h-2 rounded-full bg-primary-foreground" />
                                     )}
                                 </Button>
                                 {hasActiveFilters && (
                                     <Button variant="ghost" onClick={clearFilters} className="text-muted-foreground hover:text-foreground hover:bg-muted/10">
-                                        {t('common.clear')}
+                                        Clear
                                     </Button>
                                 )}
                             </div>
@@ -154,12 +152,12 @@ export default function InvestmentsPage() {
                         {showFilters && (
                             <div className="p-4 rounded-xl bg-card border border-border grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                 <Select
-                                    label={t('investment.assetType')}
-                                    placeholder={t('common.all')}
+                                    label="Assetype"
+                                    placeholder="All"
                                     options={[
-                                        { value: 'GOLD', label: t('investment.type.gold') },
-                                        { value: 'CRYPTO', label: t('investment.type.crypto') },
-                                        { value: 'STOCK', label: t('investment.type.stock') },
+                                        { value: 'GOLD', label: 'Gold' },
+                                        { value: 'CRYPTO', label: 'Crypto' },
+                                        { value: 'STOCK', label: 'Stock' },
                                     ]}
                                     value={filters.asset_category || ''}
                                     onChange={(value) =>
@@ -167,8 +165,8 @@ export default function InvestmentsPage() {
                                     }
                                 />
                                 <Select
-                                    label={t('investment.strategy')}
-                                    placeholder={t('common.all')}
+                                    label="Strategy"
+                                    placeholder="All"
                                     options={[
                                         { value: 'DCA', label: 'DCA' },
                                         { value: 'LONG_TERM', label: 'Long Term' },
@@ -180,11 +178,11 @@ export default function InvestmentsPage() {
                                     }
                                 />
                                 <Select
-                                    label={t('common.status')}
-                                    placeholder={t('common.all')}
+                                    label="Status"
+                                    placeholder="All"
                                     options={[
-                                        { value: 'OPEN', label: t('investment.status.open') },
-                                        { value: 'CLOSED', label: t('investment.status.closed') },
+                                        { value: 'OPEN', label: 'Open' },
+                                        { value: 'CLOSED', label: 'Closed' },
                                     ]}
                                     value={filters.status || ''}
                                     onChange={(value) =>
@@ -226,20 +224,20 @@ export default function InvestmentsPage() {
                     <Modal
                         isOpen={!!deleteConfirm}
                         onClose={() => setDeleteConfirm(null)}
-                        title={t('common.deleteTitle')}
+                        title="Delete Item"
                         size="sm"
                     >
                         <div className="space-y-4">
                             <p className="text-muted-foreground">
-                                {t('common.deleteMessage').replace('{item}', `${deleteConfirm.asset_code} (${deleteConfirm.asset_name})`)}
+                                Are you sure you want to delete {deleteConfirm.asset_code} ({deleteConfirm.asset_name})?
                             </p>
-                            <p className="text-sm text-rose-500">{t('common.cannotUndo')}</p>
+                            <p className="text-sm text-rose-500">This action cannot be undone.</p>
                             <div className="flex justify-end gap-3 pt-4">
                                 <Button variant="secondary" onClick={() => setDeleteConfirm(null)} disabled={deleting}>
-                                    {t('common.cancel')}
+                                    Cancel
                                 </Button>
                                 <Button variant="danger" onClick={handleDeleteInvestment} isLoading={deleting}>
-                                    {t('common.delete')}
+                                    Delete
                                 </Button>
                             </div>
                         </div>

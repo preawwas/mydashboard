@@ -34,7 +34,7 @@ function Table<T>({
     columns,
     keyExtractor,
     isLoading = false,
-    emptyMessage = 'ไม่มีข้อมูล',
+    emptyMessage = 'No data available',
     onRowClick,
     pagination,
 }: TableProps<T>) {
@@ -120,7 +120,7 @@ function Table<T>({
                 <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/5">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <label htmlFor="pagination-limit" className="sr-only">Items per page</label>
-                        <span aria-hidden="true">แสดง</span>
+                        <span aria-hidden="true">Show</span>
                         <select
                             id="pagination-limit"
                             value={pagination.limit}
@@ -132,7 +132,7 @@ function Table<T>({
                             <option value={20}>20</option>
                             <option value={50}>50</option>
                         </select>
-                        <span>รายการ จากทั้งหมด {pagination.total} รายการ</span>
+                        <span>entries of {pagination.total} total</span>
                     </div>
 
                     <div className="flex items-center gap-1">
@@ -153,7 +153,7 @@ function Table<T>({
                             <ChevronLeft className="w-4 h-4" aria-hidden="true" />
                         </button>
                         <span className="px-4 py-2 text-sm font-medium text-foreground">
-                            หน้า {pagination.page} จาก {pagination.totalPages || 1}
+                            Page {pagination.page} of {pagination.totalPages || 1}
                         </span>
                         <button
                             onClick={() => pagination.onPageChange(pagination.page + 1)}

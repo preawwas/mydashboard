@@ -123,7 +123,7 @@ const ShortNoteCard: React.FC<ShortNoteCardProps> = ({ note, onUpdate, onEdit })
         >
             {/* Card Header */}
             <div className="flex items-start justify-between gap-4 mb-3">
-                <h3 
+                <h3
                     className="font-black text-foreground leading-tight line-clamp-2 transition-colors group-hover:text-primary"
                     title={note.title || 'Untitled Note'}
                 >

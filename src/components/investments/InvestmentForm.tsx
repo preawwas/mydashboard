@@ -6,7 +6,6 @@ import { InvestmentFormData, SellRecord, SellRecordWithId } from '@/types';
 import { getCurrentLocalDate } from '@/lib/utils';
 import InvestmentDetails from './InvestmentDetails';
 import SellHistoryList from './SellHistoryList';
-import { useTranslation } from '@/lib/useTranslation';
 
 interface InvestmentFormProps {
     isOpen: boolean;
@@ -23,7 +22,6 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
     initialData,
     mode,
 }) => {
-    const { t } = useTranslation();
     const [activeTab, setActiveTab] = useState<'details' | 'sell_history'>('details');
     const idCounterRef = useRef(0);
 
@@ -80,21 +78,21 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
-        if (!formData.asset_code) newErrors.asset_code = t('investment.errors.assetCodeRequired');
-        if (!formData.asset_name) newErrors.asset_name = t('investment.errors.assetNameRequired');
-        if (formData.buy_quantity <= 0) newErrors.buy_quantity = t('investment.errors.qtyRequired');
-        if (formData.buy_price_per_unit <= 0) newErrors.buy_price_per_unit = t('investment.errors.priceRequired');
+        if (!formData.asset_code) newErrors.asset_code = 'Asset code is required';
+        if (!formData.asset_name) newErrors.asset_name = 'Asset name is required';
+        if (formData.buy_quantity <= 0) newErrors.buy_quantity = 'Quantity is required';
+        if (formData.buy_price_per_unit <= 0) newErrors.buy_price_per_unit = 'Price is required';
 
         // Validate Sell History
         formData.sell_history.forEach((sell, index) => {
             if (sell.qty <= 0) {
-                newErrors[`sell_history_${index}_qty`] = t('investment.errors.qtyRequired');
+                newErrors[`sell_history_${index}_qty`] = 'Quantity is required';
             }
             if (sell.price <= 0) {
-                newErrors[`sell_history_${index}_price`] = t('investment.errors.priceRequired');
+                newErrors[`sell_history_${index}_price`] = 'Price is required';
             }
             if (sell.fee < 0) {
-                newErrors[`sell_history_${index}_fee`] = t('investment.errors.feeRequired');
+                newErrors[`sell_history_${index}_fee`] = 'Fee is required';
             }
         });
 
@@ -175,7 +173,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={mode === 'add' ? t('investment.addNew') : t('investment.edit')}
+            title={mode === 'add' ? 'Add New Investment' : 'Edit Investment'}
             size="xl"
             className="max-w-[950px]"
         >
@@ -190,7 +188,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                             : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
                     >
-                        {t('investment.details')}
+                        Investment Details
                     </button>
                     <button
                         type="button"
@@ -200,7 +198,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                             : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
                     >
-                        {t('investment.sellHistory')}
+                        Sell History
                         {formData.sell_history.length > 0 && (
                             <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-primary/10 text-primary font-bold">
                                 {formData.sell_history.length}
@@ -233,10 +231,10 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 {/* Actions */}
                 <div className="flex justify-end gap-2 sm:gap-3 pt-4 border-t border-border flex-shrink-0">
                     <Button type="button" variant="secondary" onClick={onClose} className="px-4 sm:px-6">
-                        {t('common.cancel')}
+                        Cancel
                     </Button>
                     <Button type="submit" isLoading={isLoading} className="px-4 sm:px-6">
-                        {t('common.save')}
+                        Save
                     </Button>
                 </div>
             </form>

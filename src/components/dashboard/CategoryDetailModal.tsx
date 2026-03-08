@@ -60,7 +60,7 @@ export default function CategoryDetailModal({ isOpen, onClose, categoryId, categ
             isOpen={isOpen}
             onClose={onClose}
             title={categoryName}
-            description="สรุปยอดค่าใช้จ่ายรายเดือนตามปีที่เลือก"
+            description="Monthly expense summary for the selected year"
             size="sm"
         >
             {loading ? (
@@ -92,8 +92,8 @@ export default function CategoryDetailModal({ isOpen, onClose, categoryId, categ
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="text-muted-foreground border-b border-border">
-                                <th className="pb-4 font-medium text-left">เดือน</th>
-                                <th className="pb-4 font-medium text-right">ยอดรวม</th>
+                                <th className="pb-4 font-medium text-left">Month</th>
+                                <th className="pb-4 font-medium text-right">Total</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
@@ -110,7 +110,7 @@ export default function CategoryDetailModal({ isOpen, onClose, categoryId, categ
                                         <div className="text-muted/20 mb-2 flex justify-center">
                                             <Loader2 className="w-8 h-8" />
                                         </div>
-                                        <p className="text-muted-foreground">ไม่มีข้อมูลสำหรับปี {selectedYear}</p>
+                                        <p className="text-muted-foreground">No data for year {selectedYear}</p>
                                     </td>
                                 </tr>
                             )}

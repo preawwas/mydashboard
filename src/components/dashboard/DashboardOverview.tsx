@@ -59,7 +59,7 @@ export default function DashboardOverview() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-                    <p className="text-sm text-muted-foreground">ภาพรวมการเงินของคุณ</p>
+                    <p className="text-sm text-muted-foreground">Your financial overview</p>
                 </div>
                 <div className="flex gap-2">
                     <Link
@@ -103,7 +103,7 @@ export default function DashboardOverview() {
                 <StatCard
                     title="Open Positions"
                     value={(investmentStats?.openPositions || 0).toString()}
-                    subtitle="รายการ"
+                    subtitle="Positions"
                     icon={<TrendingUp className="w-5 h-5" />}
                     color="purple"
                 />
@@ -115,7 +115,7 @@ export default function DashboardOverview() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-base font-semibold">Asset Allocation</CardTitle>
-                        <p className="text-sm text-muted-foreground">สัดส่วนการลงทุน</p>
+                        <p className="text-sm text-muted-foreground">Investment allocation</p>
                     </CardHeader>
                     <CardContent>
                         <div className="h-[280px]">
@@ -159,7 +159,7 @@ export default function DashboardOverview() {
                                 </ResponsiveContainer>
                             ) : (
                                 <div className="flex items-center justify-center h-full text-[#71717A]">
-                                    <p>ยังไม่มีข้อมูลการลงทุน</p>
+                                    <p>No investment data available</p>
                                 </div>
                             )}
                         </div>
@@ -170,7 +170,7 @@ export default function DashboardOverview() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-base font-semibold">Monthly Expenses</CardTitle>
-                        <p className="text-sm text-muted-foreground">ค่าใช้จ่ายรายเดือน</p>
+                        <p className="text-sm text-muted-foreground">Monthly expense trend</p>
                     </CardHeader>
                     <CardContent>
                         <div className="h-[280px]">
@@ -235,7 +235,7 @@ export default function DashboardOverview() {
                             href="/investments"
                             className="text-primary text-sm hover:underline flex items-center gap-1"
                         >
-                            ดูทั้งหมด <ArrowUpRight className="w-3 h-3" />
+                            View All <ArrowUpRight className="w-3 h-3" />
                         </Link>
                     </CardHeader>
                     <CardContent>
@@ -260,9 +260,9 @@ export default function DashboardOverview() {
                         ) : (
                             <div className="text-center py-8 text-muted-foreground">
                                 <PiggyBank className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                                <p>ยังไม่มีการลงทุน</p>
+                                <p>No investments yet</p>
                                 <Link href="/investments" className="text-primary text-sm mt-2 inline-block">
-                                    เริ่มลงทุน →
+                                    Start investing →
                                 </Link>
                             </div>
                         )}
@@ -274,13 +274,13 @@ export default function DashboardOverview() {
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                             <CardTitle className="text-base font-semibold">Top Spending</CardTitle>
-                            <p className="text-sm text-muted-foreground">หมวดหมู่ค่าใช้จ่ายสูงสุด</p>
+                            <p className="text-sm text-muted-foreground">Top expense categories</p>
                         </div>
                         <Link
                             href="/expenses"
                             className="text-primary text-sm hover:underline flex items-center gap-1"
                         >
-                            ดูทั้งหมด <ArrowUpRight className="w-3 h-3" />
+                            View All <ArrowUpRight className="w-3 h-3" />
                         </Link>
                     </CardHeader>
                     <CardContent>
@@ -318,9 +318,9 @@ export default function DashboardOverview() {
                         ) : (
                             <div className="text-center py-8 text-muted-foreground">
                                 <Wallet className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                                <p>ยังไม่มีค่าใช้จ่าย</p>
+                                <p>No expenses yet</p>
                                 <Link href="/expenses" className="text-primary text-sm mt-2 inline-block">
-                                    บันทึกค่าใช้จ่าย →
+                                    Record expense →
                                 </Link>
                             </div>
                         )}

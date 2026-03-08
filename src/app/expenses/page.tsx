@@ -4,16 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Button, Card, CardHeader, CardTitle, CardContent, Input, Table, Modal } from '@/components/ui';
 import { Plus, Search, Filter, Calendar, Edit, Trash2, Bell } from 'lucide-react';
-import { useLanguageStore } from '@/lib/store';
 import { cn, getMonthlyPendingAmount } from '@/lib/utils';
-import { useTranslation } from '@/lib/useTranslation';
 import ExpenseFormModal from '@/components/expenses/ExpenseFormModal';
 import { useExpenses, Expense } from '@/hooks';
 import { useLoading } from '@/components/providers/LoadingProvider';
 
 export default function ExpensesPage() {
-    const { language } = useLanguageStore();
-    const { t } = useTranslation();
     const { startLoading, stopLoading } = useLoading();
 
     const {
@@ -67,7 +63,7 @@ export default function ExpensesPage() {
     };
 
     const formatHeader = (text: string) => {
-        return language === 'en' ? text.toUpperCase() : text;
+        return text.toUpperCase();
     };
 
     const columns = [
@@ -81,7 +77,7 @@ export default function ExpensesPage() {
                     }}
                     className="flex items-center gap-1 hover:text-foreground transition-colors"
                 >
-                    {formatHeader(t('common.dateRange').split(' ')[0])} {/* Hacky, but works for "Date" */}
+                    {formatHeader('DATE')}
                     {sortField === 'date' && (
                         <span className="text-[10px]">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
@@ -91,12 +87,12 @@ export default function ExpensesPage() {
         },
         {
             key: 'item_name',
-            header: formatHeader(t('common.item')),
+            header: formatHeader('ITEM'),
             render: (item: any) => <span className="font-medium text-foreground">{item.item_name}</span>
         },
         {
             key: 'category',
-            header: formatHeader(t('common.category')),
+            header: formatHeader('CATEGORY'),
             render: (item: any) => (
                 <span className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium bg-muted/10 text-foreground">
                     {item.categories?.name || 'Uncategorized'}
@@ -116,7 +112,7 @@ export default function ExpensesPage() {
                         (filters.minAmount || filters.maxAmount) && "text-primary"
                     )}
                 >
-                    {formatHeader(t('expenses.amount'))}
+                    {formatHeader('AMOUNT')}
                     {sortField === 'amount' && (
                         <span className="text-[10px]">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
@@ -127,13 +123,13 @@ export default function ExpensesPage() {
                     "font-medium",
                     item.payment_type === 'INSTALLMENT' ? "text-orange-400" : "text-foreground"
                 )}>
-                    {new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(item.amount_total)}
+                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB' }).format(item.amount_total)}
                 </span>
             )
         },
         {
             key: 'payment',
-            header: formatHeader(t('common.payment')),
+            header: formatHeader('PAYMENT'),
             render: (item: any) => (
                 <span className="text-muted-foreground">
                     {item.payment_channels?.name}
@@ -143,7 +139,7 @@ export default function ExpensesPage() {
         },
         {
             key: 'status',
-            header: formatHeader(t('common.status')),
+            header: formatHeader('STATUS'),
             render: (item: any) => (
                 <span className={cn(
                     "px-2 py-1 rounded text-xs font-medium",
@@ -151,13 +147,13 @@ export default function ExpensesPage() {
                         ? "bg-green-500/10 text-green-500"
                         : "bg-orange-500/10 text-orange-500"
                 )}>
-                    {item.status === 'PAID' ? t('expenses.filters.paid') : t('expenses.filters.pending')}
+                    {item.status === 'PAID' ? 'Paid' : 'Pending'}
                 </span>
             )
         },
         {
             key: 'manage',
-            header: formatHeader(t('common.manage')),
+            header: formatHeader('MANAGE'),
             render: (item: any) => (
                 <div className="flex items-center gap-2">
                     <button
@@ -186,15 +182,15 @@ export default function ExpensesPage() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-foreground uppercase tracking-tight">{t('expenses.title')}</h1>
-                        <p className="text-xs sm:text-sm text-muted-foreground">{t('expenses.subtitle')}</p>
+                        <h1 className="text-xl sm:text-2xl font-bold text-foreground uppercase tracking-tight">Expenses</h1>
+                        <p className="text-xs sm:text-sm text-muted-foreground">Track and manage your daily spending.</p>
                     </div>
                     <Button
                         onClick={() => { setEditId(null); setIsModalOpen(true); }}
                         className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold py-2 sm:py-2.5 text-sm"
                     >
                         <Plus className="w-4 h-4 mr-2" />
-                        {t('expenses.addExpense')}
+                        Add Expense
                     </Button>
                 </div>
 
@@ -212,13 +208,13 @@ export default function ExpensesPage() {
                                 </button>
                                 <div className="min-w-0">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <CardTitle className="text-base sm:text-lg font-bold text-foreground">{t('expenses.monthlyReminders')}</CardTitle>
+                                        <CardTitle className="text-base sm:text-lg font-bold text-foreground">Monthly Reminders</CardTitle>
                                         <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black">
                                             ฿{totalPending.toLocaleString()}
                                         </span>
                                     </div>
                                     <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                                        {t('expenses.pendingItems').replace('{count}', pendingExpenses.length.toString())}
+                                        You have {pendingExpenses.length} pending items this month.
                                     </p>
                                 </div>
                             </div>
@@ -263,14 +259,14 @@ export default function ExpensesPage() {
                 <Card>
                     <CardHeader className="pb-0">
                         <div className="flex flex-col space-y-4">
-                            <CardTitle className="text-lg sm:text-xl font-bold">{t('expenses.history')}</CardTitle>
+                            <CardTitle className="text-lg sm:text-xl font-bold">Expense History</CardTitle>
 
                             <div className="space-y-4 bg-muted/5 p-3 sm:p-4 rounded-xl border border-border">
                                 <div className="flex flex-col xl:flex-row gap-4">
                                     <div className="relative flex-1">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                         <Input
-                                            placeholder={t('common.search')}
+                                            placeholder="Search"
                                             className="pl-9 w-full bg-background border-border text-foreground text-sm h-10"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -282,7 +278,7 @@ export default function ExpensesPage() {
                                             value={filters.category}
                                             onChange={(e) => setFilters({ category: e.target.value })}
                                         >
-                                            <option value="ALL">{t('expenses.filters.allCategories')}</option>
+                                            <option value="ALL">All Categories</option>
                                             {categories.map(cat => (
                                                 <option key={cat.id} value={cat.id}>{cat.name}</option>
                                             ))}
@@ -292,7 +288,7 @@ export default function ExpensesPage() {
                                             value={filters.payment}
                                             onChange={(e) => setFilters({ payment: e.target.value })}
                                         >
-                                            <option value="ALL">{t('expenses.filters.allPayments')}</option>
+                                            <option value="ALL">All Payments</option>
                                             {paymentChannels.map(chan => (
                                                 <option key={chan.id} value={chan.id}>{chan.name}</option>
                                             ))}
@@ -302,9 +298,9 @@ export default function ExpensesPage() {
                                             value={filters.status}
                                             onChange={(e) => setFilters({ status: e.target.value })}
                                         >
-                                            <option value="ALL">{t('expenses.filters.allStatus')}</option>
-                                            <option value="PAID">{t('expenses.filters.paid')}</option>
-                                            <option value="PENDING">{t('expenses.filters.pending')}</option>
+                                            <option value="ALL">All Status</option>
+                                            <option value="PAID">Paid</option>
+                                            <option value="PENDING">Pending</option>
                                         </select>
                                     </div>
                                 </div>
@@ -336,7 +332,7 @@ export default function ExpensesPage() {
                                             <Input
                                                 type="number"
                                                 inputMode="decimal"
-                                                placeholder={t('common.min')}
+                                                placeholder="Min"
                                                 className="h-9 py-1 text-xs bg-background border-border pl-6 w-full"
                                                 value={filters.minAmount}
                                                 onChange={(e) => setFilters({ minAmount: e.target.value })}
@@ -348,7 +344,7 @@ export default function ExpensesPage() {
                                             <Input
                                                 type="number"
                                                 inputMode="decimal"
-                                                placeholder={t('common.max')}
+                                                placeholder="Max"
                                                 className="h-9 py-1 text-xs bg-background border-border pl-6 w-full"
                                                 value={filters.maxAmount}
                                                 onChange={(e) => setFilters({ maxAmount: e.target.value })}
@@ -362,7 +358,7 @@ export default function ExpensesPage() {
                                             className="text-[10px] sm:text-xs text-primary hover:bg-primary/10 h-8 px-2 shrink-0"
                                             onClick={clearFilters}
                                         >
-                                            {t('common.clear')}
+                                            Clear
                                         </Button>
                                     )}
                                 </div>
@@ -375,7 +371,7 @@ export default function ExpensesPage() {
                             columns={columns}
                             keyExtractor={(item) => item.id}
                             isLoading={loading}
-                            emptyMessage={t('expenses.noExpenses')}
+                            emptyMessage="No expenses found."
                         />
 
                         {/* Pagination Controls */}
@@ -441,8 +437,8 @@ export default function ExpensesPage() {
             <Modal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
-                title={t('common.deleteTitle')}
-                description={t('common.confirmDelete')}
+                title="Delete Item"
+                description="Are you sure you want to delete this expense?"
             >
                 <div className="space-y-4">
                     {itemToDelete && (
@@ -457,14 +453,14 @@ export default function ExpensesPage() {
                             onClick={() => setIsDeleteModalOpen(false)}
                             className="bg-transparent border-border"
                         >
-                            {t('common.cancel')}
+                            Cancel
                         </Button>
                         <Button
                             onClick={handleDelete}
                             isLoading={deleting}
                             className="bg-red-500 text-white hover:bg-red-600 border-none min-w-[80px]"
                         >
-                            {t('common.delete')}
+                            Delete
                         </Button>
                     </div>
                 </div>

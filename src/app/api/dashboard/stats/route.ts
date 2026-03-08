@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
         if (error) {
             console.error('Get investments error:', error);
             return NextResponse.json(
-                { error: 'เกิดข้อผิดพลาดในการดึงข้อมูล' },
+                { error: 'Failed to fetch data' },
                 { status: 500 }
             );
         }
@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         console.error('Dashboard stats error:', error);
         return NextResponse.json(
-            { error: 'เกิดข้อผิดพลาดในการคำนวณสถิติ' },
+            { error: 'Error calculating statistics' },
             { status: 500 }
         );
     }

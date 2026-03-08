@@ -194,23 +194,13 @@ export const useSettingsStore = create<SettingsState>()(
     )
 );
 
-// Language Store
+// Language Store (Simplified to English only)
 interface LanguageState {
-    language: 'en' | 'th';
-    setLanguage: (lang: 'en' | 'th') => void;
+    language: 'en';
 }
 
-export const useLanguageStore = create<LanguageState>()(
-    persist(
-        (set) => ({
-            language: 'en',
-            setLanguage: (language) => set({ language }),
-        }),
-        {
-            name: 'language-storage',
-            partialize: (state) => ({ language: state.language }),
-        }
-    )
-);
+export const useLanguageStore = create<LanguageState>(() => ({
+    language: 'en',
+}));
 
 

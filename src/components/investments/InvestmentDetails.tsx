@@ -1,7 +1,6 @@
 import React, { memo, useCallback } from 'react';
 import { Input, Select } from '@/components/ui';
 import { InvestmentFormData } from '@/types';
-import { useTranslation } from '@/lib/useTranslation';
 
 interface InvestmentDetailsProps {
     formData: InvestmentFormData;
@@ -16,15 +15,14 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
     onChange,
     clearError,
 }) => {
-    const { t } = useTranslation();
 
     const assetCategoryOptions = [
-        { value: 'GOLD', label: t('investment.type.gold') },
-        { value: 'CRYPTO', label: t('investment.type.crypto') },
-        { value: 'STOCK', label: t('investment.type.stock') },
-        { value: 'FUND', label: t('investment.type.fund') },
+        { value: 'GOLD', label: 'Gold' },
+        { value: 'CRYPTO', label: 'Crypto' },
+        { value: 'STOCK', label: 'Stock' },
+        { value: 'FUND', label: 'Fund' },
         { value: 'USD', label: 'USD' },
-        { value: 'OTHER', label: t('common.others') },
+        { value: 'OTHER', label: 'Others' },
     ];
 
     const marketOptions = [
@@ -34,7 +32,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
         { value: 'DIME', label: 'DIME' },
         { value: 'SET', label: 'SET' },
         { value: 'MUTUAL_FUND', label: 'Mutual Fund' },
-        { value: 'OTHER', label: t('common.others') },
+        { value: 'OTHER', label: 'Others' },
     ];
 
     const strategyOptions = [
@@ -44,8 +42,8 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
     ];
 
     const statusOptions = [
-        { value: 'OPEN', label: t('investment.status.open') },
-        { value: 'CLOSED', label: t('investment.status.closed') },
+        { value: 'OPEN', label: 'Open' },
+        { value: 'CLOSED', label: 'Closed' },
     ];
 
     const currencyOptions = [
@@ -110,8 +108,8 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 {/* Row 1: Identity & Classification */}
                 <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Input
-                        label={t('investment.assetCode')}
-                        placeholder={t('investment.enterAssetCode')}
+                        label="Asset Code"
+                        placeholder="Enter Asset Code"
                         value={formData.asset_code}
                         onChange={handleAssetCodeChange}
                         error={errors.asset_code}
@@ -120,8 +118,8 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 sm:col-span-6 md:col-span-6">
                     <Input
-                        label={t('investment.assetName')}
-                        placeholder={t('investment.enterAssetName')}
+                        label="Asset Name"
+                        placeholder="Enter Asset Name"
                         value={formData.asset_name}
                         onChange={handleAssetNameChange}
                         error={errors.asset_name}
@@ -130,7 +128,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 sm:col-span-12 md:col-span-3">
                     <Select
-                        label={t('investment.type.label')}
+                        label="Type"
                         options={assetCategoryOptions}
                         value={formData.asset_category}
                         onChange={handleAssetCategoryChange}
@@ -140,7 +138,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 {/* Row 2: Market & Strategy Setup */}
                 <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Select
-                        label={t('investment.market')}
+                        label="Market"
                         options={marketOptions}
                         value={formData.market}
                         onChange={handleMarketChange}
@@ -148,7 +146,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Select
-                        label={t('investment.strategy')}
+                        label="Strategy"
                         options={strategyOptions}
                         value={formData.strategy_type}
                         onChange={handleStrategyChange}
@@ -156,7 +154,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Select
-                        label={t('common.status')}
+                        label="Status"
                         options={statusOptions}
                         value={formData.status}
                         onChange={handleStatusChange}
@@ -164,7 +162,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Input
-                        label={t('investment.buyDate')}
+                        label="Buy Date"
                         type="date"
                         value={formData.buy_datetime}
                         onChange={handleBuyDatetimeChange}
@@ -174,7 +172,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 {/* Row 3: Transaction Numbers */}
                 <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Input
-                        label={t('investment.buyQty')}
+                        label="Buy Quantity"
                         type="number"
                         step="0.00000001"
                         placeholder="0.00"
@@ -186,7 +184,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Input
-                        label={t('investment.buyPrice')}
+                        label="Price Per Unit"
                         type="number"
                         step="0.01"
                         placeholder="0.00"
@@ -198,7 +196,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Select
-                        label={t('investment.currency')}
+                        label="Currency"
                         options={currencyOptions}
                         value={formData.buy_currency}
                         onChange={handleBuyCurrencyChange}
@@ -206,7 +204,7 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 </div>
                 <div className="col-span-12 sm:col-span-6 md:col-span-3">
                     <Input
-                        label={t('investment.fee')}
+                        label="Fee"
                         type="number"
                         step="0.01"
                         placeholder="0.00"
@@ -218,12 +216,12 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
                 {/* Row 4: Note */}
                 <div className="col-span-12 mt-2">
                     <label className="block text-sm font-medium text-muted-foreground mb-1.5 px-0.5">
-                        {t('common.notes')}
+                        Notes
                     </label>
                     <textarea
                         className="w-full px-4 py-3 bg-secondary/30 border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all resize-none shadow-sm"
                         rows={3}
-                        placeholder={t('investment.notesPlaceholder')}
+                        placeholder="Additional notes..."
                         value={formData.note}
                         onChange={handleNoteChange}
                     />

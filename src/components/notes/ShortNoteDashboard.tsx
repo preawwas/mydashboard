@@ -544,100 +544,100 @@ const ShortNoteDashboard: React.FC = () => {
                             const usageCount = notes.filter(n => n.tags?.some(t => t.id === tag.id)).length;
                             const isDeleting = deletingTagId === tag.id;
 
-                                // Disable deletion if tag is used OR if it's the fixed general tag
-                                const disableDelete = usageCount > 0 || isGeneralTag;
-                                const deleteTooltip = isGeneralTag
-                                    ? "System tag cannot be deleted"
-                                    : usageCount > 0 ? "Cannot delete tag in use" : "Delete tag";
+                            // Disable deletion if tag is used OR if it's the fixed general tag
+                            const disableDelete = usageCount > 0 || isGeneralTag;
+                            const deleteTooltip = isGeneralTag
+                                ? "System tag cannot be deleted"
+                                : usageCount > 0 ? "Cannot delete tag in use" : "Delete tag";
 
-                                const isEditing = editingTagId === tag.id;
+                            const isEditing = editingTagId === tag.id;
 
-                                if (isEditing) {
-                                    return (
-                                        <div key={tag.id} className="p-3 rounded-xl border bg-card/50 space-y-3">
-                                            <Input
-                                                value={editingTagText}
-                                                onChange={(e) => setEditingTagText(e.target.value)}
-                                                className="h-9 text-sm font-bold bg-background"
-                                                autoFocus
-                                            />
-                                            <div className="flex flex-wrap gap-1.5 px-1 mt-2">
-                                                {TAG_COLORS.map(color => (
-                                                    <button
-                                                        key={color.label}
-                                                        type="button"
-                                                        onClick={() => setEditingTagColor(color.value)}
-                                                        className={cn(
-                                                            "w-6 h-6 rounded-full flex items-center justify-center transition-all border-2",
-                                                            getSolidColorClass(color.value),
-                                                            editingTagColor === color.value ? "ring-2 ring-primary ring-offset-1 scale-110 shadow-sm border-transparent" : "border-transparent opacity-50 hover:opacity-100"
-                                                        )}
-                                                        title={color.label}
-                                                    >
-                                                        {editingTagColor === color.value && <div className="w-2 h-2 rounded-full bg-current opacity-90" />}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            <div className="flex justify-end gap-2 pt-2 border-t border-border/50">
-                                                <Button variant="ghost" size="sm" onClick={() => setEditingTagId(null)} className="h-7 text-xs px-3">Cancel</Button>
-                                                <Button 
-                                                    size="sm" 
-                                                    className="h-7 text-xs px-3 font-bold"
-                                                    disabled={!editingTagText.trim() || isSavingEditTagId === tag.id}
-                                                    onClick={() => handleSaveEditTag(tag.id)}
-                                                >
-                                                    {isSavingEditTagId === tag.id ? 'Saving...' : 'Save'}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    );
-                                }
-
+                            if (isEditing) {
                                 return (
-                                    <div key={tag.id} className="flex items-center justify-between p-3 rounded-xl border bg-card/50 hover:bg-muted/30 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <div className={cn("w-3 h-3 rounded-full", parsed.colorClasses.split(' ')[0])} />
-                                            <div>
-                                                <p className="font-bold text-sm text-foreground">
-                                                    {parsed.text}
-                                                    {isGeneralTag && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary uppercase font-bold tracking-wider">Default</span>}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground mt-0.5">
-                                                    {usageCount} {usageCount === 1 ? 'note' : 'notes'}
-                                                </p>
-                                            </div>
+                                    <div key={tag.id} className="p-3 rounded-xl border bg-card/50 space-y-3">
+                                        <Input
+                                            value={editingTagText}
+                                            onChange={(e) => setEditingTagText(e.target.value)}
+                                            className="h-9 text-sm font-bold bg-background"
+                                            autoFocus
+                                        />
+                                        <div className="flex flex-wrap gap-1.5 px-1 mt-2">
+                                            {TAG_COLORS.map(color => (
+                                                <button
+                                                    key={color.label}
+                                                    type="button"
+                                                    onClick={() => setEditingTagColor(color.value)}
+                                                    className={cn(
+                                                        "w-6 h-6 rounded-full flex items-center justify-center transition-all border-2",
+                                                        getSolidColorClass(color.value),
+                                                        editingTagColor === color.value ? "ring-2 ring-primary ring-offset-1 scale-110 shadow-sm border-transparent" : "border-transparent opacity-50 hover:opacity-100"
+                                                    )}
+                                                    title={color.label}
+                                                >
+                                                    {editingTagColor === color.value && <div className="w-2 h-2 rounded-full bg-current opacity-90" />}
+                                                </button>
+                                            ))}
                                         </div>
-                                        <div className="flex items-center gap-1">
+                                        <div className="flex justify-end gap-2 pt-2 border-t border-border/50">
+                                            <Button variant="ghost" size="sm" onClick={() => setEditingTagId(null)} className="h-7 text-xs px-3">Cancel</Button>
                                             <Button
-                                                variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                                                disabled={isGeneralTag}
-                                                onClick={() => {
-                                                    setEditingTagId(tag.id);
-                                                    setEditingTagText(parsed.text);
-                                                    setEditingTagColor(parsed.colorClasses);
-                                                }}
-                                                title={isGeneralTag ? "System tag cannot be edited" : "Edit tag"}
+                                                className="h-7 text-xs px-3 font-bold"
+                                                disabled={!editingTagText.trim() || isSavingEditTagId === tag.id}
+                                                onClick={() => handleSaveEditTag(tag.id)}
                                             >
-                                                <Edit2 className="w-4 h-4" />
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className={cn(
-                                                    "h-8 w-8 p-0 rounded-lg",
-                                                    disableDelete ? "opacity-30 cursor-not-allowed" : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                )}
-                                                disabled={disableDelete || isDeleting}
-                                                onClick={() => handleDeleteTag(tag.id)}
-                                                title={deleteTooltip}
-                                            >
-                                                <Trash2 className="w-4 h-4" />
+                                                {isSavingEditTagId === tag.id ? 'Saving...' : 'Save'}
                                             </Button>
                                         </div>
                                     </div>
                                 );
+                            }
+
+                            return (
+                                <div key={tag.id} className="flex items-center justify-between p-3 rounded-xl border bg-card/50 hover:bg-muted/30 transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn("w-3 h-3 rounded-full", parsed.colorClasses.split(' ')[0])} />
+                                        <div>
+                                            <p className="font-bold text-sm text-foreground">
+                                                {parsed.text}
+                                                {isGeneralTag && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary uppercase font-bold tracking-wider">Default</span>}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">
+                                                {usageCount} {usageCount === 1 ? 'note' : 'notes'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                            disabled={isGeneralTag}
+                                            onClick={() => {
+                                                setEditingTagId(tag.id);
+                                                setEditingTagText(parsed.text);
+                                                setEditingTagColor(parsed.colorClasses);
+                                            }}
+                                            title={isGeneralTag ? "System tag cannot be edited" : "Edit tag"}
+                                        >
+                                            <Edit2 className="w-4 h-4" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className={cn(
+                                                "h-8 w-8 p-0 rounded-lg",
+                                                disableDelete ? "opacity-30 cursor-not-allowed" : "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                            )}
+                                            disabled={disableDelete || isDeleting}
+                                            onClick={() => handleDeleteTag(tag.id)}
+                                            title={deleteTooltip}
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            );
                         })
                     )}
                 </div>

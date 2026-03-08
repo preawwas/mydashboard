@@ -24,27 +24,27 @@ export default function RegisterPage() {
         const newErrors: Record<string, string> = {};
 
         if (!formData.name) {
-            newErrors.name = 'กรุณากรอกชื่อ';
+            newErrors.name = 'Please enter your name';
         } else if (formData.name.length < 2) {
-            newErrors.name = 'ชื่อต้องมีอย่างน้อย 2 ตัวอักษร';
+            newErrors.name = 'Name must be at least 2 characters';
         }
 
         if (!formData.email) {
-            newErrors.email = 'กรุณากรอกอีเมล';
+            newErrors.email = 'Please enter your email';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = 'รูปแบบอีเมลไม่ถูกต้อง';
+            newErrors.email = 'Invalid email format';
         }
 
         if (!formData.password) {
-            newErrors.password = 'กรุณากรอกรหัสผ่าน';
+            newErrors.password = 'Please enter your password';
         } else if (formData.password.length < 6) {
-            newErrors.password = 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
+            newErrors.password = 'Password must be at least 6 characters';
         }
 
         if (!formData.confirmPassword) {
-            newErrors.confirmPassword = 'กรุณายืนยันรหัสผ่าน';
+            newErrors.confirmPassword = 'Please confirm your password';
         } else if (formData.password !== formData.confirmPassword) {
-            newErrors.confirmPassword = 'รหัสผ่านไม่ตรงกัน';
+            newErrors.confirmPassword = 'Passwords do not match';
         }
 
         setErrors(newErrors);
@@ -73,14 +73,14 @@ export default function RegisterPage() {
             const data = await response.json();
 
             if (!response.ok) {
-                setErrors({ submit: data.error || 'สมัครสมาชิกไม่สำเร็จ' });
+                setErrors({ submit: data.error || 'Registration failed' });
                 return;
             }
 
             // Instead of auto-login, redirect to login page for verification
             router.push('/login?registered=true');
         } catch {
-            setErrors({ submit: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+            setErrors({ submit: 'An error occurred. Please try again.' });
         } finally {
             setIsLoading(false);
         }
@@ -92,9 +92,9 @@ export default function RegisterPage() {
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-                        สมัครสมาชิก
+                        Register
                     </h1>
-                    <p className="text-muted-foreground mt-2">สร้างบัญชีใหม่เพื่อเริ่มต้นใช้งาน</p>
+                    <p className="text-muted-foreground mt-2">Create a new account to get started</p>
                 </div>
 
                 {/* Form Card */}
@@ -107,9 +107,9 @@ export default function RegisterPage() {
                         )}
 
                         <Input
-                            label="ชื่อ"
+                            label="Name"
                             type="text"
-                            placeholder="ชื่อของคุณ"
+                            placeholder="Your Name"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             error={errors.name}
@@ -117,7 +117,7 @@ export default function RegisterPage() {
                         />
 
                         <Input
-                            label="อีเมล"
+                            label="Email"
                             type="email"
                             placeholder="you@example.com"
                             value={formData.email}
@@ -127,7 +127,7 @@ export default function RegisterPage() {
                         />
 
                         <Input
-                            label="รหัสผ่าน"
+                            label="Password"
                             type={showPassword ? 'text' : 'password'}
                             placeholder="••••••••"
                             value={formData.password}
@@ -150,7 +150,7 @@ export default function RegisterPage() {
                         />
 
                         <Input
-                            label="ยืนยันรหัสผ่าน"
+                            label="Confirm Password"
                             type={showPassword ? 'text' : 'password'}
                             placeholder="••••••••"
                             value={formData.confirmPassword}
@@ -168,18 +168,18 @@ export default function RegisterPage() {
                             isLoading={isLoading}
                             disabled={true}
                         >
-                            ปิดรับสมาชิกชั่วคราว
+                            Registration Temporary Closed
                         </Button>
                     </form>
 
                     <div className="mt-6 text-center">
                         <p className="text-sm text-muted-foreground">
-                            มีบัญชีอยู่แล้ว?{' '}
+                            Already have an account?{' '}
                             <Link
                                 href="/login"
                                 className="text-primary hover:text-primary-hover font-medium"
                             >
-                                เข้าสู่ระบบ
+                                Login
                             </Link>
                         </p>
                     </div>

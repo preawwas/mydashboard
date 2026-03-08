@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
         if (!user) {
             return NextResponse.json(
-                { success: false, error: 'อีเมลนี้ถูกใช้งานแล้ว' },
+                { success: false, error: 'This email is already in use' },
                 { status: 409 }
             );
         }
@@ -37,12 +37,12 @@ export async function POST(request: NextRequest) {
             success: true,
             user,
             token,
-            message: 'สมัครสมาชิกสำเร็จ',
+            message: 'Registration successful',
         });
     } catch (error: unknown) {
         console.error('Register error:', error);
         return NextResponse.json(
-            { success: false, error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+            { success: false, error: 'An error occurred. Please try again.' },
             { status: 500 }
         );
     }

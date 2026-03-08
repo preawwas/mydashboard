@@ -18,7 +18,7 @@ export function getCurrentLocalDate() {
 }
 
 export function formatCurrency(amount: number, currency: string = 'THB'): string {
-    return new Intl.NumberFormat('th-TH', {
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: currency,
         minimumFractionDigits: 2,
@@ -27,14 +27,14 @@ export function formatCurrency(amount: number, currency: string = 'THB'): string
 }
 
 export function formatNumber(num: number, decimals: number = 2): string {
-    return new Intl.NumberFormat('th-TH', {
+    return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
     }).format(num);
 }
 
 export function formatDate(date: string | Date): string {
-    return new Intl.DateTimeFormat('th-TH', {
+    return new Intl.DateTimeFormat('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -42,7 +42,7 @@ export function formatDate(date: string | Date): string {
 }
 
 export function formatDateTime(date: string | Date): string {
-    return new Intl.DateTimeFormat('th-TH', {
+    return new Intl.DateTimeFormat('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
