@@ -18,8 +18,8 @@ const prompt = Prompt({
 });
 
 export const metadata: Metadata = {
-  title: "Memo - Premium Fintech Dashboard",
-  description: "ระบบจัดการการเงินส่วนบุคคล - ติดตามการลงทุนและค่าใช้จ่าย",
+  title: "Pwsnboard - Personal Management",
+  description: "ระบบจัดการส่วนบุคคล",
   manifest: '/manifest.json',
   themeColor: '#8B5CF6',
 };

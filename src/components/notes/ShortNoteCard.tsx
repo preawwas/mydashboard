@@ -16,6 +16,30 @@ interface ShortNoteCardProps {
     onEdit: () => void;
 }
 
+const getShadowClass = (colorClasses: string) => {
+    if (colorClasses.includes('red-500')) return 'shadow-red-500/10 hover:shadow-red-500/20';
+    if (colorClasses.includes('orange-500')) return 'shadow-orange-500/10 hover:shadow-orange-500/20';
+    if (colorClasses.includes('amber-500')) return 'shadow-amber-500/10 hover:shadow-amber-500/20';
+    if (colorClasses.includes('emerald-500')) return 'shadow-emerald-500/10 hover:shadow-emerald-500/20';
+    if (colorClasses.includes('blue-500')) return 'shadow-blue-500/10 hover:shadow-blue-500/20';
+    if (colorClasses.includes('indigo-500')) return 'shadow-indigo-500/10 hover:shadow-indigo-500/20';
+    if (colorClasses.includes('purple-500')) return 'shadow-purple-500/10 hover:shadow-purple-500/20';
+    if (colorClasses.includes('pink-500')) return 'shadow-pink-500/10 hover:shadow-pink-500/20';
+    return 'shadow-primary/10 hover:shadow-primary/20';
+};
+
+const getBorderClass = (colorClasses: string) => {
+    if (colorClasses.includes('red-500')) return 'border-red-500/30 hover:border-red-500/60';
+    if (colorClasses.includes('orange-500')) return 'border-orange-500/30 hover:border-orange-500/60';
+    if (colorClasses.includes('amber-500')) return 'border-amber-500/30 hover:border-amber-500/60';
+    if (colorClasses.includes('emerald-500')) return 'border-emerald-500/30 hover:border-emerald-500/60';
+    if (colorClasses.includes('blue-500')) return 'border-blue-500/30 hover:border-blue-500/60';
+    if (colorClasses.includes('indigo-500')) return 'border-indigo-500/30 hover:border-indigo-500/60';
+    if (colorClasses.includes('purple-500')) return 'border-purple-500/30 hover:border-purple-500/60';
+    if (colorClasses.includes('pink-500')) return 'border-pink-500/30 hover:border-pink-500/60';
+    return 'border-primary/20 hover:border-primary/50';
+};
+
 const ShortNoteCard: React.FC<ShortNoteCardProps> = ({ note, onUpdate, onEdit }) => {
     const [isCopied, setIsCopied] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -84,14 +108,25 @@ const ShortNoteCard: React.FC<ShortNoteCardProps> = ({ note, onUpdate, onEdit })
         }
     };
 
+    const firstTag = note.tags && note.tags.length > 0 ? parseTag(note.tags[0]) : null;
+    const shadowClass = firstTag ? getShadowClass(firstTag.colorClasses) : 'shadow-primary/5 hover:shadow-primary/15';
+    const borderClass = firstTag ? getBorderClass(firstTag.colorClasses) : 'border-border/50 hover:border-primary/30';
+
     return (
         <div
             onClick={onEdit}
-            className="group relative bg-card hover:bg-card/80 border border-border/50 rounded-[32px] p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 flex flex-col h-full cursor-pointer"
+            className={cn(
+                "group relative bg-card hover:bg-card/80 border rounded-[32px] p-6 transition-all duration-300 hover:-translate-y-1 flex flex-col h-full cursor-pointer shadow-md hover:shadow-2xl",
+                shadowClass,
+                borderClass
+            )}
         >
             {/* Card Header */}
             <div className="flex items-start justify-between gap-4 mb-3">
-                <h3 className="font-black text-foreground leading-tight line-clamp-2 transition-colors group-hover:text-primary">
+                <h3 
+                    className="font-black text-foreground leading-tight line-clamp-2 transition-colors group-hover:text-primary"
+                    title={note.title || 'Untitled Note'}
+                >
                     {note.title || 'Untitled Note'}
                 </h3>
                 <button

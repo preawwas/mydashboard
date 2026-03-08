@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-    Calendar as CalendarIcon, Loader2
+    Calendar as CalendarIcon, Loader2, AlertCircle
 } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 import { DbNote, DbNoteCategory } from '@/lib/supabase-types';
@@ -33,10 +33,12 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
     const [categories, setCategories] = useState<DbNoteCategory[]>([]);
     const [loading, setLoading] = useState(false);
     const [editorKey, setEditorKey] = useState(0);
+    const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             setEditorKey(prev => prev + 1); // Force new TipTap instance
+            setSubmitted(false);
             fetchCategories();
             if (note) {
                 setTitle(note.title || '');
@@ -82,6 +84,8 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmitted(true);
+        if (!title.trim() || !dueDate) return;
         setLoading(true);
         try {
             const payload = {
@@ -152,15 +156,20 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                 </div>
 
                 {/* 2. Title */}
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-muted-foreground ml-1">Title</label>
+                <div className="space-y-1">
+                    <label className="text-sm font-bold text-muted-foreground ml-1">Title <span className="text-rose-500">*</span></label>
                     <Input
                         placeholder="Enter note title..."
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        required
-                        className="h-12 bg-card/50 border-border/50 rounded-xl"
+                        className={`h-12 bg-card/50 rounded-xl ${submitted && !title.trim() ? 'border-rose-500 focus:ring-rose-500/20' : 'border-border/50'}`}
                     />
+                    {submitted && !title.trim() && (
+                        <p className="text-xs text-rose-500 font-medium ml-1 mt-1 flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            กรุณากรอก Title
+                        </p>
+                    )}
                 </div>
 
                 {/* Status & Deadline row */}
@@ -179,16 +188,22 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-bold text-muted-foreground ml-1">Deadline</label>
+                        <label className="text-sm font-bold text-muted-foreground ml-1">Deadline <span className="text-rose-500">*</span></label>
                         <div className="relative">
                             <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input
                                 type="date"
                                 value={dueDate}
                                 onChange={(e) => setDueDate(e.target.value)}
-                                className="pl-12 h-12 bg-card/50 border-border/50 rounded-xl"
+                                className={`pl-12 h-12 bg-card/50 rounded-xl ${submitted && !dueDate ? 'border-rose-500 focus:ring-rose-500/20' : 'border-border/50'}`}
                             />
                         </div>
+                        {submitted && !dueDate && (
+                            <p className="text-xs text-rose-500 font-medium ml-1 mt-1 flex items-center gap-1">
+                                <AlertCircle className="w-3.5 h-3.5" />
+                                กรุณากรอก Deadline
+                            </p>
+                        )}
                     </div>
                 </div>
 

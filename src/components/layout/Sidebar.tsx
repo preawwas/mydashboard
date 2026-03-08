@@ -259,7 +259,7 @@ const Sidebar: React.FC = () => {
                         </div>
                         {sidebarOpen && (
                             <span className="font-bold text-xl text-primary hidden lg:inline">
-                                Memo
+                                Fluffy-ty
                             </span>
                         )}
                     </div>

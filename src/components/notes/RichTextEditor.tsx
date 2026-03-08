@@ -124,7 +124,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
         },
         editorProps: {
             attributes: {
-                class: 'prose prose-sm max-w-none focus:outline-none min-h-[180px] p-4 text-foreground',
+                class: 'prose prose-sm max-w-none focus:outline-none min-h-[400px] p-4 text-foreground',
             },
         },
     });
@@ -213,7 +213,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
             {/* Styles */}
             <style jsx global>{`
                 .tiptap {
-                    min-height: 180px;
+                    min-height: 400px;
                     padding: 1rem;
                     font-size: 0.875rem;
                     line-height: 1.6;

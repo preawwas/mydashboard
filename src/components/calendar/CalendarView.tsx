@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
     ChevronLeft, ChevronRight, Loader2, Clock, PanelRightOpen, PanelRightClose, Check
 } from 'lucide-react';
@@ -79,13 +79,22 @@ const CalendarView: React.FC = () => {
     const daysInMonth = (y: number, m: number) => new Date(y, m + 1, 0).getDate();
     const firstDayOfMonth = (y: number, m: number) => new Date(y, m, 1).getDay();
     const formatDateStr = (y: number, m: number, d: number) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const getNotesForDate = (dateStr: string) => {
-        return notes.filter(n => {
-            if (!n.reminders?.due_date?.startsWith(dateStr)) return false;
-            if (statusFilter !== 'All' && n.status !== statusFilter) return false;
-            return true;
+    const notesByDate = useMemo(() => {
+        const map = new Map<string, ExtendedNote[]>();
+        notes.forEach(n => {
+            if (statusFilter !== 'All' && n.status !== statusFilter) return;
+            if (n.reminders?.due_date) {
+                const dateStr = n.reminders.due_date.substring(0, 10);
+                if (!map.has(dateStr)) map.set(dateStr, []);
+                map.get(dateStr)!.push(n);
+            }
         });
-    };
+        return map;
+    }, [notes, statusFilter]);
+
+    const getNotesForDate = useCallback((dateStr: string) => {
+        return notesByDate.get(dateStr) || [];
+    }, [notesByDate]);
 
     const today = new Date();
     const todayStr = formatDateStr(today.getFullYear(), today.getMonth(), today.getDate());
@@ -167,16 +176,16 @@ const CalendarView: React.FC = () => {
     // Note chip with radio
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'New': return '#eab308'; // yellow-500
-            case 'In Progress': return '#f97316'; // orange-500
-            case 'Urgent': return '#f43f5e'; // rose-500
-            case 'Done': return '#0ea5e9'; // sky-500
-            default: return '#eab308';
+            case 'New': return { bg: '#FFF8D6', text: '#6B4E0F' };
+            case 'In Progress': return { bg: '#E8EAF6', text: '#3F51B5' };
+            case 'Urgent': return { bg: '#ffe4e6', text: '#f43f5e' }; // rose fallbacks
+            case 'Done': return { bg: '#EFFFF4', text: '#009624' };
+            default: return { bg: '#FFF8D6', text: '#6B4E0F' };
         }
     };
 
     const renderNoteChip = (note: ExtendedNote) => {
-        const color = getStatusColor(note.status);
+        const colors = getStatusColor(note.status);
         const isDone = note.status === 'Done';
         return (
             <div
@@ -185,13 +194,13 @@ const CalendarView: React.FC = () => {
                 onDragStart={(e) => handleDragStart(e, note)}
                 onDragEnd={handleDragEnd}
                 onClick={(e) => { e.stopPropagation(); handleEditNote(note); }}
-                className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-extrabold truncate cursor-grab active:cursor-grabbing transition-all hover:scale-[1.03] hover:shadow-xl shadow-md"
+                className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-extrabold truncate cursor-grab active:cursor-grabbing transition-all hover:scale-[1.03] shadow-[0_2px_8px_-3px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.1)]"
                 style={{
-                    backgroundColor: `${color}25`,
-                    borderLeft: `4px solid ${color}`,
-                    boxShadow: `0 2px 6px ${color}20`,
-                    color: color,
+                    backgroundColor: colors.bg,
+                    borderLeft: `3px solid ${colors.text}`,
+                    color: colors.text,
                 }}
+                title={note.title}
             >
                 {/* Radio checkbox */}
                 <button
@@ -203,14 +212,14 @@ const CalendarView: React.FC = () => {
                 >
                     {isDone && <Check className="w-2.5 h-2.5 text-white" />}
                 </button>
-                <span className="text-sm shrink-0">{note.note_categories?.icon || '•'}</span>
+                <span className="text-xs shrink-0">{note.note_categories?.icon || '•'}</span>
                 <span className={cn("truncate", isDone && "opacity-60")}>{note.title}</span>
             </div>
         );
     };
 
     // Day cell
-    const renderDayCell = (dateStr: string, day: number, isCurrentMonth: boolean, minH = 'min-h-[130px]') => {
+    const renderDayCell = (dateStr: string, day: number, isCurrentMonth: boolean, hClass = 'h-[140px]') => {
         const dayNotes = getNotesForDate(dateStr);
         const isToday = dateStr === todayStr;
         const isDragOver = dragOverDate === dateStr;
@@ -218,7 +227,7 @@ const CalendarView: React.FC = () => {
             <div
                 key={dateStr}
                 className={cn(
-                    minH, "border border-border/60 p-2.5 transition-all group relative",
+                    hClass, "flex flex-col border border-border/60 p-2.5 transition-all group relative",
                     isCurrentMonth ? "bg-white" : "bg-muted/30 opacity-40",
                     isToday && "bg-primary/10 border-primary/40",
                     isDragOver && "bg-primary/15 border-primary/40 ring-2 ring-primary/30"
@@ -229,7 +238,7 @@ const CalendarView: React.FC = () => {
                 onClick={() => handleCreateOnDate(dateStr)}
                 style={{ cursor: 'pointer' }}
             >
-                <div className="flex justify-between items-start mb-2">
+                <div className="flex justify-between items-start mb-2 shrink-0">
                     <span className={cn(
                         "text-sm font-black w-8 h-8 flex items-center justify-center rounded-full transition-colors",
                         isToday ? "bg-primary text-primary-foreground shadow-md" : "text-foreground/70 group-hover:text-foreground"
@@ -242,7 +251,7 @@ const CalendarView: React.FC = () => {
                         </span>
                     )}
                 </div>
-                <div className="space-y-1.5 mt-1 pb-1">
+                <div className="flex-1 space-y-1.5 pb-1 overflow-y-auto custom-scrollbar pr-1">
                     {dayNotes.map(renderNoteChip)}
                 </div>
             </div>
@@ -306,7 +315,7 @@ const CalendarView: React.FC = () => {
                 <div
                     key={dateStr}
                     className={cn(
-                        "min-h-[300px] border border-border/60 p-4 transition-all bg-white",
+                        "h-[400px] flex flex-col border border-border/60 p-4 transition-all bg-white",
                         isToday && "bg-primary/10 border-primary/40",
                         isDragOver && "bg-primary/15 ring-2 ring-primary/30"
                     )}
@@ -316,11 +325,11 @@ const CalendarView: React.FC = () => {
                     onClick={() => handleCreateOnDate(dateStr)}
                     style={{ cursor: 'pointer' }}
                 >
-                    <div className="text-center mb-3">
+                    <div className="text-center mb-3 shrink-0">
                         <div className="text-xs font-bold text-muted-foreground uppercase">{d.toLocaleDateString('default', { weekday: 'short' })}</div>
                         <div className={cn("text-2xl font-black mx-auto w-10 h-10 flex items-center justify-center rounded-full mt-1", isToday ? "bg-primary text-primary-foreground" : "text-foreground")}>{d.getDate()}</div>
                     </div>
-                    <div className="space-y-2 pb-2">
+                    <div className="flex-1 space-y-2 pb-2 overflow-y-auto custom-scrollbar pr-1">
                         {dayNotes.map(renderNoteChip)}
                         {dayNotes.length === 0 && <p className="text-xs text-muted-foreground/40 text-center pt-4">No tasks</p>}
                     </div>
@@ -349,28 +358,28 @@ const CalendarView: React.FC = () => {
                     <div className={cn("text-5xl font-black mx-auto w-20 h-20 flex items-center justify-center rounded-full", isToday ? "bg-primary text-primary-foreground" : "text-foreground bg-muted/20")}>{currentDate.getDate()}</div>
                 </div>
                 <div className="space-y-3">
-                    {dayNotes.length > 0 ? dayNotes.map(note => (
+                    {dayNotes.length > 0 ? dayNotes.map((note: ExtendedNote) => (
                         <div
                             key={note.note_id}
                             draggable onDragStart={(e) => handleDragStart(e, note)} onDragEnd={handleDragEnd}
                             onClick={(e) => { e.stopPropagation(); handleEditNote(note); }}
-                            className="flex items-center gap-4 p-4 bg-card border border-border/50 rounded-xl cursor-pointer hover:border-primary/30 hover:shadow-md transition-all"
+                            className="flex items-center gap-4 p-4 bg-card border border-border/50 rounded-xl cursor-pointer hover:border-primary/30 shadow-[0_2px_8px_-3px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.1)] transition-all"
                         >
                             <button onClick={(e) => handleMarkDone(note, e)} className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0", note.status === 'Done' ? "bg-green-500 border-green-500" : "border-muted-foreground/40 hover:border-green-400")}>
                                 {note.status === 'Done' && <Check className="w-3.5 h-3.5 text-white" />}
                             </button>
-                            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0" style={{ backgroundColor: `${note.note_categories?.color_code || '#718096'}15` }}>
+                            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0" style={{ backgroundColor: `${note.note_categories?.color_code || '#718096'}15` }}>
                                 {note.note_categories?.icon || '📝'}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h4 className={cn("text-sm font-bold text-foreground line-clamp-1", note.status === 'Done' && "opacity-50")}>{note.title}</h4>
+                                <h4 title={note.title} className={cn("text-sm font-bold text-foreground truncate", note.status === 'Done' && "opacity-50")}>{note.title}</h4>
                                 <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{note.content?.replace(/<[^>]*>/g, '').trim().substring(0, 60) || 'No content'}</p>
                             </div>
                             <Badge className={cn("text-[10px] font-bold uppercase shrink-0",
                                 note.status === 'Urgent' ? "bg-rose-500/10 text-rose-500" :
-                                    note.status === 'In Progress' ? "bg-orange-500/10 text-orange-500" :
-                                        note.status === 'Done' ? "bg-sky-500/10 text-sky-500" :
-                                            "bg-yellow-500/10 text-yellow-500"
+                                    note.status === 'In Progress' ? "bg-[#E8EAF6] text-[#3F51B5]" :
+                                        note.status === 'Done' ? "bg-[#EFFFF4] text-[#009624]" :
+                                            "bg-[#FFF8D6] text-[#6B4E0F]"
                             )}>{note.status}</Badge>
                         </div>
                     )) : (
@@ -418,9 +427,9 @@ const CalendarView: React.FC = () => {
 
     const getStatusBadgeClass = (status: string) => {
         if (status === 'Urgent') return "bg-rose-500/10 text-rose-500";
-        if (status === 'In Progress') return "bg-orange-500/10 text-orange-500";
-        if (status === 'Done') return "bg-sky-500/10 text-sky-500";
-        return "bg-yellow-500/10 text-yellow-500";
+        if (status === 'In Progress') return "bg-[#E8EAF6] text-[#3F51B5]";
+        if (status === 'Done') return "bg-[#EFFFF4] text-[#009624]";
+        return "bg-[#FFF8D6] text-[#6B4E0F]";
     };
 
     return (
@@ -601,7 +610,7 @@ const CalendarView: React.FC = () => {
                                     <div
                                         key={note.note_id}
                                         onClick={() => handleEditNote(note)}
-                                        className="group p-3 bg-card border-2 border-border/60 rounded-xl cursor-pointer hover:border-primary/50 transition-all hover:shadow-lg shadow-sm"
+                                        className="group p-3 bg-card border border-border/60 rounded-xl cursor-pointer hover:border-primary/50 shadow-[0_2px_8px_-3px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.1)] transition-all"
                                     >
                                         <div className="flex items-center justify-between mb-2">
                                             <Badge className={cn("text-[10px] font-black uppercase py-0.5", getStatusBadgeClass(note.status))}>
@@ -611,7 +620,7 @@ const CalendarView: React.FC = () => {
                                                 {new Date(note.reminders!.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                             </span>
                                         </div>
-                                        <h4 className={cn("font-bold text-foreground text-sm group-hover:text-primary transition-colors line-clamp-1", note.status === 'Done' && "opacity-50")}>{note.title}</h4>
+                                        <h4 title={note.title} className={cn("font-bold text-foreground text-sm truncate group-hover:text-primary transition-colors", note.status === 'Done' && "opacity-50")}>{note.title}</h4>
                                         <div className="flex items-center gap-1.5 mt-2 opacity-60">
                                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: note.note_categories?.color_code || '#718096' }} />
                                             <span className="text-[10px] font-bold text-muted-foreground">{note.note_categories?.name || 'Uncategorized'}</span>

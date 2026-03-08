@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
     Search, Plus, Loader2, Trash2, GripVertical,
     Filter, X, CalendarDays, ChevronUp, ChevronDown, Settings
@@ -20,14 +20,14 @@ interface ExtendedNote extends DbNote {
 // New status colors: New=yellow, In Progress=orange, Urgent=red, Done=blue
 // Column order: New first, then In Progress
 const STATUS_COLUMNS = ['New', 'In Progress', 'Urgent', 'Done'];
-const statusStyles: Record<string, { bg: string; text: string; border: string; dot: string; countBg: string; pillBg: string }> = {
-    'New': { bg: 'bg-yellow-500/5', text: 'text-yellow-600', border: 'border-yellow-500/20', dot: 'bg-yellow-500', countBg: 'bg-yellow-500/15', pillBg: 'bg-yellow-500/10' },
-    'In Progress': { bg: 'bg-orange-500/5', text: 'text-orange-600', border: 'border-orange-500/20', dot: 'bg-orange-500', countBg: 'bg-orange-500/15', pillBg: 'bg-orange-500/10' },
-    'Urgent': { bg: 'bg-rose-500/5', text: 'text-rose-600', border: 'border-rose-500/20', dot: 'bg-rose-500', countBg: 'bg-rose-500/15', pillBg: 'bg-rose-500/10' },
-    'Done': { bg: 'bg-sky-500/5', text: 'text-sky-600', border: 'border-sky-500/20', dot: 'bg-sky-500', countBg: 'bg-sky-500/15', pillBg: 'bg-sky-500/10' },
+const statusStyles: Record<string, { bg: string; text: string; border: string; dot: string; countBg: string; pillBg: string; ring: string }> = {
+    'New': { bg: 'bg-[#FFF8D6]/10', text: 'text-[#6B4E0F]', border: 'border-[#6B4E0F]/15 border-t-[#6B4E0F]/30', dot: 'bg-[#6B4E0F]', countBg: 'bg-white ring-1 ring-[#6B4E0F]/20', pillBg: 'bg-[#FFF8D6]/30', ring: 'ring-[#6B4E0F]/20' },
+    'In Progress': { bg: 'bg-[#E8EAF6]/20', text: 'text-[#3F51B5]', border: 'border-[#3F51B5]/15 border-t-[#3F51B5]/30', dot: 'bg-[#3F51B5]', countBg: 'bg-white ring-1 ring-[#3F51B5]/20', pillBg: 'bg-[#E8EAF6]/40', ring: 'ring-[#3F51B5]/20' },
+    'Urgent': { bg: 'bg-rose-500/5', text: 'text-rose-600', border: 'border-rose-500/15 border-t-rose-500/30', dot: 'bg-rose-500', countBg: 'bg-white ring-1 ring-rose-500/20', pillBg: 'bg-rose-500/10', ring: 'ring-rose-500/20' },
+    'Done': { bg: 'bg-[#EFFFF4]/20', text: 'text-[#009624]', border: 'border-[#009624]/15 border-t-[#009624]/30', dot: 'bg-[#009624]', countBg: 'bg-white ring-1 ring-[#009624]/20', pillBg: 'bg-[#EFFFF4]/40', ring: 'ring-[#009624]/20' },
 };
 
-function getDaysRemainingText(dueDate: string, status?: string, updatedAt?: string): { text: string; isOverdue: boolean } {
+function getDaysRemainingText(dueDate: string, status?: string, updatedAt?: string): { text: string; isOverdue: boolean; isDueToday?: boolean } {
     const now = new Date(); 
     if (status === 'Done' && updatedAt) {
         now.setTime(new Date(updatedAt).getTime());
@@ -40,7 +40,7 @@ function getDaysRemainingText(dueDate: string, status?: string, updatedAt?: stri
         if (abs >= 30) { const m = Math.floor(abs / 30); const d = abs % 30; return { text: `${m} month${m > 1 ? 's' : ''} ${d} day${d !== 1 ? 's' : ''} overdue`, isOverdue: true }; }
         return { text: `${abs} day${abs !== 1 ? 's' : ''} overdue`, isOverdue: true };
     }
-    if (diffDays === 0) return { text: 'Due today', isOverdue: false };
+    if (diffDays === 0) return { text: 'Due today', isOverdue: false, isDueToday: true };
     if (diffDays >= 30) { const m = Math.floor(diffDays / 30); const d = diffDays % 30; return { text: `${m} month${m > 1 ? 's' : ''} ${d} day${d !== 1 ? 's' : ''} left`, isOverdue: false }; }
     return { text: `${diffDays} day${diffDays !== 1 ? 's' : ''} left`, isOverdue: false };
 }
@@ -223,23 +223,25 @@ const NoteDashboard: React.FC = () => {
     };
 
     // Filtered notes
-    const filteredNotes = notes.filter(n => {
-        const matchesCat = selectedCategoryIds.length > 0 ? (n.note_category_id ? selectedCategoryIds.includes(n.note_category_id) : false) : true;
-        const matchesSearch = searchQuery
-            ? n.title.toLowerCase().includes(searchQuery.toLowerCase()) || n.content?.toLowerCase().includes(searchQuery.toLowerCase())
-            : true;
-        let matchesDate = true;
-        if (dateFrom || dateTo) {
-            const dueDate = n.reminders?.due_date;
-            if (!dueDate) { matchesDate = false; }
-            else {
-                const d = new Date(dueDate); d.setHours(0, 0, 0, 0);
-                if (dateFrom) { const from = new Date(dateFrom); from.setHours(0, 0, 0, 0); if (d < from) matchesDate = false; }
-                if (dateTo) { const to = new Date(dateTo); to.setHours(23, 59, 59, 999); if (d > to) matchesDate = false; }
+    const filteredNotes = useMemo<ExtendedNote[]>(() => {
+        return notes.filter(n => {
+            const matchesCat = selectedCategoryIds.length > 0 ? (n.note_category_id ? selectedCategoryIds.includes(n.note_category_id) : false) : true;
+            const matchesSearch = searchQuery
+                ? n.title.toLowerCase().includes(searchQuery.toLowerCase()) || n.content?.toLowerCase().includes(searchQuery.toLowerCase())
+                : true;
+            let matchesDate = true;
+            if (dateFrom || dateTo) {
+                const dueDate = n.reminders?.due_date;
+                if (!dueDate) { matchesDate = false; }
+                else {
+                    const d = new Date(dueDate); d.setHours(0, 0, 0, 0);
+                    if (dateFrom) { const from = new Date(dateFrom); from.setHours(0, 0, 0, 0); if (d < from) matchesDate = false; }
+                    if (dateTo) { const to = new Date(dateTo); to.setHours(23, 59, 59, 999); if (d > to) matchesDate = false; }
+                }
             }
-        }
-        return matchesCat && matchesSearch && matchesDate;
-    });
+            return matchesCat && matchesSearch && matchesDate;
+        });
+    }, [notes, selectedCategoryIds, searchQuery, dateFrom, dateTo]);
 
     const getCategoryCount = (catId: string) => notes.filter(n => n.note_category_id === catId).length;
 
@@ -389,9 +391,24 @@ const NoteDashboard: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap shrink-0">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input placeholder="Search..." className="pl-10 h-10 w-48 bg-card/50 border-border/50 rounded-xl text-sm" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                    <div className="group/search">
+                        <Input 
+                            placeholder="Search..." 
+                            className="h-10 w-64 md:w-80 bg-card/50 border-border/50 rounded-xl text-sm transition-all" 
+                            value={searchQuery} 
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            leftIcon={<Search className="w-4 h-4 ml-1" />}
+                            rightIcon={
+                                searchQuery && (
+                                    <button
+                                        onClick={() => setSearchQuery('')}
+                                        className="p-1.5 mr-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                                    >
+                                        <X className="w-3.5 h-3.5" />
+                                    </button>
+                                )
+                            }
+                        />
                     </div>
                     <Button onClick={handleOpenCreate} className="h-10 px-4 rounded-xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 flex items-center gap-2">
                         <Plus className="w-4 h-4" />
@@ -578,24 +595,30 @@ const NoteDashboard: React.FC = () => {
                             return (
                                 <div
                                     key={status}
-                                    className={cn("rounded-2xl border transition-all duration-200 min-h-[350px] min-w-[280px] md:min-w-0", style.border, isDragOver ? "bg-primary/5 border-primary shadow-[inset_0_0_0_1px_rgba(var(--primary-rgb),0.5)]" : style.bg)}
+                                    className={cn(
+                                        "rounded-2xl border border-t-[3px] transition-all min-h-[400px] min-w-[280px] md:min-w-0 flex flex-col overflow-hidden shadow-sm hover:shadow bg-card/90", 
+                                        style.border, 
+                                        isDragOver ? cn("bg-primary/5 border-primary shadow-[inset_0_0_0_1px_rgba(var(--primary-rgb),0.5)]") : style.bg
+                                    )}
                                     onDragOver={(e) => handleDragOver(e, status)}
                                     onDragLeave={handleDragLeave}
                                     onDrop={(e) => handleDrop(e, status)}
                                 >
                                     {/* Column Header */}
-                                    <div className="px-5 py-4 border-b border-border/30 flex items-center justify-between">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className={cn("w-3 h-3 rounded-full", style.dot)} />
-                                            <h3 className={cn("text-sm font-black uppercase tracking-wider", style.text)}>{status}</h3>
+                                    <div className={cn("px-5 py-3.5 flex items-center justify-between border-b border-border/40", style.border, style.pillBg)}>
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex h-2.5 w-2.5 items-center justify-center">
+                                                <div className={cn("w-2.5 h-2.5 rounded-full shadow-[0_0_4px_rgba(0,0,0,0.1)]", style.dot)} />
+                                            </div>
+                                            <h3 className={cn("text-xs font-black uppercase tracking-widest", style.text)}>{status}</h3>
                                         </div>
-                                        <span className={cn("px-3 py-1 rounded-full text-lg font-black", style.text, style.countBg)}>
+                                        <div className={cn("min-w-[32px] h-6 flex items-center justify-center px-1.5 rounded-full text-xs font-black shadow-sm", style.text, style.countBg)}>
                                             {columnNotes.length}
-                                        </span>
+                                        </div>
                                     </div>
-
+                                    
                                     {/* Cards */}
-                                    <div className="p-3 space-y-3">
+                                    <div className="flex-1 p-3 space-y-3">
                                         {columnNotes.map(note => {
                                             const deadline = note.reminders ? getDaysRemainingText(note.reminders.due_date, note.status, note.updated_at) : null;
                                             return (
@@ -604,24 +627,24 @@ const NoteDashboard: React.FC = () => {
                                                     {dragOverNoteId === note.note_id && draggedNote?.note_id !== note.note_id && (
                                                         <div className="h-1 rounded-full bg-primary/50 -mt-1 mb-1 mx-2 animate-pulse" />
                                                     )}
-                                                    <div
+                                                        <div
                                                         draggable
                                                         onDragStart={(e) => handleDragStart(e, note)}
                                                         onDragEnd={handleDragEnd}
                                                         onDragOver={(e) => handleCardDragOver(e, note.note_id, status)}
                                                         onClick={() => handleOpenEdit(note)}
                                                         className={cn(
-                                                            "group bg-card border border-border/50 rounded-xl p-4 cursor-grab active:cursor-grabbing hover:border-primary/30 hover:shadow-md transition-all duration-200",
+                                                            "group bg-card border border-border/50 rounded-xl p-4 cursor-grab active:cursor-grabbing hover:border-primary/30 shadow-[0_2px_8px_-3px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.1)] transition-all duration-300",
                                                             draggedNote?.note_id === note.note_id && "opacity-40 scale-95"
                                                         )}
                                                     >
                                                         <div className="flex items-start gap-2.5">
-                                                            <GripVertical className="w-4 h-4 text-muted-foreground/30 mt-0.5 shrink-0 group-hover:text-muted-foreground transition-colors" />
+                                                            <GripVertical className="w-3.5 h-3.5 text-muted-foreground/30 mt-0.5 shrink-0 group-hover:text-muted-foreground transition-colors" />
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex items-start justify-between gap-2">
-                                                                    <div className="flex items-center gap-2 min-w-0">
-                                                                        <span className="text-sm shrink-0">{note.note_categories?.icon || '📝'}</span>
-                                                                        <h4 className="text-sm font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">{note.title}</h4>
+                                                                    <div className="flex items-center gap-1.5 min-w-0">
+                                                                        <span className="text-xs shrink-0">{note.note_categories?.icon || '📝'}</span>
+                                                                        <h4 title={note.title} className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{note.title}</h4>
                                                                     </div>
                                                                     <button onClick={(e) => handleDelete(note.note_id, e)} className="p-1 rounded-lg text-muted-foreground/40 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0" title="Move to Trash">
                                                                         <Trash2 className="w-3.5 h-3.5" />
@@ -639,7 +662,9 @@ const NoteDashboard: React.FC = () => {
                                                                         </span>
                                                                         <span className={cn(
                                                                             "text-[10px] font-bold px-2 py-0.5 rounded-full",
-                                                                            deadline.isOverdue ? "bg-rose-500/10 text-rose-600" : "bg-primary/10 text-primary"
+                                                                            deadline.isOverdue ? "bg-rose-500/10 text-rose-600" :
+                                                                            (deadline as any).isDueToday ? "bg-orange-500/15 text-orange-600" :
+                                                                            "bg-primary/10 text-primary"
                                                                         )}>
                                                                             {deadline.text}
                                                                         </span>

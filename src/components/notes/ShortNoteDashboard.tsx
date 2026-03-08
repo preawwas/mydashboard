@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLoading } from '@/components/providers/LoadingProvider';
-import { Search, Plus, Filter, Tag as TagIcon, StickyNote, Zap, Settings, Trash2, Send } from 'lucide-react';
+import { Search, Plus, Filter, Tag as TagIcon, StickyNote, Zap, Settings, Trash2, Send, X, Pin, Edit2 } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 import { apiClient } from '@/lib/api-client';
 import { DbShortNoteWithTags, DbTag } from '@/lib/supabase-types';
@@ -11,6 +11,18 @@ import ShortNoteEditor from './ShortNoteEditor';
 import { cn } from '@/lib/utils';
 import { parseTag, stringifyTag, TAG_COLORS } from '@/lib/tag-helpers';
 
+const getSolidColorClass = (colorValue: string) => {
+    if (colorValue.includes('red')) return 'bg-red-500 text-white';
+    if (colorValue.includes('orange')) return 'bg-orange-500 text-white';
+    if (colorValue.includes('amber')) return 'bg-amber-500 text-white';
+    if (colorValue.includes('emerald')) return 'bg-emerald-500 text-white';
+    if (colorValue.includes('blue')) return 'bg-blue-500 text-white';
+    if (colorValue.includes('indigo')) return 'bg-indigo-500 text-white';
+    if (colorValue.includes('purple')) return 'bg-purple-500 text-white';
+    if (colorValue.includes('pink')) return 'bg-pink-500 text-white';
+    return 'bg-primary text-primary-foreground';
+};
+
 const ShortNoteDashboard: React.FC = () => {
     const { startLoading, stopLoading } = useLoading();
     const [notes, setNotes] = useState<DbShortNoteWithTags[]>([]);
@@ -18,6 +30,7 @@ const ShortNoteDashboard: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
+    const [filterPinned, setFilterPinned] = useState(false);
     const [quickNoteContent, setQuickNoteContent] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'edit'>('grid');
     const [selectedNote, setSelectedNote] = useState<DbShortNoteWithTags | null>(null);
@@ -35,6 +48,10 @@ const ShortNoteDashboard: React.FC = () => {
     // Tag management states
     const [isManageTagsModalOpen, setIsManageTagsModalOpen] = useState(false);
     const [deletingTagId, setDeletingTagId] = useState<string | null>(null);
+    const [editingTagId, setEditingTagId] = useState<string | null>(null);
+    const [editingTagText, setEditingTagText] = useState('');
+    const [editingTagColor, setEditingTagColor] = useState('');
+    const [isSavingEditTagId, setIsSavingEditTagId] = useState<string | null>(null);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -197,6 +214,31 @@ const ShortNoteDashboard: React.FC = () => {
         }
     };
 
+    const handleSaveEditTag = async (tagId: string) => {
+        if (!editingTagText.trim() || isSavingEditTagId === tagId) return;
+        setIsSavingEditTagId(tagId);
+        try {
+            const res = await apiClient.fetch(`/api/tags/${tagId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    name: stringifyTag(editingTagText.trim(), editingTagColor)
+                })
+            });
+            const json = await res.json();
+            if (json.success) {
+                setEditingTagId(null);
+                fetchData();
+            } else {
+                alert(json.error || 'Failed to update tag');
+            }
+        } catch (error) {
+            console.error('Error updating tag:', error);
+            alert('An error occurred while updating the tag');
+        } finally {
+            setIsSavingEditTagId(null);
+        }
+    };
+
     const handleRestore = async (noteId: string) => {
         setTrashedNotes(prev => prev.filter(n => n.note_id !== noteId));
         try {
@@ -228,18 +270,22 @@ const ShortNoteDashboard: React.FC = () => {
     const handleSave = () => { setViewMode('grid'); fetchData(); };
     const handleCancel = () => { setViewMode('grid'); };
 
-    const filteredNotes = notes.filter(note => {
-        const matchesSearch = note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            note.content?.toLowerCase().includes(searchQuery.toLowerCase());
+    const filteredNotes = useMemo<DbShortNoteWithTags[]>(() => {
+        return notes.filter(note => {
+            const matchesSearch = note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                note.content?.toLowerCase().includes(searchQuery.toLowerCase());
 
-        // If NO tag is selected (All Notes), only show notes that HAVE tags
-        // If A tag is selected, check if note has that specific tag
-        const matchesTag = selectedTagId
-            ? note.tags?.some(t => t.id === selectedTagId)
-            : (note.tags && note.tags.length > 0);
+            // If NO tag is selected (All Notes), only show notes that HAVE tags
+            // If A tag is selected, check if note has that specific tag
+            const matchesTag = selectedTagId
+                ? note.tags?.some(t => t.id === selectedTagId)
+                : (note.tags && note.tags.length > 0);
 
-        return matchesSearch && matchesTag;
-    });
+            const matchesPin = filterPinned ? note.is_favorite : true;
+
+            return matchesSearch && matchesTag && matchesPin;
+        });
+    }, [notes, searchQuery, selectedTagId, filterPinned]);
 
     return (
         <div className="flex flex-col lg:flex-row gap-6 min-h-screen p-6 bg-background">
@@ -259,7 +305,7 @@ const ShortNoteDashboard: React.FC = () => {
                 </div>
                 <nav className="space-y-1">
                     <button
-                        onClick={() => setSelectedTagId(null)}
+                        onClick={() => { setSelectedTagId(null); setViewMode('grid'); }}
                         className={cn(
                             "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all",
                             !selectedTagId ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -281,7 +327,7 @@ const ShortNoteDashboard: React.FC = () => {
                                     }}
                                     onDragOver={(e) => e.preventDefault()}
                                     onDrop={(e) => handleDrop(e, tag.id)}
-                                    onClick={() => setSelectedTagId(tag.id)}
+                                    onClick={() => { setSelectedTagId(tag.id); setViewMode('grid'); }}
                                     className={cn(
                                         "w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all border group cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/20",
                                         selectedTagId === tag.id ? parsed.colorClasses : "bg-transparent border-transparent hover:bg-muted/30"
@@ -330,30 +376,52 @@ const ShortNoteDashboard: React.FC = () => {
                                     ? `#${tags.find(t => t.id === selectedTagId) ? parseTag(tags.find(t => t.id === selectedTagId)!).text : 'Notes'}`
                                     : 'All Notes'}
                             </h1>
-                            <div className="flex items-center gap-2 flex-1 md:max-w-md">
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <div className="flex items-center gap-2 flex-1 md:max-w-xl">
+                                <div className="flex-1 group/search">
                                     <Input
                                         placeholder="Search notes..."
-                                        className="pl-10 h-11 bg-card border-border/50 rounded-2xl shadow-sm"
+                                        className="h-11 bg-card border-border/50 rounded-2xl shadow-sm transition-all"
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
+                                        leftIcon={<Search className="w-4 h-4 ml-1" />}
+                                        rightIcon={
+                                            searchQuery && (
+                                                <button
+                                                    onClick={() => setSearchQuery('')}
+                                                    className="p-1.5 mr-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                                                >
+                                                    <X className="w-3.5 h-3.5" />
+                                                </button>
+                                            )
+                                        }
                                     />
                                 </div>
                                 <Button
                                     variant="outline"
-                                    onClick={() => { setShowTrash(true); fetchTrashedNotes(); }}
-                                    className="h-11 w-11 p-0 rounded-2xl border-border/50 bg-card/50 text-muted-foreground hover:text-rose-500 shrink-0 flex items-center justify-center shadow-sm"
-                                    title="View Trash"
+                                    onClick={() => setFilterPinned(!filterPinned)}
+                                    className={cn(
+                                        "h-11 w-11 p-0 rounded-2xl border-border/50 transition-colors shrink-0 flex items-center justify-center shadow-sm",
+                                        filterPinned ? "bg-primary text-primary-foreground border-primary/50" : "bg-card/50 text-muted-foreground hover:text-foreground"
+                                    )}
+                                    title={filterPinned ? "Show All Notes" : "Show Pinned Notes Only"}
                                 >
-                                    <Trash2 className="w-5 h-5" />
+                                    <Pin className={cn("w-5 h-5 transition-transform", filterPinned ? "fill-current" : "")} />
                                 </Button>
                                 <Button
                                     onClick={handleOpenCreate}
-                                    className="h-11 px-6 rounded-2xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 flex items-center gap-2 shrink-0"
+                                    className="h-11 px-5 rounded-2xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 flex items-center gap-2 shrink-0"
                                 >
                                     <Plus className="w-5 h-5" />
                                     <span className="hidden sm:inline">New Note</span>
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => { setShowTrash(true); fetchTrashedNotes(); }}
+                                    className="h-11 px-4 rounded-2xl border-border/50 bg-card/50 text-muted-foreground hover:text-rose-500 shrink-0 flex items-center justify-center shadow-sm gap-2"
+                                    title="View Trash"
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                    <span className="hidden sm:inline font-bold">Trash</span>
                                 </Button>
                             </div>
                         </header>
@@ -404,7 +472,7 @@ const ShortNoteDashboard: React.FC = () => {
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                                {filteredNotes.map(note => (
+                                {filteredNotes.map((note: DbShortNoteWithTags) => (
                                     <ShortNoteCard key={note.note_id} note={note} onUpdate={fetchData} onEdit={() => handleOpenEdit(note)} />
                                 ))}
                                 {filteredNotes.length === 0 && (
@@ -445,12 +513,12 @@ const ShortNoteDashboard: React.FC = () => {
                                     onClick={() => setNewTagColor(color.value)}
                                     className={cn(
                                         "w-8 h-8 rounded-full flex items-center justify-center transition-all border-2",
-                                        color.value.split(' ')[0], // bg class
-                                        newTagColor === color.value ? "ring-2 ring-primary ring-offset-2 scale-110 border-transparent shadow-md" : "border-transparent opacity-70 hover:opacity-100"
+                                        getSolidColorClass(color.value),
+                                        newTagColor === color.value ? "ring-2 ring-primary ring-offset-2 scale-110 shadow-md border-transparent" : "border-transparent opacity-50 hover:opacity-100"
                                     )}
                                     title={color.label}
                                 >
-                                    {newTagColor === color.value && <div className="w-2.5 h-2.5 rounded-full bg-current opacity-60" />}
+                                    {newTagColor === color.value && <div className="w-2.5 h-2.5 rounded-full bg-current opacity-90" />}
                                 </button>
                             ))}
                         </div>
@@ -476,41 +544,100 @@ const ShortNoteDashboard: React.FC = () => {
                             const usageCount = notes.filter(n => n.tags?.some(t => t.id === tag.id)).length;
                             const isDeleting = deletingTagId === tag.id;
 
-                            // Disable deletion if tag is used OR if it's the fixed general tag
-                            const disableDelete = usageCount > 0 || isGeneralTag;
-                            const deleteTooltip = isGeneralTag
-                                ? "System tag cannot be deleted"
-                                : usageCount > 0 ? "Cannot delete tag in use" : "Delete tag";
+                                // Disable deletion if tag is used OR if it's the fixed general tag
+                                const disableDelete = usageCount > 0 || isGeneralTag;
+                                const deleteTooltip = isGeneralTag
+                                    ? "System tag cannot be deleted"
+                                    : usageCount > 0 ? "Cannot delete tag in use" : "Delete tag";
 
-                            return (
-                                <div key={tag.id} className="flex items-center justify-between p-3 rounded-xl border bg-card/50 hover:bg-muted/30 transition-colors">
-                                    <div className="flex items-center gap-3">
-                                        <div className={cn("w-3 h-3 rounded-full", parsed.colorClasses.split(' ')[0])} />
-                                        <div>
-                                            <p className="font-bold text-sm text-foreground">
-                                                {parsed.text}
-                                                {isGeneralTag && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary uppercase font-bold tracking-wider">Default</span>}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground mt-0.5">
-                                                {usageCount} {usageCount === 1 ? 'note' : 'notes'}
-                                            </p>
+                                const isEditing = editingTagId === tag.id;
+
+                                if (isEditing) {
+                                    return (
+                                        <div key={tag.id} className="p-3 rounded-xl border bg-card/50 space-y-3">
+                                            <Input
+                                                value={editingTagText}
+                                                onChange={(e) => setEditingTagText(e.target.value)}
+                                                className="h-9 text-sm font-bold bg-background"
+                                                autoFocus
+                                            />
+                                            <div className="flex flex-wrap gap-1.5 px-1 mt-2">
+                                                {TAG_COLORS.map(color => (
+                                                    <button
+                                                        key={color.label}
+                                                        type="button"
+                                                        onClick={() => setEditingTagColor(color.value)}
+                                                        className={cn(
+                                                            "w-6 h-6 rounded-full flex items-center justify-center transition-all border-2",
+                                                            getSolidColorClass(color.value),
+                                                            editingTagColor === color.value ? "ring-2 ring-primary ring-offset-1 scale-110 shadow-sm border-transparent" : "border-transparent opacity-50 hover:opacity-100"
+                                                        )}
+                                                        title={color.label}
+                                                    >
+                                                        {editingTagColor === color.value && <div className="w-2 h-2 rounded-full bg-current opacity-90" />}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <div className="flex justify-end gap-2 pt-2 border-t border-border/50">
+                                                <Button variant="ghost" size="sm" onClick={() => setEditingTagId(null)} className="h-7 text-xs px-3">Cancel</Button>
+                                                <Button 
+                                                    size="sm" 
+                                                    className="h-7 text-xs px-3 font-bold"
+                                                    disabled={!editingTagText.trim() || isSavingEditTagId === tag.id}
+                                                    onClick={() => handleSaveEditTag(tag.id)}
+                                                >
+                                                    {isSavingEditTagId === tag.id ? 'Saving...' : 'Save'}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <div key={tag.id} className="flex items-center justify-between p-3 rounded-xl border bg-card/50 hover:bg-muted/30 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                            <div className={cn("w-3 h-3 rounded-full", parsed.colorClasses.split(' ')[0])} />
+                                            <div>
+                                                <p className="font-bold text-sm text-foreground">
+                                                    {parsed.text}
+                                                    {isGeneralTag && <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary uppercase font-bold tracking-wider">Default</span>}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground mt-0.5">
+                                                    {usageCount} {usageCount === 1 ? 'note' : 'notes'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                                                disabled={isGeneralTag}
+                                                onClick={() => {
+                                                    setEditingTagId(tag.id);
+                                                    setEditingTagText(parsed.text);
+                                                    setEditingTagColor(parsed.colorClasses);
+                                                }}
+                                                title={isGeneralTag ? "System tag cannot be edited" : "Edit tag"}
+                                            >
+                                                <Edit2 className="w-4 h-4" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className={cn(
+                                                    "h-8 w-8 p-0 rounded-lg",
+                                                    disableDelete ? "opacity-30 cursor-not-allowed" : "text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                )}
+                                                disabled={disableDelete || isDeleting}
+                                                onClick={() => handleDeleteTag(tag.id)}
+                                                title={deleteTooltip}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
                                         </div>
                                     </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className={cn(
-                                            "h-8 w-8 p-0 rounded-lg",
-                                            disableDelete ? "opacity-30 cursor-not-allowed" : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                                        )}
-                                        disabled={disableDelete || isDeleting}
-                                        onClick={() => handleDeleteTag(tag.id)}
-                                        title={deleteTooltip}
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                            );
+                                );
                         })
                     )}
                 </div>

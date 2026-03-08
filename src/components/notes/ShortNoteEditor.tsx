@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, AlertCircle } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
 import { DbShortNoteWithTags, DbTag } from '@/lib/supabase-types';
 import { apiClient } from '@/lib/api-client';
@@ -23,6 +23,7 @@ const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCance
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [editorKey, setEditorKey] = useState(0);
+    const [submitted, setSubmitted] = useState(false);
 
     useEffect(() => {
         setEditorKey(prev => prev + 1); // Force new TipTap instance
@@ -40,9 +41,9 @@ const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCance
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setSubmitted(true);
 
         if (!title.trim()) {
-            setError('Please enter a title for your note.');
             return;
         }
         if (selectedTagIds.length === 0) {
@@ -92,25 +93,50 @@ const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCance
 
     return (
         <div className="space-y-6">
-            <header className="flex items-center gap-4 bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/20 p-5 sm:p-6 mb-2 rounded-3xl shadow-sm">
-                <Button variant="ghost" onClick={onCancel} className="rounded-xl p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 hover:text-purple-800 dark:hover:text-purple-200 border-transparent shrink-0">
-                    <ArrowLeft className="w-5 h-5" />
-                </Button>
-                <h1 className="text-2xl font-black tracking-tight truncate">
-                    {note ? 'Edit Note' : 'Create Note'}
-                </h1>
-            </header>
-
             <form onSubmit={handleSubmit} className="space-y-6 bg-card border border-border/50 rounded-3xl p-6 shadow-sm">
+                
+                {/* Header & Actions at the top */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border/50">
+                    <div className="flex items-center gap-4">
+                        <Button type="button" variant="ghost" onClick={onCancel} className="rounded-xl p-2.5 bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border-transparent shrink-0">
+                            <ArrowLeft className="w-5 h-5" />
+                        </Button>
+                        <h1 className="text-2xl font-black tracking-tight truncate text-foreground">
+                            {note ? 'Edit Note' : 'Create Note'}
+                        </h1>
+                    </div>
+                    <div className="flex items-center gap-3 w-full sm:w-auto mt-2 sm:mt-0">
+                        <Button type="button" variant="ghost" onClick={onCancel} className="flex-1 sm:flex-none rounded-xl px-6 h-11 font-bold text-muted-foreground hover:text-foreground bg-muted/30 sm:bg-transparent">
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="flex-1 sm:flex-none rounded-xl px-6 h-11 bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20"
+                        >
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (note ? 'Update Note' : 'Create Note')}
+                        </Button>
+                    </div>
+                </div>
+
                 {/* Title */}
                 <div className="space-y-2">
-                    <label className="text-sm font-bold text-muted-foreground ml-1">Title</label>
+                    <label className="text-sm font-bold text-foreground flex items-center gap-1 ml-1">
+                        Title
+                        <span className="text-rose-500">*</span>
+                    </label>
                     <Input
                         placeholder="Enter note title..."
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        className="h-12 bg-background border-border/50 rounded-xl font-bold"
+                        className={cn("h-12 bg-background border-border/50 rounded-xl font-bold", submitted && !title.trim() && "border-rose-500 focus-visible:ring-rose-500")}
                     />
+                    {submitted && !title.trim() && (
+                        <p className="text-xs font-bold text-rose-500 flex items-center gap-1.5 mt-1.5 ml-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            กรุณากรอก Title
+                        </p>
+                    )}
                 </div>
 
                 {/* Tags */}
@@ -146,7 +172,7 @@ const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCance
                 {/* Content - Rich Text Editor */}
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-muted-foreground ml-1">Content</label>
-                    <div className="min-h-[400px]">
+                    <div className="w-full">
                         <RichTextEditor
                             key={editorKey}
                             content={content}
@@ -162,20 +188,6 @@ const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCance
                         {error}
                     </div>
                 )}
-
-                {/* Actions */}
-                <div className="pt-6 flex flex-col-reverse sm:flex-row items-center justify-end gap-3 border-t border-border/50">
-                    <Button type="button" variant="ghost" onClick={onCancel} className="w-full sm:w-auto rounded-xl px-8 h-12 font-bold text-muted-foreground hover:text-foreground">
-                        Cancel
-                    </Button>
-                    <Button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full sm:w-auto rounded-xl px-8 h-12 bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20"
-                    >
-                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (note ? 'Update Note' : 'Create Note')}
-                    </Button>
-                </div>
             </form>
         </div>
     );

@@ -57,3 +57,31 @@ export const DELETE = withAuth(async (request: NextRequest, user: AuthUser, cont
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 });
+
+export const PATCH = withAuth(async (request: NextRequest, user: AuthUser, context: unknown) => {
+    try {
+        const { id } = await (context as { params: Promise<{ id: string }> }).params;
+        const supabase = createSupabaseAdminClient();
+        const body = await request.json();
+
+        if (!body.name) {
+            return NextResponse.json({ success: false, error: 'Tag name is required' }, { status: 400 });
+        }
+
+        const { error } = await supabase
+            .from('tags')
+            .update({ name: body.name })
+            .eq('id', id)
+            .eq('user_id', user.id);
+
+        if (error) {
+            console.error('API /tags/[id] PATCH Supabase Error:', error);
+            return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true, message: 'Tag updated successfully' });
+    } catch (error: any) {
+        console.error('API /tags/[id] PATCH Catch Error:', error);
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+});
