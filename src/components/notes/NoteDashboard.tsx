@@ -22,9 +22,9 @@ interface ExtendedNote extends DbNote {
 const STATUS_COLUMNS = ['New', 'In Progress', 'Urgent', 'Done'];
 const statusStyles: Record<string, { bg: string; text: string; border: string; dot: string; countBg: string; pillBg: string; ring: string }> = {
     'New': { bg: 'bg-[#FFF8D6]/10', text: 'text-[#6B4E0F]', border: 'border-[#6B4E0F]/15 border-t-[#6B4E0F]/30', dot: 'bg-[#6B4E0F]', countBg: 'bg-white ring-1 ring-[#6B4E0F]/20', pillBg: 'bg-[#FFF8D6]/30', ring: 'ring-[#6B4E0F]/20' },
-    'In Progress': { bg: 'bg-[#E8EAF6]/20', text: 'text-[#3F51B5]', border: 'border-[#3F51B5]/15 border-t-[#3F51B5]/30', dot: 'bg-[#3F51B5]', countBg: 'bg-white ring-1 ring-[#3F51B5]/20', pillBg: 'bg-[#E8EAF6]/40', ring: 'ring-[#3F51B5]/20' },
-    'Urgent': { bg: 'bg-rose-500/5', text: 'text-rose-600', border: 'border-rose-500/15 border-t-rose-500/30', dot: 'bg-rose-500', countBg: 'bg-white ring-1 ring-rose-500/20', pillBg: 'bg-rose-500/10', ring: 'ring-rose-500/20' },
-    'Done': { bg: 'bg-[#EFFFF4]/20', text: 'text-[#009624]', border: 'border-[#009624]/15 border-t-[#009624]/30', dot: 'bg-[#009624]', countBg: 'bg-white ring-1 ring-[#009624]/20', pillBg: 'bg-[#EFFFF4]/40', ring: 'ring-[#009624]/20' },
+    'In Progress': { bg: 'bg-indigo-500/5', text: 'text-indigo-700', border: 'border-indigo-500/15 border-t-indigo-500/30', dot: 'bg-indigo-600', countBg: 'bg-white ring-1 ring-indigo-500/20', pillBg: 'bg-indigo-500/10', ring: 'ring-indigo-500/20' },
+    'Urgent': { bg: 'bg-rose-500/5', text: 'text-rose-700', border: 'border-rose-500/15 border-t-rose-500/30', dot: 'bg-rose-600', countBg: 'bg-white ring-1 ring-rose-500/20', pillBg: 'bg-rose-500/10', ring: 'ring-rose-500/20' },
+    'Done': { bg: 'bg-emerald-500/5', text: 'text-emerald-700', border: 'border-emerald-500/15 border-t-emerald-500/30', dot: 'bg-emerald-600', countBg: 'bg-white ring-1 ring-emerald-500/20', pillBg: 'bg-emerald-500/10', ring: 'ring-emerald-500/20' },
 };
 
 function getDaysRemainingText(dueDate: string, status?: string, updatedAt?: string): { text: string; isOverdue: boolean; isDueToday?: boolean } {
@@ -402,6 +402,7 @@ const NoteDashboard: React.FC = () => {
                                 searchQuery && (
                                     <button
                                         onClick={() => setSearchQuery('')}
+                                        aria-label="Clear search"
                                         className="p-1.5 mr-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
                                     >
                                         <X className="w-3.5 h-3.5" />
@@ -423,6 +424,7 @@ const NoteDashboard: React.FC = () => {
                         <Button
                             variant="outline"
                             onClick={() => setShowCategorySettings(!showCategorySettings)}
+                            aria-label="Category settings"
                             className={cn(
                                 "h-10 w-10 p-0 rounded-xl border-border/50 bg-card/50 text-muted-foreground hover:text-primary",
                                 showCategorySettings && "border-primary/30 text-primary bg-primary/5"
@@ -478,10 +480,13 @@ const NoteDashboard: React.FC = () => {
                                                     {cat.name}
                                                 </span>
                                                 {/* Toggle switch */}
-                                                <div
+                                                <button
                                                     onClick={(e) => { e.preventDefault(); toggleCategoryVisibility(id); }}
+                                                    role="switch"
+                                                    aria-checked={isVisible}
+                                                    aria-label={`Toggle visibility for ${cat.name}`}
                                                     className={cn(
-                                                        "w-10 h-6 rounded-full relative transition-all cursor-pointer shrink-0",
+                                                        "w-10 h-6 rounded-full relative transition-all cursor-pointer shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
                                                         isVisible ? "bg-primary" : "bg-muted-foreground/30"
                                                     )}
                                                 >
@@ -489,7 +494,7 @@ const NoteDashboard: React.FC = () => {
                                                         "absolute top-[3px] w-[18px] h-[18px] rounded-full bg-white shadow-md transition-all",
                                                         isVisible ? "left-[19px]" : "left-[3px]"
                                                     )} />
-                                                </div>
+                                                </button>
                                             </label>
                                         );
                                     })}
@@ -503,13 +508,13 @@ const NoteDashboard: React.FC = () => {
 
             {/* Filters Row */}
             <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-2 bg-card/50 border border-border/50 rounded-xl px-3 py-1.5">
+                <div className="flex items-center gap-2 bg-card/50 border border-border/50 rounded-xl px-3 py-1.5 focus-within:ring-1 focus-within:ring-primary">
                     <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                    <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-8 w-36 bg-transparent border-0 text-sm p-0 focus:ring-0" />
+                    <Input type="date" aria-label="From date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-8 w-36 bg-transparent border-0 text-sm p-0 focus:ring-0" />
                     <span className="text-muted-foreground text-xs">to</span>
-                    <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-8 w-36 bg-transparent border-0 text-sm p-0 focus:ring-0" />
+                    <Input type="date" aria-label="To date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-8 w-36 bg-transparent border-0 text-sm p-0 focus:ring-0" />
                     {(dateFrom || dateTo) && (
-                        <button onClick={() => { setDateFrom(''); setDateTo(''); }} className="p-1 text-muted-foreground hover:text-rose-500"><X className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => { setDateFrom(''); setDateTo(''); }} aria-label="Clear date range" className="p-1 text-muted-foreground hover:text-rose-500"><X className="w-3.5 h-3.5" /></button>
                     )}
                 </div>
             </div>
@@ -610,7 +615,7 @@ const NoteDashboard: React.FC = () => {
                                             <div className="flex h-2.5 w-2.5 items-center justify-center">
                                                 <div className={cn("w-2.5 h-2.5 rounded-full shadow-[0_0_4px_rgba(0,0,0,0.1)]", style.dot)} />
                                             </div>
-                                            <h3 className={cn("text-xs font-black uppercase tracking-widest", style.text)}>{status}</h3>
+                                            <h2 className={cn("text-xs font-black uppercase tracking-widest", style.text)}>{status}</h2>
                                         </div>
                                         <div className={cn("min-w-[32px] h-6 flex items-center justify-center px-1.5 rounded-full text-xs font-black shadow-sm", style.text, style.countBg)}>
                                             {columnNotes.length}
@@ -644,9 +649,9 @@ const NoteDashboard: React.FC = () => {
                                                                 <div className="flex items-start justify-between gap-2">
                                                                     <div className="flex items-center gap-1.5 min-w-0">
                                                                         <span className="text-xs shrink-0">{note.note_categories?.icon || '📝'}</span>
-                                                                        <h4 title={note.title} className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{note.title}</h4>
+                                                                        <h3 title={note.title} className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{note.title}</h3>
                                                                     </div>
-                                                                    <button onClick={(e) => handleDelete(note.note_id, e)} className="p-1 rounded-lg text-muted-foreground/40 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0" title="Move to Trash">
+                                                                    <button onClick={(e) => handleDelete(note.note_id, e)} className="p-1 rounded-lg text-muted-foreground/40 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0" aria-label="Move to Trash">
                                                                         <Trash2 className="w-3.5 h-3.5" />
                                                                     </button>
                                                                 </div>
@@ -662,9 +667,9 @@ const NoteDashboard: React.FC = () => {
                                                                         </span>
                                                                         <span className={cn(
                                                                             "text-[10px] font-bold px-2 py-0.5 rounded-full",
-                                                                            deadline.isOverdue ? "bg-rose-500/10 text-rose-600" :
-                                                                                (deadline as any).isDueToday ? "bg-orange-500/15 text-orange-600" :
-                                                                                    "bg-primary/10 text-primary"
+                                                                            deadline.isOverdue ? "bg-rose-500/10 text-rose-700" :
+                                                                                (deadline as any).isDueToday ? "bg-orange-500/15 text-orange-700" :
+                                                                                    "bg-primary/10 text-[#6D28D9]"
                                                                         )}>
                                                                             {deadline.text}
                                                                         </span>
@@ -701,7 +706,7 @@ const NoteDashboard: React.FC = () => {
                         <div key={note.note_id} className="flex items-center gap-3 p-4 bg-card border border-border/50 rounded-xl">
                             <span className="text-sm">{note.note_categories?.icon || '📝'}</span>
                             <div className="flex-1 min-w-0">
-                                <h4 className="text-sm font-bold text-foreground line-clamp-1">{note.title}</h4>
+                                <h3 className="text-sm font-bold text-foreground line-clamp-1">{note.title}</h3>
                                 <p className="text-[10px] text-muted-foreground">{note.note_categories?.name || 'Uncategorized'}</p>
                             </div>
                             <div className="flex items-center gap-1.5 shrink-0">

@@ -49,6 +49,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                                 <button
                                     type="button"
                                     onClick={() => onRemove(index)}
+                                    aria-label={`Remove sell record ${index + 1}`}
                                     className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                                 >
                                     <Trash2 className="w-4 h-4" />

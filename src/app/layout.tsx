@@ -14,7 +14,12 @@ export const metadata: Metadata = {
   title: "Pwsnboard - Personal Management",
   description: "Personal Management System",
   manifest: '/manifest.json',
-  themeColor: '#8B5CF6',
+};
+
+export const viewport = {
+  themeColor: '#7C3AED',
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -29,7 +34,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body
-        className={`${montserrat.variable} font-sans antialiased`}
+        className={`${montserrat.className} antialiased selection:bg-primary/20`}
       >
         <ValentineTheme />
         <LoadingProvider>

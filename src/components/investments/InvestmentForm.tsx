@@ -179,9 +179,12 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
         >
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 {/* Tabs */}
-                <div className="flex border-b border-border -mt-2 overflow-x-auto scrollbar-hide">
+                <div className="flex border-b border-border -mt-2 overflow-x-auto scrollbar-hide" role="tablist">
                     <button
                         type="button"
+                        role="tab"
+                        aria-selected={activeTab === 'details'}
+                        aria-controls="details-panel"
                         onClick={() => setActiveTab('details')}
                         className={`px-4 sm:px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'details'
                             ? 'border-primary text-primary'
@@ -192,6 +195,9 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                     </button>
                     <button
                         type="button"
+                        role="tab"
+                        aria-selected={activeTab === 'sell_history'}
+                        aria-controls="sell-history-panel"
                         onClick={() => setActiveTab('sell_history')}
                         className={`px-4 sm:px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'sell_history'
                             ? 'border-primary text-primary'
@@ -208,7 +214,12 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 </div>
 
                 {/* Details Tab */}
-                <div className={`${activeTab === 'details' ? 'block' : 'hidden'} space-y-4 min-h-[300px] sm:min-h-[380px]`}>
+                <div 
+                    id="details-panel"
+                    role="tabpanel"
+                    aria-labelledby="details-tab"
+                    className={`${activeTab === 'details' ? 'block' : 'hidden'} space-y-4 min-h-[300px] sm:min-h-[380px]`}
+                >
                     <InvestmentDetails
                         formData={formData}
                         errors={errors}
@@ -218,7 +229,12 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 </div>
 
                 {/* Sell History Tab */}
-                <div className={`${activeTab === 'sell_history' ? 'block' : 'hidden'} space-y-4 h-[300px] sm:h-[380px] overflow-y-auto custom-scrollbar`}>
+                <div 
+                    id="sell-history-panel"
+                    role="tabpanel"
+                    aria-labelledby="sell-history-tab"
+                    className={`${activeTab === 'sell_history' ? 'block' : 'hidden'} space-y-4 h-[300px] sm:h-[380px] overflow-y-auto custom-scrollbar`}
+                >
                     <SellHistoryList
                         sellHistory={formData.sell_history}
                         errors={errors}

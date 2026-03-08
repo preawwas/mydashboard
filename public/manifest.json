@@ -1,11 +1,11 @@
 {
     "name": "PWSN Dashboard",
     "short_name": "PWSN",
-    "description": "Personal Wealth & Spending Navigator - ระบบจัดการการเงินส่วนบุคคล",
+    "description": "Personal Wealth & Spending Navigator",
     "start_url": "/dashboard",
     "display": "standalone",
     "background_color": "#FDFBFF",
-    "theme_color": "#8B6914",
+    "theme_color": "#7C3AED",
     "orientation": "any",
     "icons": [
         {
@@ -25,6 +25,6 @@
         "finance",
         "productivity"
     ],
-    "lang": "th",
+    "lang": "en",
     "dir": "ltr"
 }

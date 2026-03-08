@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 import { DbShortNoteWithTags, DbTag } from '@/lib/supabase-types';
 import { apiClient } from '@/lib/api-client';
-import RichTextEditor from './RichTextEditor';
+import DynamicRichTextEditor from './DynamicRichTextEditor';
 import { cn } from '@/lib/utils';
 
 interface ShortNoteModalProps {
@@ -124,7 +124,7 @@ const ShortNoteModal: React.FC<ShortNoteModalProps> = ({ isOpen, onClose, note, 
                 {/* Content - Rich Text Editor */}
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-muted-foreground ml-1">Content</label>
-                    <RichTextEditor
+                    <DynamicRichTextEditor
                         key={editorKey}
                         content={content}
                         onChange={setContent}

@@ -1,13 +1,13 @@
 export const TAG_COLORS = [
-    { label: 'Primary', value: 'bg-primary/10 text-primary border-primary/20' },
-    { label: 'Red', value: 'bg-red-500/10 text-red-500 border-red-500/20' },
-    { label: 'Orange', value: 'bg-orange-500/10 text-orange-500 border-orange-500/20' },
-    { label: 'Amber', value: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
-    { label: 'Green', value: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
-    { label: 'Blue', value: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
-    { label: 'Indigo', value: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' },
-    { label: 'Purple', value: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
-    { label: 'Pink', value: 'bg-pink-500/10 text-pink-500 border-pink-500/20' },
+    { label: 'Primary', value: 'bg-primary/10 text-[#6D28D9] border-primary/20' },
+    { label: 'Red', value: 'bg-red-500/10 text-red-700 border-red-500/20' },
+    { label: 'Orange', value: 'bg-orange-500/10 text-orange-700 border-orange-500/20' },
+    { label: 'Amber', value: 'bg-amber-500/10 text-amber-700 border-amber-500/20' },
+    { label: 'Green', value: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20' },
+    { label: 'Blue', value: 'bg-blue-500/10 text-blue-700 border-blue-500/20' },
+    { label: 'Indigo', value: 'bg-indigo-500/10 text-indigo-700 border-indigo-500/20' },
+    { label: 'Purple', value: 'bg-purple-500/10 text-purple-700 border-purple-500/20' },
+    { label: 'Pink', value: 'bg-pink-500/10 text-pink-700 border-pink-500/20' },
 ];
 
 export interface ParsedTag {

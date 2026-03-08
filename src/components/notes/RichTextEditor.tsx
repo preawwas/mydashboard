@@ -28,6 +28,8 @@ const ToolbarButton = ({ onClick, isActive, children, title }: {
         type="button"
         onClick={onClick}
         title={title}
+        aria-label={title}
+        aria-pressed={isActive}
         className={`p-1.5 rounded-lg transition-colors ${isActive
             ? 'bg-primary/15 text-primary'
             : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'
@@ -56,13 +58,16 @@ const HighlightColorPicker = ({ editor }: { editor: any }) => {
                 type="button"
                 onClick={() => setOpen(!open)}
                 title="Highlight"
+                aria-label="Highlight"
+                aria-expanded={open}
+                aria-haspopup="true"
                 className={`p-1.5 rounded-lg transition-colors flex items-center gap-1 ${isActive
                     ? 'bg-primary/15 text-primary'
                     : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'
                     }`}
             >
                 <Highlighter className="w-4 h-4" />
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
@@ -73,6 +78,7 @@ const HighlightColorPicker = ({ editor }: { editor: any }) => {
                             key={name}
                             type="button"
                             title={name}
+                            aria-label={`Highlight ${name}`}
                             onClick={() => {
                                 editor.chain().focus().toggleHighlight({ color }).run();
                                 setOpen(false);
@@ -88,6 +94,7 @@ const HighlightColorPicker = ({ editor }: { editor: any }) => {
                     <button
                         type="button"
                         title="Remove Highlight"
+                        aria-label="Remove highlight"
                         onClick={() => {
                             editor.chain().focus().unsetHighlight().run();
                             setOpen(false);
@@ -125,6 +132,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
         editorProps: {
             attributes: {
                 class: 'prose prose-sm max-w-none focus:outline-none min-h-[400px] p-4 text-foreground',
+                'aria-label': placeholder || 'Rich text editor',
             },
         },
     });

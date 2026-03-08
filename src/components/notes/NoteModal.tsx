@@ -7,7 +7,7 @@ import {
 import { Button, Input, Modal } from '@/components/ui';
 import { DbNote, DbNoteCategory } from '@/lib/supabase-types';
 import { apiClient } from '@/lib/api-client';
-import RichTextEditor from './RichTextEditor';
+import DynamicRichTextEditor from './DynamicRichTextEditor';
 
 // Desired category display order
 const CATEGORY_ORDER = [
@@ -210,7 +210,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                 {/* Content - Rich Text Editor */}
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-muted-foreground ml-1">Content</label>
-                    <RichTextEditor
+                    <DynamicRichTextEditor
                         key={editorKey}
                         content={content}
                         onChange={setContent}

@@ -124,18 +124,19 @@ const ShortNoteCard: React.FC<ShortNoteCardProps> = ({ note, onUpdate, onEdit })
             {/* Card Header */}
             <div className="flex items-start justify-between gap-4 mb-3">
                 <h3
-                    className="font-black text-foreground leading-tight line-clamp-2 transition-colors group-hover:text-primary"
+                    className="font-black text-foreground leading-tight line-clamp-2 transition-colors group-hover:text-[#6D28D9]"
                     title={note.title || 'Untitled Note'}
                 >
                     {note.title || 'Untitled Note'}
                 </h3>
                 <button
                     onClick={handleTogglePin}
+                    aria-label={note.is_favorite ? "Unpin note" : "Pin note"}
                     className={cn(
                         "p-2 rounded-xl transition-all",
                         note.is_favorite
-                            ? "text-primary bg-primary/10"
-                            : "text-muted-foreground/40 hover:text-primary hover:bg-primary/10"
+                            ? "text-[#6D28D9] bg-primary/10"
+                            : "text-muted-foreground/40 hover:text-[#6D28D9] hover:bg-primary/10"
                     )}
                 >
                     <Pin className={cn("w-4 h-4", note.is_favorite && "fill-primary")} />
@@ -185,14 +186,16 @@ const ShortNoteCard: React.FC<ShortNoteCardProps> = ({ note, onUpdate, onEdit })
                 <div className="flex items-center justify-end shrink-0 gap-1">
                     <button
                         onClick={handleCopy}
-                        className="p-2.5 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all z-10"
+                        aria-label="Copy note content"
+                        className="p-2.5 rounded-xl text-muted-foreground hover:text-[#6D28D9] hover:bg-primary/10 transition-all z-10"
                         title="Copy Content"
                     >
                         {isCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                     </button>
                     <button
                         onClick={handleDeleteClick}
-                        className="p-2.5 rounded-xl text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-all z-10"
+                        aria-label="Delete note"
+                        className="p-2.5 rounded-xl text-muted-foreground hover:text-rose-700 hover:bg-rose-500/10 transition-all z-10"
                         title="Delete Note"
                     >
                         <Trash2 className="w-4 h-4" />

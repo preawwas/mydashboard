@@ -299,6 +299,7 @@ const ShortNoteDashboard: React.FC = () => {
                         className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors shrink-0"
                         onClick={() => setIsManageTagsModalOpen(true)}
                         title="Manage Tags"
+                        aria-label="Manage Tags"
                     >
                         <Settings className="w-4 h-4" />
                     </Button>
@@ -388,6 +389,7 @@ const ShortNoteDashboard: React.FC = () => {
                                             searchQuery && (
                                                 <button
                                                     onClick={() => setSearchQuery('')}
+                                                    aria-label="Clear search"
                                                     className="p-1.5 mr-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
                                                 >
                                                     <X className="w-3.5 h-3.5" />
@@ -430,11 +432,12 @@ const ShortNoteDashboard: React.FC = () => {
                         <div className="bg-card border border-border/50 rounded-3xl p-4 shadow-xl shadow-primary/5 transition-all focus-within:ring-2 focus-within:ring-primary/20">
                             <div className="flex items-center gap-2 mb-3 px-1">
                                 <Zap className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                <span className="text-sm font-black text-foreground">Quick Note</span>
+                                <h2 className="text-sm font-black text-foreground">Quick Note</h2>
                             </div>
                             <div className="flex gap-4">
                                 <textarea
                                     placeholder="What's on your mind?..."
+                                    aria-label="Quick note content"
                                     className="flex-1 bg-transparent border-0 focus:ring-0 resize-none text-sm min-h-[60px] custom-scrollbar"
                                     value={quickNoteContent}
                                     onChange={(e) => setQuickNoteContent(e.target.value)}
@@ -661,7 +664,7 @@ const ShortNoteDashboard: React.FC = () => {
                                 <div key={note.note_id} className="p-4 rounded-xl border bg-card/50 hover:bg-muted/30 transition-colors">
                                     <div className="flex justify-between items-start gap-4 mb-3">
                                         <div className="flex-1 min-w-0">
-                                            <h4 className="font-bold text-sm text-foreground truncate">{note.title}</h4>
+                                            <h3 className="font-bold text-sm text-foreground truncate">{note.title}</h3>
                                             <p className="text-xs text-muted-foreground truncate mt-1">
                                                 {note.content?.replace(/<[^>]*>/g, '').trim() || 'No content...'}
                                             </p>

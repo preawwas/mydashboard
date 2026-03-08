@@ -84,7 +84,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
             <CardContent className="pt-6">
                 <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
                     {/* Donut Chart */}
-                    <div className="relative w-48 h-48 sm:w-64 sm:h-64 flex-shrink-0">
+                    <div className="relative w-48 h-48 sm:w-64 sm:h-64 flex-shrink-0" role="img" aria-label="Donut chart showing asset allocation percentages">
                         <svg viewBox="0 0 100 100" className="w-full h-full">
                             {/* Background circle */}
                             <circle cx="50" cy="50" r="40" fill="currentColor" className="text-muted/10" />
@@ -120,14 +120,19 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                     </div>
 
                     {/* Legend / List */}
-                    <div className="flex-1 w-full space-y-3 sm:space-y-4">
+                    <div className="flex-1 w-full space-y-3 sm:space-y-4" role="list">
                         {processedData.length > 0 ? (
                             processedData.map((item) => (
-                                <div key={item.category} className="group flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-card border border-border hover:border-primary/40 transition-colors shadow-sm">
+                                <div 
+                                    key={item.category} 
+                                    className="group flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-card border border-border hover:border-primary/40 transition-colors shadow-sm"
+                                    role="listitem"
+                                >
                                     <div className="flex items-center gap-3 sm:gap-4">
                                         <div
                                             className="w-2 sm:w-3 h-10 sm:h-12 rounded-full shadow-lg"
                                             style={{ backgroundColor: item.color, boxShadow: `0 0 15px ${item.color}30` }}
+                                            role="presentation"
                                         />
                                         <div>
                                             <p className="text-foreground font-bold text-base sm:text-lg">
@@ -138,12 +143,23 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                                                                 item.category === 'USD' ? 'USD' :
                                                                     'Others'}
                                             </p>
-                                            <p className="text-xs text-muted-foreground font-bold">{item.percentage.toFixed(1)}%</p>
+                                            <p className="text-xs text-muted-foreground font-bold" aria-label={`${item.percentage.toFixed(1)} percent`}>
+                                                {item.percentage.toFixed(1)}%
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-foreground font-black tracking-tight text-lg sm:text-xl">{formatCurrency(item.value)}</p>
-                                        <div className="hidden sm:block w-28 bg-muted h-2 rounded-full mt-2 ml-auto overflow-hidden border border-border">
+                                        <p className="text-foreground font-black tracking-tight text-lg sm:text-xl" aria-label={`Value: ${formatCurrency(item.value)}`}>
+                                            {formatCurrency(item.value)}
+                                        </p>
+                                        <div 
+                                            className="hidden sm:block w-28 bg-muted h-2 rounded-full mt-2 ml-auto overflow-hidden border border-border"
+                                            role="progressbar"
+                                            aria-valuenow={item.percentage}
+                                            aria-valuemin={0}
+                                            aria-valuemax={100}
+                                            aria-label={`${item.category} proportion`}
+                                        >
                                             <div
                                                 className="h-full rounded-full"
                                                 style={{ width: `${item.percentage}%`, backgroundColor: item.color }}
@@ -153,7 +169,7 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
                                 </div>
                             ))
                         ) : (
-                            <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed border-border">
+                            <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed border-border" role="status">
                                 <p>No investment found.</p>
                                 <p className="text-sm mt-2">Start adding investments to see allocation.</p>
                             </div>

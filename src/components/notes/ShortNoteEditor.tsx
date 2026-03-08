@@ -5,7 +5,7 @@ import { Loader2, ArrowLeft, AlertCircle } from 'lucide-react';
 import { Button, Input } from '@/components/ui';
 import { DbShortNoteWithTags, DbTag } from '@/lib/supabase-types';
 import { apiClient } from '@/lib/api-client';
-import RichTextEditor from './RichTextEditor';
+import DynamicRichTextEditor from './DynamicRichTextEditor';
 import { cn } from '@/lib/utils';
 import { parseTag } from '@/lib/tag-helpers';
 
@@ -173,7 +173,7 @@ const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCance
                 <div className="space-y-2">
                     <label className="text-sm font-bold text-muted-foreground ml-1">Content</label>
                     <div className="w-full">
-                        <RichTextEditor
+                        <DynamicRichTextEditor
                             key={editorKey}
                             content={content}
                             onChange={setContent}

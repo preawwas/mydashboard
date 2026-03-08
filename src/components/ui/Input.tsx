@@ -25,6 +25,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ) => {
         const generatedId = useId();
         const inputId = props.id || generatedId;
+        const errorId = `${inputId}-error`;
 
         return (
             <div className="w-full">
@@ -43,6 +44,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         ref={ref}
                         id={inputId}
                         type={type}
+                        aria-invalid={error ? 'true' : 'false'}
+                        aria-describedby={error ? errorId : undefined}
                         className={cn(
                             'w-full px-4 py-2.5 border rounded-lg text-foreground placeholder-muted-foreground',
                             'bg-background',
@@ -65,7 +68,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                     )}
                 </div>
                 {error && (
-                    <p className="mt-1.5 text-sm text-destructive flex items-center gap-1">
+                    <p id={errorId} className="mt-1.5 text-sm text-destructive flex items-center gap-1">
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                             <path
                                 fillRule="evenodd"

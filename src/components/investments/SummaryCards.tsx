@@ -27,8 +27,11 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Hero Card - Total Value */}
-            <Card className="lg:col-span-3 bg-card border-border shadow-md relative overflow-hidden">
-
+            <Card 
+                className="lg:col-span-3 bg-card border-border shadow-md relative overflow-hidden"
+                role="region"
+                aria-label={`Portfolio summary. Total value: ${formatCurrency(data.totalValue)}. Total profit: ${data.totalProfitLoss >= 0 ? '+' : ''}${formatCurrency(data.totalProfitLoss)} (${data.profitLossPercentage.toFixed(2)}%)`}
+            >
                 <CardContent className="p-8 relative z-10">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                         <div>
@@ -62,7 +65,11 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
             </Card>
 
             {/* Secondary Stats */}
-            <Card className="bg-card border-border hover:border-primary/50 transition-colors shadow-md">
+            <Card 
+                className="bg-card border-border hover:border-primary/50 transition-colors shadow-md"
+                role="region"
+                aria-label={`Total assets: ${data.totalAssets} items`}
+            >
                 <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="p-2 rounded-lg bg-blue-500/10">
@@ -71,13 +78,17 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                         <span className="text-[10px] sm:text-xs font-bold text-blue-500 bg-blue-500/5 px-2.5 py-1 rounded uppercase tracking-wider">Assets</span>
                     </div>
                     <p className="text-muted-foreground text-xs sm:text-sm font-medium mb-1">Total Assets</p>
-                    <h3 className="text-2xl sm:text-3xl font-bold text-foreground truncate tracking-tight">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground truncate tracking-tight">
                         {data.totalAssets} <span className="text-sm sm:text-lg font-normal text-muted-foreground">Items</span>
-                    </h3>
+                    </h2>
                 </CardContent>
             </Card>
 
-            <Card className="bg-card border-border hover:border-primary/50 transition-colors shadow-md">
+            <Card 
+                className="bg-card border-border hover:border-primary/50 transition-colors shadow-md"
+                role="region"
+                aria-label={`Active positions: ${data.openPositions}`}
+            >
                 <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="p-2 rounded-lg bg-primary/10">
@@ -86,13 +97,17 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                         <span className="text-[10px] sm:text-xs font-bold text-primary bg-primary/5 px-2.5 py-1 rounded uppercase tracking-wider">Active</span>
                     </div>
                     <p className="text-muted-foreground text-xs sm:text-sm font-medium mb-1">Status Open</p>
-                    <h3 className="text-2xl sm:text-3xl font-bold text-foreground truncate tracking-tight">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground truncate tracking-tight">
                         {data.openPositions} <span className="text-sm sm:text-lg font-normal text-muted-foreground">Positions</span>
-                    </h3>
+                    </h2>
                 </CardContent>
             </Card>
 
-            <Card className="bg-card border-border hover:border-primary/50 transition-colors shadow-md">
+            <Card 
+                className="bg-card border-border hover:border-primary/50 transition-colors shadow-md"
+                role="region"
+                aria-label={`Cost basis: ${formatCurrency(data.totalValue - data.totalProfitLoss)}`}
+            >
                 <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                         <div className="p-2 rounded-lg bg-emerald-500/10">
@@ -101,9 +116,9 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ data }) => {
                         <span className="text-[10px] sm:text-xs font-bold text-emerald-500 bg-emerald-500/5 px-2.5 py-1 rounded uppercase tracking-wider">Cash Flow</span>
                     </div>
                     <p className="text-muted-foreground text-xs sm:text-sm font-medium mb-1">Cost Basis</p>
-                    <h3 className="text-2xl sm:text-3xl font-bold text-foreground max-w-full truncate tracking-tight" title={formatCurrency(data.totalValue - data.totalProfitLoss)}>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-foreground max-w-full truncate tracking-tight" title={formatCurrency(data.totalValue - data.totalProfitLoss)}>
                         {formatCurrency(data.totalValue - data.totalProfitLoss)}
-                    </h3>
+                    </h2>
                 </CardContent>
             </Card>
         </div>

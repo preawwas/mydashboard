@@ -44,10 +44,10 @@ function getDaysRemaining(dueDate: string): { text: string; isOverdue: boolean }
 }
 
 const statusStyles: Record<string, string> = {
-    'New': 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-    'In Progress': 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-    'Urgent': 'bg-rose-500/10 text-rose-600 border-rose-500/20',
-    'Done': 'bg-slate-500/10 text-slate-500 border-slate-500/20',
+    'New': 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20',
+    'In Progress': 'bg-amber-500/10 text-amber-700 border-amber-500/20',
+    'Urgent': 'bg-rose-500/10 text-rose-700 border-rose-500/20',
+    'Done': 'bg-slate-500/10 text-slate-700 border-slate-500/20',
 };
 
 const NoteCard: React.FC<NoteCardProps> = ({ note, onClick }) => {
@@ -73,7 +73,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick }) => {
                         >
                             {note.note_categories?.icon || '📝'}
                         </div>
-                        <h3 className="text-base font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors leading-tight">
+                        <h3 className="text-base font-bold text-foreground line-clamp-2 group-hover:text-[#6D28D9] transition-colors leading-tight">
                             {note.title}
                         </h3>
                     </div>
@@ -101,8 +101,8 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick }) => {
                             <span className={cn(
                                 "text-xs font-bold px-2 py-0.5 rounded-full",
                                 deadline?.isOverdue
-                                    ? "bg-rose-500/10 text-rose-600"
-                                    : "bg-primary/10 text-primary"
+                                    ? "bg-rose-500/10 text-rose-700"
+                                    : "bg-primary/10 text-[#6D28D9]"
                             )}>
                                 {deadline?.text}
                             </span>

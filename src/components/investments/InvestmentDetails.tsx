@@ -215,10 +215,14 @@ const InvestmentDetails: React.FC<InvestmentDetailsProps> = ({
 
                 {/* Row 4: Note */}
                 <div className="col-span-12 mt-2">
-                    <label className="block text-sm font-medium text-muted-foreground mb-1.5 px-0.5">
+                    <label 
+                        htmlFor="investment-notes"
+                        className="block text-sm font-medium text-muted-foreground mb-1.5 px-0.5"
+                    >
                         Notes
                     </label>
                     <textarea
+                        id="investment-notes"
                         className="w-full px-4 py-3 bg-secondary/30 border border-border rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-all resize-none shadow-sm"
                         rows={3}
                         placeholder="Additional notes..."

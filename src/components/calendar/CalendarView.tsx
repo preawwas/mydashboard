@@ -205,6 +205,7 @@ const CalendarView: React.FC = () => {
                 {/* Radio checkbox */}
                 <button
                     onClick={(e) => handleMarkDone(note, e)}
+                    aria-label={`Mark "${note.title}" as ${isDone ? 'incomplete' : 'done'}`}
                     className={cn(
                         "w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
                         isDone ? "bg-green-500 border-green-500" : "border-current hover:border-green-400"
@@ -372,7 +373,7 @@ const CalendarView: React.FC = () => {
                                 {note.note_categories?.icon || '📝'}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h4 title={note.title} className={cn("text-sm font-bold text-foreground truncate", note.status === 'Done' && "opacity-50")}>{note.title}</h4>
+                                <h3 title={note.title} className={cn("text-sm font-bold text-foreground truncate", note.status === 'Done' && "opacity-50")}>{note.title}</h3>
                                 <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{note.content?.replace(/<[^>]*>/g, '').trim().substring(0, 60) || 'No content'}</p>
                             </div>
                             <Badge className={cn("text-[10px] font-bold uppercase shrink-0",
@@ -438,7 +439,7 @@ const CalendarView: React.FC = () => {
                 {/* Header: < March 2026 > with month picker */}
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                     <div className="flex items-center gap-1 relative">
-                        <Button variant="ghost" onClick={() => navigate(-1)} className="h-9 w-9 p-0 rounded-xl hover:bg-primary/10">
+                        <Button variant="ghost" aria-label="Previous month" onClick={() => navigate(-1)} className="h-9 w-9 p-0 rounded-xl hover:bg-primary/10">
                             <ChevronLeft className="w-5 h-5" />
                         </Button>
 
@@ -446,6 +447,7 @@ const CalendarView: React.FC = () => {
                         <div className="relative" ref={monthPickerRef}>
                             <button
                                 onClick={() => setShowMonthPicker(!showMonthPicker)}
+                                aria-label="Select month and year"
                                 className="px-3 py-1.5 rounded-xl text-lg sm:text-2xl font-black text-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200"
                             >
                                 {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
@@ -488,7 +490,7 @@ const CalendarView: React.FC = () => {
                             )}
                         </div>
 
-                        <Button variant="ghost" onClick={() => navigate(1)} className="h-9 w-9 p-0 rounded-xl hover:bg-primary/10">
+                        <Button variant="ghost" aria-label="Next month" onClick={() => navigate(1)} className="h-9 w-9 p-0 rounded-xl hover:bg-primary/10">
                             <ChevronRight className="w-5 h-5" />
                         </Button>
                     </div>
@@ -497,6 +499,7 @@ const CalendarView: React.FC = () => {
                         {/* Status Filter */}
                         <select
                             value={statusFilter}
+                            aria-label="Filter by status"
                             onChange={(e) => setStatusFilter(e.target.value)}
                             className="h-8 sm:h-9 px-2 sm:px-3 rounded-xl bg-card/60 border border-border/40 text-xs sm:text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer pr-7"
                             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center' }}
@@ -620,7 +623,7 @@ const CalendarView: React.FC = () => {
                                                 {new Date(note.reminders!.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                             </span>
                                         </div>
-                                        <h4 title={note.title} className={cn("font-bold text-foreground text-sm truncate group-hover:text-primary transition-colors", note.status === 'Done' && "opacity-50")}>{note.title}</h4>
+                                        <h3 title={note.title} className={cn("font-bold text-foreground text-sm truncate group-hover:text-primary transition-colors", note.status === 'Done' && "opacity-50")}>{note.title}</h3>
                                         <div className="flex items-center gap-1.5 mt-2 opacity-60">
                                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: note.note_categories?.color_code || '#718096' }} />
                                             <span className="text-[10px] font-bold text-muted-foreground">{note.note_categories?.name || 'Uncategorized'}</span>

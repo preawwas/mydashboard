@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useSettingsStore, useAuthStore } from "@/lib/store";
 import { FloatingItemConfig } from "@/types";
+import styles from "./ValentineTheme.module.css";
 
 interface FloatingElement {
   id: number;
@@ -60,11 +61,11 @@ export default function ValentineTheme() {
   }
 
   return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-[90]">
+    <div className={styles.valentineContainer}>
       {elements.map((el) => (
         <div
           key={el.id}
-          className="valentine-heart absolute flex items-center justify-center"
+          className={styles.valentineHeart}
           style={{
             left: `${el.left}%`,
             width: el.item.type === "image" ? `${el.size * 50}px` : undefined, // Base width for images
@@ -78,7 +79,7 @@ export default function ValentineTheme() {
           ) : (
             <img
               src={el.item.value}
-              alt="floating decoration"
+              alt="Floating heart decoration"
               className="w-full h-auto object-contain drop-shadow-md opacity-90"
               onError={(e) => {
                 // Remove failed images

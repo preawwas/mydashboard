@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 import { X } from 'lucide-react';
@@ -29,6 +29,9 @@ const Modal: React.FC<ModalProps> = ({
     className,
 }) => {
     const [mounted, setMounted] = useState(false);
+    const generatedId = useId();
+    const titleId = `${generatedId}-title`;
+    const descriptionId = `${generatedId}-description`;
 
     useEffect(() => {
         setMounted(true);
@@ -67,7 +70,13 @@ const Modal: React.FC<ModalProps> = ({
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-hidden" role="dialog" aria-modal="true">
+        <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-hidden" 
+            role="dialog" 
+            aria-modal="true"
+            aria-labelledby={title ? titleId : undefined}
+            aria-describedby={description ? descriptionId : undefined}
+        >
             {/* Backdrop with fade animation */}
             <div
                 className="fixed inset-0 bg-black/70 animate-in fade-in duration-200"
@@ -100,10 +109,10 @@ const Modal: React.FC<ModalProps> = ({
                         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
                         <div className="pr-8">
                             {title && (
-                                <h2 className="text-lg sm:text-xl font-bold text-foreground uppercase tracking-wide truncate">{title}</h2>
+                                <h2 id={titleId} className="text-lg sm:text-xl font-bold text-foreground uppercase tracking-wide truncate">{title}</h2>
                             )}
                             {description && (
-                                <p className="mt-1 text-xs sm:text-sm text-muted-foreground line-clamp-2">{description}</p>
+                                <p id={descriptionId} className="mt-1 text-xs sm:text-sm text-muted-foreground line-clamp-2">{description}</p>
                             )}
                         </div>
                         {showCloseButton && (

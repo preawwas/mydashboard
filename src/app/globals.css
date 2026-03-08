@@ -6,8 +6,8 @@
   --background-subtle: #F5F3FF;
   --foreground: #1E1B4B;
 
-  --muted: #64748B;
-  --muted-foreground: #94A3B8;
+  --muted: #374151;
+  --muted-foreground: #4B5563;
 
   --card: #FFFFFF;
   --card-hover: #F8F7FF;
@@ -15,8 +15,9 @@
   --popover: #FFFFFF;
   --popover-foreground: #1E1B4B;
 
-  --primary: #8B5CF6;
-  --primary-hover: #7C3AED;
+  --primary: #7C3AED;
+  --primary-hover: #6D28D9;
+  --primary-dark: #5B21B6;
   --primary-foreground: #FFFFFF;
 
   --secondary: #FFFFFF;
@@ -29,7 +30,7 @@
 
   --border: #EDE9FE;
   --input: #FFFFFF;
-  --ring: #8B5CF6;
+  --ring: #7C3AED;
 
   --glass-bg: rgba(255, 255, 255, 0.8);
   --glass-border: rgba(139, 92, 246, 0.1);
@@ -118,41 +119,11 @@ body {
   animation-name: zoom-in-95;
 }
 
-/* Valentine's Day Theme */
-@keyframes float-up {
-  0% {
-    transform: translateY(0) scale(0.5);
-    opacity: 0;
-  }
-
-  10% {
-    opacity: 0.8;
-  }
-
-  100% {
-    transform: translateY(-120vh) scale(1.2);
-    opacity: 0;
-  }
-}
-
-@keyframes sway {
-
-  0%,
-  100% {
-    transform: translateX(-10px);
-  }
-
-  50% {
-    transform: translateX(10px);
-  }
-}
-
-.valentine-heart {
-  position: fixed;
-  bottom: -10vh;
-  pointer-events: none;
-  z-index: 50;
-  animation: float-up linear forwards;
+/* Selection - dark theme */
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  opacity: 0.2;
 }
 
 /* Scrollbar styling */

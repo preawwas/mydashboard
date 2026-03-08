@@ -146,6 +146,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                             e.stopPropagation();
                             onEdit(item);
                         }}
+                        aria-label={`Edit ${item.asset_code}`}
                         className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                         title="Edit"
                     >
@@ -156,6 +157,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                             e.stopPropagation();
                             onDelete(item);
                         }}
+                        aria-label={`Delete ${item.asset_code}`}
                         className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                         title="Delete"
                     >

@@ -8,6 +8,14 @@ import { cn, getMonthlyPendingAmount } from '@/lib/utils';
 import ExpenseFormModal from '@/components/expenses/ExpenseFormModal';
 import { useExpenses, Expense } from '@/hooks';
 import { useLoading } from '@/components/providers/LoadingProvider';
+import dynamic from 'next/dynamic';
+import { TableSkeleton } from '@/components/ui';
+
+// Lazy load heavy expense dashboard components (Recharts)
+const ExpenseDashboard = dynamic(() => import('@/components/dashboard/ExpenseDashboard'), {
+    ssr: false,
+    loading: () => <TableSkeleton rows={3} columns={3} />, // Or a more specific chart skeleton if available
+});
 
 export default function ExpensesPage() {
     const { startLoading, stopLoading } = useLoading();
@@ -75,6 +83,7 @@ export default function ExpensesPage() {
                         if (sortField === 'date') setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
                         else { setSortField('date'); setSortOrder('desc'); }
                     }}
+                    aria-label={`Sort by date ${sortField === 'date' ? (sortOrder === 'asc' ? 'descending' : 'ascending') : ''}`}
                     className="flex items-center gap-1 hover:text-foreground transition-colors"
                 >
                     {formatHeader('DATE')}
@@ -107,6 +116,7 @@ export default function ExpensesPage() {
                         if (sortField === 'amount') setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
                         else { setSortField('amount'); setSortOrder('desc'); }
                     }}
+                    aria-label={`Sort by amount ${sortField === 'amount' ? (sortOrder === 'asc' ? 'descending' : 'ascending') : ''}`}
                     className={cn(
                         "flex items-center gap-1 hover:text-foreground transition-colors",
                         (filters.minAmount || filters.maxAmount) && "text-primary"
@@ -161,12 +171,14 @@ export default function ExpensesPage() {
                             setEditId(item.id);
                             setIsModalOpen(true);
                         }}
+                        aria-label="Edit expense"
                         className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
                     >
                         <Edit className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => confirmDelete(item)}
+                        aria-label="Delete expense"
                         className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
                     >
                         <Trash2 className="w-4 h-4" />
@@ -208,7 +220,7 @@ export default function ExpensesPage() {
                                 </button>
                                 <div className="min-w-0">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <CardTitle className="text-base sm:text-lg font-bold text-foreground">Monthly Reminders</CardTitle>
+                                        <h2 className="text-base sm:text-lg font-bold text-foreground">Monthly Reminders</h2>
                                         <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black">
                                             ฿{totalPending.toLocaleString()}
                                         </span>
@@ -241,6 +253,7 @@ export default function ExpensesPage() {
                                                     <span className="font-bold text-foreground">฿{getMonthlyPendingAmount(exp).toLocaleString()}</span>
                                                     <button
                                                         onClick={() => { setEditId(exp.id); setIsModalOpen(true); }}
+                                                        aria-label="Edit expense"
                                                         className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors bg-muted/5 sm:bg-transparent"
                                                     >
                                                         <Edit className="w-4 h-4" />
@@ -259,7 +272,7 @@ export default function ExpensesPage() {
                 <Card>
                     <CardHeader className="pb-0">
                         <div className="flex flex-col space-y-4">
-                            <CardTitle className="text-lg sm:text-xl font-bold">Expense History</CardTitle>
+                            <h2 className="text-lg sm:text-xl font-bold">Expense History</h2>
 
                             <div className="space-y-4 bg-muted/5 p-3 sm:p-4 rounded-xl border border-border">
                                 <div className="flex flex-col xl:flex-row gap-4">
@@ -267,6 +280,7 @@ export default function ExpensesPage() {
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                         <Input
                                             placeholder="Search"
+                                            aria-label="Search expenses"
                                             className="pl-9 w-full bg-background border-border text-foreground text-sm h-10"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -276,6 +290,7 @@ export default function ExpensesPage() {
                                         <select
                                             className="bg-background border-border text-foreground rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:ring-primary focus:outline-none h-10"
                                             value={filters.category}
+                                            aria-label="Filter by category"
                                             onChange={(e) => setFilters({ category: e.target.value })}
                                         >
                                             <option value="ALL">All Categories</option>
@@ -286,6 +301,7 @@ export default function ExpensesPage() {
                                         <select
                                             className="bg-background border-border text-foreground rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:ring-primary focus:outline-none h-10"
                                             value={filters.payment}
+                                            aria-label="Filter by payment channel"
                                             onChange={(e) => setFilters({ payment: e.target.value })}
                                         >
                                             <option value="ALL">All Payments</option>
@@ -296,6 +312,7 @@ export default function ExpensesPage() {
                                         <select
                                             className="bg-background border-border text-foreground rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:ring-primary focus:outline-none col-span-2 md:col-span-1 h-10"
                                             value={filters.status}
+                                            aria-label="Filter by status"
                                             onChange={(e) => setFilters({ status: e.target.value })}
                                         >
                                             <option value="ALL">All Status</option>
@@ -311,6 +328,7 @@ export default function ExpensesPage() {
                                         <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
                                         <Input
                                             type="date"
+                                            aria-label="Start date"
                                             className="flex-1 h-9 py-1 text-xs bg-background border-border"
                                             value={filters.startDate}
                                             onChange={(e) => setFilters({ startDate: e.target.value })}
@@ -318,6 +336,7 @@ export default function ExpensesPage() {
                                         <span className="text-muted-foreground">-</span>
                                         <Input
                                             type="date"
+                                            aria-label="End date"
                                             className="flex-1 h-9 py-1 text-xs bg-background border-border"
                                             value={filters.endDate}
                                             onChange={(e) => setFilters({ endDate: e.target.value })}
@@ -333,6 +352,7 @@ export default function ExpensesPage() {
                                                 type="number"
                                                 inputMode="decimal"
                                                 placeholder="Min"
+                                                aria-label="Minimum amount"
                                                 className="h-9 py-1 text-xs bg-background border-border pl-6 w-full"
                                                 value={filters.minAmount}
                                                 onChange={(e) => setFilters({ minAmount: e.target.value })}
@@ -345,6 +365,7 @@ export default function ExpensesPage() {
                                                 type="number"
                                                 inputMode="decimal"
                                                 placeholder="Max"
+                                                aria-label="Maximum amount"
                                                 className="h-9 py-1 text-xs bg-background border-border pl-6 w-full"
                                                 value={filters.maxAmount}
                                                 onChange={(e) => setFilters({ maxAmount: e.target.value })}

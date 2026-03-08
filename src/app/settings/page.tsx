@@ -569,7 +569,7 @@ export default function SettingsPage() {
                                                             <span className="text-lg shrink-0">{item.value}</span>
                                                         ) : (
                                                             <div className="w-6 h-6 shrink-0 rounded bg-white flex items-center justify-center overflow-hidden">
-                                                                <img src={item.value} alt="" className="w-full h-full object-contain" />
+                                                                <img src={item.value} alt={`Preview of ${item.type} decoration`} className="w-full h-full object-contain" />
                                                             </div>
                                                         )}
                                                         <span className="text-[10px] text-muted-foreground truncate">{item.value}</span>

@@ -118,23 +118,19 @@ const Sidebar: React.FC = () => {
             return (
                 <div key={item.href}>
                     <button
-                        onClick={() => {
-                            if (isMobile) {
-                                toggleExpand(item.label);
-                            } else {
-                                toggleExpand(item.label);
-                            }
-                        }}
+                        onClick={() => toggleExpand(item.label)}
+                        aria-expanded={isExpanded}
+                        aria-label={label}
                         className={cn(
                             'w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium',
                             'transition-all duration-200 group',
                             isActive
-                                ? 'bg-primary/10 text-primary border border-primary/20'
-                                : 'text-muted-foreground hover:bg-primary/5 hover:text-primary',
+                                ? 'bg-primary/10 text-[#6D28D9] border border-primary/20'
+                                : 'text-muted-foreground hover:bg-primary/5 hover:text-[#7C3AED]',
                             !isMobile && !sidebarOpen && 'lg:justify-center lg:px-3'
                         )}
                     >
-                        <span className={cn('transition-colors', isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-primary')}>
+                        <span className={cn('transition-colors', isActive ? 'text-[#6D28D9]' : 'text-muted-foreground group-hover:text-[#7C3AED]')}>
                             {item.icon}
                         </span>
                         {(isMobile || sidebarOpen) && (
@@ -143,7 +139,7 @@ const Sidebar: React.FC = () => {
                                 <ChevronDown className={cn(
                                     "w-4 h-4 transition-transform duration-200",
                                     isExpanded && "rotate-180"
-                                )} />
+                                )} aria-hidden="true" />
                             </>
                         )}
                     </button>
@@ -158,14 +154,15 @@ const Sidebar: React.FC = () => {
                                     <Link
                                         key={sub.href}
                                         href={sub.href}
+                                        aria-current={isSubActive ? 'page' : undefined}
                                         onClick={() => {
                                             if (isMobile) toggleSidebar();
                                         }}
                                         className={cn(
                                             'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200',
                                             isSubActive
-                                                ? 'bg-primary/10 text-primary'
-                                                : 'text-muted-foreground hover:bg-primary/5 hover:text-primary'
+                                                ? 'bg-primary/10 text-[#6D28D9]'
+                                                : 'text-muted-foreground hover:bg-primary/5 hover:text-[#7C3AED]'
                                         )}
                                     >
                                         {sub.icon}
@@ -183,6 +180,8 @@ const Sidebar: React.FC = () => {
             <Link
                 key={item.href}
                 href={item.href}
+                aria-current={isActive ? 'page' : undefined}
+                aria-label={label}
                 onClick={() => {
                     if (isMobile) toggleSidebar();
                 }}
@@ -190,13 +189,13 @@ const Sidebar: React.FC = () => {
                     'flex items-center gap-3 px-4 py-3 rounded-xl font-medium',
                     'transition-all duration-200 group',
                     isActive
-                        ? 'bg-primary/10 text-primary border border-primary/20'
-                        : 'text-muted-foreground hover:bg-primary/5 hover:text-primary',
+                        ? 'bg-primary/10 text-[#6D28D9] border border-primary/20'
+                        : 'text-muted-foreground hover:bg-primary/5 hover:text-[#7C3AED]',
                     !isMobile && 'justify-center px-3 lg:justify-start lg:px-4',
                     !isMobile && !sidebarOpen && 'lg:justify-center lg:px-3'
                 )}
             >
-                <span className={cn('transition-colors', isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-primary')}>
+                <span className={cn('transition-colors', isActive ? 'text-[#6D28D9]' : 'text-muted-foreground group-hover:text-[#7C3AED]')}>
                     {item.icon}
                 </span>
                 {(isMobile || sidebarOpen) && <span className={cn(!isMobile && "hidden lg:inline")}>{label}</span>}
@@ -306,6 +305,7 @@ const Sidebar: React.FC = () => {
                 {/* Toggle Button */}
                 <button
                     onClick={toggleSidebar}
+                    aria-label={sidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
                     className={cn(
                         'hidden lg:flex absolute -right-4 top-1/2 -translate-y-1/2',
                         'w-8 h-8 rounded-full bg-card border border-border',
@@ -313,7 +313,7 @@ const Sidebar: React.FC = () => {
                         'transition-all duration-200 shadow-md hover:shadow-lg z-50'
                     )}
                 >
-                    {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                    {sidebarOpen ? <ChevronLeft className="w-4 h-4" aria-hidden="true" /> : <ChevronRight className="w-4 h-4" aria-hidden="true" />}
                 </button>
             </aside>
         </>

@@ -54,9 +54,11 @@ const Topbar: React.FC = () => {
                 <div className="flex items-center gap-4">
                     <button
                         onClick={toggleSidebar}
+                        aria-label="Open Menu"
+                        aria-expanded={sidebarOpen}
                         className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/10 rounded-lg transition-colors lg:hidden"
                     >
-                        <Menu className="w-5 h-5" />
+                        <Menu className="w-5 h-5" aria-hidden="true" />
                     </button>
 
 
@@ -69,12 +71,14 @@ const Topbar: React.FC = () => {
                     <div className="relative">
                         <button
                             onClick={() => setShowNotifications(!showNotifications)}
+                            aria-label="Notifications"
+                            aria-expanded={showNotifications}
                             className={cn(
                                 "relative p-2 text-muted-foreground hover:text-primary hover:bg-muted/10 rounded-lg transition-colors",
                                 showNotifications && "text-primary bg-muted/10"
                             )}
                         >
-                            <Bell className="w-5 h-5" />
+                            <Bell className="w-5 h-5" aria-hidden="true" />
                             {pendingCount > 0 && (
                                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full ring-2 ring-background/40" />
                             )}
@@ -137,7 +141,7 @@ const Topbar: React.FC = () => {
 
                     {/* User Profile */}
                     <div className="flex items-center gap-3 pl-3 border-l border-border">
-                        <Link href="/settings" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <Link href="/settings" aria-label="Navigate to Settings" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                             <div className="text-right hidden sm:block">
                                 <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
                                 <p className="text-xs text-muted-foreground">{user?.role || 'user'}</p>
