@@ -19,7 +19,9 @@ export function LoadingOverlay({ isVisible = true, isLoading = true }: LoadingOv
     return (
         <div className={styles['fluffy-overlay']}>
             <div className={styles['content']}>
-                <span className={`${styles['text']} ${isLoading ? styles['text-loading'] : ''}`}>
+                <span 
+                    className={`${styles['text']} ${isLoading ? styles['text-loading'] : ''}`}
+                >
                     fluffy-ty
                 </span>
                 <span className={styles['heart-wrap']}>

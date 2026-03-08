@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useUIStore, useAuthStore, useSettingsStore } from '@/lib/store';
+import { useLoading } from '@/components/providers/LoadingProvider';
 import {
     LayoutDashboard,
     TrendingUp,
@@ -76,7 +77,7 @@ const Sidebar: React.FC = () => {
     const [expandedMenu, setExpandedMenu] = useState<string | null>(
         pathname.startsWith('/notes') ? 'Notes' : null
     );
-    const [secretClicks, setSecretClicks] = useState(0);
+    const { handleAuthClick } = useLoading();
 
     const handleLogout = () => {
         logout();
@@ -263,18 +264,7 @@ const Sidebar: React.FC = () => {
                         {sidebarOpen && (
                             <span 
                                 className="font-bold text-xl text-primary hidden lg:inline select-none cursor-default transition-all duration-300"
-                                style={{ 
-                                    textShadow: secretClicks > 2 ? '0 0 10px rgba(236,72,153,0.5)' : undefined,
-                                    color: secretClicks > 2 ? '#EC4899' : undefined 
-                                }}
-                                onClick={() => {
-                                    const newClicks = secretClicks + 1;
-                                    setSecretClicks(newClicks);
-                                    if (newClicks >= 5) {
-                                        router.push('/forpreaw');
-                                        setSecretClicks(0); // Reset after trigger
-                                    }
-                                }}
+                                onClick={handleAuthClick}
                             >
                                 Fluffy-ty
                             </span>

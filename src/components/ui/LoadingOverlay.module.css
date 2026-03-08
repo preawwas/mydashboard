@@ -3,7 +3,7 @@
 .fluffy-overlay {
     position: fixed;
     inset: 0;
-    pointer-events: none;
+    pointer-events: auto;
     background: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);

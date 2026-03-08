@@ -16,7 +16,10 @@ const tangerine = Tangerine({
   weight: ["400", "700"],
 });
 
+import { useLoading } from '@/components/providers/LoadingProvider';
+
 export default function ForYouPage() {
+  const { isAuthorized } = useLoading();
   const [isHovering, setIsHovering] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -209,8 +212,16 @@ export default function ForYouPage() {
     }
   };
 
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        {/* Empty state or handled by LoadingOverlay trigger */}
+      </div>
+    );
+  }
+
   return (
-    <div className="py-8 my-auto bg-transparent flex items-center justify-center overflow-hidden relative text-white font-sans w-full selection:bg-rose-200">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[#0a0a0a] overflow-x-hidden pt-20 relative text-white font-sans w-full selection:bg-rose-200">
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes twinkle {
           0%, 100% { opacity: 0.1; }
