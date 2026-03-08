@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useUIStore, useAuthStore, useSettingsStore } from '@/lib/store';
 import {
@@ -69,12 +69,14 @@ const navItems: NavItem[] = [
 
 const Sidebar: React.FC = () => {
     const pathname = usePathname();
+    const router = useRouter();
     const { sidebarOpen, toggleSidebar } = useUIStore();
     const { logout } = useAuthStore();
     const { enableInvestment, enableExpense } = useSettingsStore();
     const [expandedMenu, setExpandedMenu] = useState<string | null>(
         pathname.startsWith('/notes') ? 'Notes' : null
     );
+    const [secretClicks, setSecretClicks] = useState(0);
 
     const handleLogout = () => {
         logout();
@@ -259,7 +261,21 @@ const Sidebar: React.FC = () => {
                             <StickyNote className="w-5 h-5 text-primary-foreground" />
                         </div>
                         {sidebarOpen && (
-                            <span className="font-bold text-xl text-primary hidden lg:inline">
+                            <span 
+                                className="font-bold text-xl text-primary hidden lg:inline select-none cursor-default transition-all duration-300"
+                                style={{ 
+                                    textShadow: secretClicks > 2 ? '0 0 10px rgba(236,72,153,0.5)' : undefined,
+                                    color: secretClicks > 2 ? '#EC4899' : undefined 
+                                }}
+                                onClick={() => {
+                                    const newClicks = secretClicks + 1;
+                                    setSecretClicks(newClicks);
+                                    if (newClicks >= 5) {
+                                        router.push('/forpreaw');
+                                        setSecretClicks(0); // Reset after trigger
+                                    }
+                                }}
+                            >
                                 Fluffy-ty
                             </span>
                         )}
