@@ -3,12 +3,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { LoadingOverlay } from '@/components/ui/LoadingOverlay';
-import { PasswordModal } from '@/components/ui/PasswordModal';
 
 interface LoadingContextType {
     isLoading: boolean;
     isAuthorized: boolean;
     setIsAuthorized: (val: boolean) => void;
+    lock: () => void;
     startLoading: () => void;
     stopLoading: () => void;
     handleAuthClick: () => void;
@@ -18,6 +18,7 @@ const LoadingContext = createContext<LoadingContextType>({
     isLoading: false,
     isAuthorized: false,
     setIsAuthorized: () => { },
+    lock: () => { },
     startLoading: () => { },
     stopLoading: () => { },
     handleAuthClick: () => { },
@@ -40,8 +41,6 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
     const [isAuthorized, setIsAuthorized] = useState(false);
-    const [showPasswordModal, setShowPasswordModal] = useState(false);
-    const [authClickCount, setAuthClickCount] = useState(0);
 
     // Initialize authorization from localStorage on mount
     useEffect(() => {
@@ -55,16 +54,14 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         if (isAuthorized) {
             localStorage.setItem('isAuthorized', 'true');
+        } else {
+            localStorage.removeItem('isAuthorized');
         }
     }, [isAuthorized]);
 
-    // Show modal automatically on protected route if not authorized
-    useEffect(() => {
-        const isPreawRoute = pathname?.replace(/\/$/, '') === '/forpreaw';
-        if (isPreawRoute && !isAuthorized) {
-            setShowPasswordModal(true);
-        }
-    }, [pathname, isAuthorized]);
+    const lock = React.useCallback(() => {
+        setIsAuthorized(false);
+    }, []);
 
     // Track when loading started to ensure a minimum display time
     const loadingStartTimeRef = React.useRef<number>(0);
@@ -104,25 +101,8 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const handleAuthClick = React.useCallback(() => {
-        setAuthClickCount(prev => {
-            const newCount = prev + 1;
-            if (newCount >= 5) {
-                setShowPasswordModal(true);
-                return 0;
-            }
-            return newCount;
-        });
-    }, []);
-
-    const onPasswordSubmit = (password: string) => {
-        if (password.toLowerCase() === 'pwsn') {
-            setIsAuthorized(true);
-            setShowPasswordModal(false);
-            if (pathname !== '/forpreaw') {
-                router.push('/forpreaw');
-            }
-        }
-    };
+        router.push('/forpreaw');
+    }, [router]);
 
     // Clean up timeouts on unmount
     useEffect(() => {
@@ -132,10 +112,10 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const isPreawRoute = pathname?.replace(/\/$/, '') === '/forpreaw';
-    const shouldShowOverlay = isLoading || (isPreawRoute && !isAuthorized);
+    const shouldShowOverlay = isLoading;
 
     return (
-        <LoadingContext.Provider value={{ isLoading, isAuthorized, setIsAuthorized, startLoading, stopLoading, handleAuthClick }}>
+        <LoadingContext.Provider value={{ isLoading, isAuthorized, setIsAuthorized, lock, startLoading, stopLoading, handleAuthClick }}>
             {children}
             <React.Suspense fallback={null}>
                 <RouteChangeListener stopLoading={stopLoading} pathname={pathname} />
@@ -146,16 +126,6 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
                     isLoading={isLoading} 
                 />
             )}
-            <PasswordModal 
-                isOpen={showPasswordModal}
-                onClose={() => {
-                    setShowPasswordModal(false);
-                    if (isPreawRoute) {
-                        router.push('/dashboard');
-                    }
-                }}
-                onSubmit={onPasswordSubmit}
-            />
         </LoadingContext.Provider>
     );
 }

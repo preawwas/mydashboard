@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -71,6 +71,8 @@ const navItems: NavItem[] = [
 const Sidebar: React.FC = () => {
     const pathname = usePathname();
     const router = useRouter();
+    const secretClickCount = useRef(0);
+    const secretClickTimer = useRef<NodeJS.Timeout | null>(null);
     const { sidebarOpen, toggleSidebar } = useUIStore();
     const { logout } = useAuthStore();
     const { enableInvestment, enableExpense } = useSettingsStore();
@@ -264,7 +266,15 @@ const Sidebar: React.FC = () => {
                         {sidebarOpen && (
                             <span 
                                 className="font-bold text-xl text-primary hidden lg:inline select-none cursor-default transition-all duration-300"
-                                onClick={handleAuthClick}
+                                onClick={() => {
+                                    secretClickCount.current += 1;
+                                    if (secretClickTimer.current) clearTimeout(secretClickTimer.current);
+                                    secretClickTimer.current = setTimeout(() => { secretClickCount.current = 0; }, 2000);
+                                    if (secretClickCount.current >= 5) {
+                                        secretClickCount.current = 0;
+                                        router.push('/forpreaw');
+                                    }
+                                }}
                             >
                                 Fluffy-ty
                             </span>
