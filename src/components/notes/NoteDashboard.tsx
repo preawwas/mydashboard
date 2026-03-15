@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
     Search, Plus, Loader2, Trash2, GripVertical,
-    Filter, X, CalendarDays, ChevronUp, ChevronDown, Settings
+    Filter, X, CalendarDays, ChevronUp, ChevronDown, Settings,
+    MoreVertical, Copy
 } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 import NoteModal from './NoteModal';
@@ -54,7 +55,9 @@ const NoteDashboard: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isCloneMode, setIsCloneMode] = useState(false);
     const [selectedNote, setSelectedNote] = useState<ExtendedNote | null>(null);
+    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [draggedNote, setDraggedNote] = useState<ExtendedNote | null>(null);
     const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
     const [dragOverNoteId, setDragOverNoteId] = useState<string | null>(null);
@@ -203,6 +206,13 @@ const NoteDashboard: React.FC = () => {
         if (showCategorySettings) document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, [showCategorySettings]);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handler = () => setOpenDropdownId(null);
+        if (openDropdownId) document.addEventListener('click', handler);
+        return () => document.removeEventListener('click', handler);
+    }, [openDropdownId]);
 
     useEffect(() => {
         if (categoriesInitialized.current && hasUserChangedSettings.current) {
@@ -366,8 +376,9 @@ const NoteDashboard: React.FC = () => {
         try { await apiClient.fetch(`/api/notes/${noteId}`, { method: 'DELETE' }); } catch { fetchTrashedNotes(); }
     };
 
-    const handleOpenCreate = () => { setSelectedNote(null); setIsModalOpen(true); };
-    const handleOpenEdit = (note: ExtendedNote) => { setSelectedNote(note); setIsModalOpen(true); };
+    const handleOpenCreate = () => { setSelectedNote(null); setIsCloneMode(false); setIsModalOpen(true); };
+    const handleOpenEdit = (note: ExtendedNote) => { setSelectedNote(note); setIsCloneMode(false); setIsModalOpen(true); };
+    const handleClone = (note: ExtendedNote) => { setSelectedNote(note); setIsCloneMode(true); setIsModalOpen(true); };
     const handleSave = () => { fetchNotes(); };
 
     return (
@@ -557,7 +568,7 @@ const NoteDashboard: React.FC = () => {
                 <div className="overflow-x-auto pb-4 -mx-2 px-2">
                     <div className="flex gap-5 md:grid md:grid-cols-2 xl:grid-cols-4">
                         {[0, 1, 2, 3].map(col => (
-                            <div key={col} className="min-w-[280px] flex-1 bg-card/30 border border-border/30 rounded-2xl p-4 space-y-4">
+                            <div key={col} className="h-[calc(100vh-140px)] min-h-[400px] min-w-[280px] flex-1 bg-card/30 border border-border/30 rounded-2xl p-4 space-y-4 overflow-hidden">
                                 {/* Column header skeleton */}
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-2">
@@ -601,7 +612,7 @@ const NoteDashboard: React.FC = () => {
                                 <div
                                     key={status}
                                     className={cn(
-                                        "rounded-2xl border border-t-[3px] transition-all min-h-[400px] min-w-[280px] md:min-w-0 flex flex-col overflow-hidden shadow-sm hover:shadow bg-card/90",
+                                        "rounded-2xl border border-t-[3px] transition-all h-[calc(100vh-350px)] min-h-[400px] min-w-[280px] md:min-w-0 flex flex-col overflow-hidden shadow-sm hover:shadow bg-card/90",
                                         style.border,
                                         isDragOver ? cn("bg-primary/5 border-primary shadow-[inset_0_0_0_1px_rgba(var(--primary-rgb),0.5)]") : style.bg
                                     )}
@@ -610,7 +621,7 @@ const NoteDashboard: React.FC = () => {
                                     onDrop={(e) => handleDrop(e, status)}
                                 >
                                     {/* Column Header */}
-                                    <div className={cn("px-5 py-3.5 flex items-center justify-between border-b border-border/40", style.border, style.pillBg)}>
+                                    <div className={cn("px-5 py-3.5 flex items-center justify-between border-b border-border/40 shrink-0", style.border, style.pillBg)}>
                                         <div className="flex items-center gap-3">
                                             <div className="flex h-2.5 w-2.5 items-center justify-center">
                                                 <div className={cn("w-2.5 h-2.5 rounded-full shadow-[0_0_4px_rgba(0,0,0,0.1)]", style.dot)} />
@@ -623,7 +634,7 @@ const NoteDashboard: React.FC = () => {
                                     </div>
 
                                     {/* Cards */}
-                                    <div className="flex-1 p-3 space-y-3">
+                                    <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
                                         {columnNotes.map(note => {
                                             const deadline = note.reminders ? getDaysRemainingText(note.reminders.due_date, note.status, note.updated_at) : null;
                                             return (
@@ -651,9 +662,21 @@ const NoteDashboard: React.FC = () => {
                                                                         <span className="text-xs shrink-0">{note.note_categories?.icon || '📝'}</span>
                                                                         <h3 title={note.title} className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{note.title}</h3>
                                                                     </div>
-                                                                    <button onClick={(e) => handleDelete(note.note_id, e)} className="p-1 rounded-lg text-muted-foreground/40 hover:text-rose-500 hover:bg-rose-500/10 transition-all opacity-0 group-hover:opacity-100 shrink-0" aria-label="Move to Trash">
-                                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                                    </button>
+                                                                    <div className="relative">
+                                                                        <button onClick={(e) => { e.stopPropagation(); setOpenDropdownId(openDropdownId === note.note_id ? null : note.note_id); }} className="p-1 rounded-lg text-muted-foreground/60 hover:text-foreground hover:bg-muted transition-all shrink-0 cursor-pointer" aria-label="More options">
+                                                                            <MoreVertical className="w-4 h-4" />
+                                                                        </button>
+                                                                        {openDropdownId === note.note_id && (
+                                                                            <div className="absolute right-0 top-full mt-1 w-32 bg-card border border-border/50 rounded-xl shadow-lg z-50 py-1 overflow-hidden" onClick={e => e.stopPropagation()}>
+                                                                                <button onClick={() => { setOpenDropdownId(null); handleClone(note); }} className="w-full text-left px-3 py-2 text-xs font-bold text-foreground hover:bg-muted/50 flex items-center gap-2 cursor-pointer">
+                                                                                    <Copy className="w-3.5 h-3.5" /> Clone
+                                                                                </button>
+                                                                                <button onClick={(e) => { setOpenDropdownId(null); handleDelete(note.note_id, e); }} className="w-full text-left px-3 py-2 text-xs font-bold text-rose-500 hover:bg-rose-500/10 flex items-center gap-2 cursor-pointer">
+                                                                                    <Trash2 className="w-3.5 h-3.5" /> Delete
+                                                                                </button>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                                 {note.content && (
                                                                     <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
@@ -692,7 +715,7 @@ const NoteDashboard: React.FC = () => {
                 </div>
             )}
 
-            <NoteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} note={selectedNote} onSave={handleSave} />
+            <NoteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} note={selectedNote} onSave={handleSave} isClone={isCloneMode} />
 
             {/* Trash Popup */}
             <Modal isOpen={showTrash} onClose={() => setShowTrash(false)} title="🗑️ Trash">

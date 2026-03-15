@@ -16,6 +16,7 @@ interface RichTextEditorProps {
     content: string;
     onChange: (html: string) => void;
     placeholder?: string;
+    minHeight?: string;
 }
 
 const ToolbarButton = ({ onClick, isActive, children, title }: {
@@ -109,7 +110,7 @@ const HighlightColorPicker = ({ editor }: { editor: any }) => {
     );
 };
 
-const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, placeholder }) => {
+const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, placeholder, minHeight = '400px' }) => {
     const editor = useEditor({
         immediatelyRender: false,
         extensions: [
@@ -131,7 +132,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
         },
         editorProps: {
             attributes: {
-                class: 'prose prose-sm max-w-none focus:outline-none min-h-[400px] p-4 text-foreground',
+                class: `prose prose-sm max-w-none focus:outline-none p-4 text-foreground custom-editor-height`,
                 'aria-label': placeholder || 'Rich text editor',
             },
         },
@@ -221,7 +222,9 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
             {/* Styles */}
             <style jsx global>{`
                 .tiptap {
-                    min-height: 400px;
+                    min-height: ${minHeight};
+                    max-height: ${minHeight};
+                    overflow-y: auto;
                     padding: 1rem;
                     font-size: 0.875rem;
                     line-height: 1.6;

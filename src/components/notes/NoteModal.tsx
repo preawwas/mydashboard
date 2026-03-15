@@ -21,9 +21,10 @@ interface NoteModalProps {
     note?: any;
     onSave: (note: any) => void;
     defaultDueDate?: string;
+    isClone?: boolean;
 }
 
-const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, defaultDueDate }) => {
+const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, defaultDueDate, isClone }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [noteCategoryId, setNoteCategoryId] = useState('');
@@ -46,7 +47,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                 setNoteCategoryId(note.note_category_id || '');
                 setStatus(note.status || 'New');
                 setIsFavorite(note.is_favorite || false);
-                setDueDate(note.reminders?.due_date ? new Date(note.reminders.due_date).toISOString().split('T')[0] : '');
+                setDueDate(isClone ? '' : (note.reminders?.due_date ? new Date(note.reminders.due_date).toISOString().split('T')[0] : ''));
             } else {
                 setTitle('');
                 setContent('');
@@ -98,7 +99,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
             };
 
             let res;
-            if (note) {
+            if (note && !isClone) {
                 res = await apiClient.fetch(`/api/notes/${note.note_id}`, {
                     method: 'PATCH',
                     body: JSON.stringify(payload)
@@ -126,7 +127,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
     const selectedCategory = categories.find(c => c.note_category_id === noteCategoryId);
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={note ? 'Edit Note' : 'Create Note'}>
+        <Modal isOpen={isOpen} onClose={onClose} title={note && !isClone ? 'Edit Note' : (isClone ? 'Clone Note' : 'Create Note')}>
             <form onSubmit={handleSubmit} className="space-y-5">
                 {/* 1. Category Dropdown (first) */}
                 <div className="space-y-2">
@@ -215,6 +216,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                         content={content}
                         onChange={setContent}
                         placeholder="Write your note here..."
+                        minHeight="250px"
                     />
                 </div>
 
@@ -228,7 +230,7 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                         disabled={loading}
                         className="rounded-xl px-8 h-12 bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20"
                     >
-                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (note ? 'Edit Note' : 'Create Note')}
+                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (note && !isClone ? 'Edit Note' : (isClone ? 'Clone Note' : 'Create Note'))}
                     </Button>
                 </div>
             </form>

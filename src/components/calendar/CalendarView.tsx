@@ -247,7 +247,7 @@ const CalendarView: React.FC = () => {
                         {day}
                     </span>
                     {dayNotes.length > 0 && (
-                        <span className="text-[10px] font-black text-white bg-gray-500 px-1.5 py-0.5 rounded-full min-w-[20px] text-center shadow-sm">
+                        <span className="text-[10px] font-black text-white bg-primary px-1.5 py-0.5 rounded-full min-w-[20px] text-center shadow-sm">
                             {dayNotes.length}
                         </span>
                     )}
@@ -293,7 +293,7 @@ const CalendarView: React.FC = () => {
         return (
             <div className="border-2 border-border/60 rounded-2xl overflow-hidden bg-white shadow-xl">
                 <div className="grid grid-cols-7 bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15 border-b-2 border-border/50">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                    {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
                         <div key={day} className="text-center py-3.5 text-sm font-black text-foreground/80 uppercase tracking-widest">{day}</div>
                     ))}
                 </div>
@@ -327,7 +327,7 @@ const CalendarView: React.FC = () => {
                     style={{ cursor: 'pointer' }}
                 >
                     <div className="text-center mb-3 shrink-0">
-                        <div className="text-xs font-bold text-muted-foreground uppercase">{d.toLocaleDateString('default', { weekday: 'short' })}</div>
+                        <div className="text-xs font-bold text-muted-foreground uppercase">{d.toLocaleDateString('default', { weekday: 'long' })}</div>
                         <div className={cn("text-2xl font-black mx-auto w-10 h-10 flex items-center justify-center rounded-full mt-1", isToday ? "bg-primary text-primary-foreground" : "text-foreground")}>{d.getDate()}</div>
                     </div>
                     <div className="flex-1 space-y-2 pb-2 overflow-y-auto custom-scrollbar pr-1">
@@ -542,7 +542,7 @@ const CalendarView: React.FC = () => {
                     <div className="border border-border/40 rounded-2xl overflow-hidden bg-card/30 backdrop-blur-sm shadow-lg">
                         {/* Day header skeleton */}
                         <div className="grid grid-cols-7 bg-muted/30 border-b border-border/40">
-                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                            {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
                                 <div key={day} className="text-center py-3">
                                     <div className="h-3 w-8 mx-auto rounded-md bg-muted/40 animate-pulse" />
                                 </div>

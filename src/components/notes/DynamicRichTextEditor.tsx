@@ -25,6 +25,7 @@ interface DynamicRichTextEditorProps {
     content: string;
     onChange: (html: string) => void;
     placeholder?: string;
+    minHeight?: string;
 }
 
 export default function DynamicRichTextEditor(props: DynamicRichTextEditorProps) {
