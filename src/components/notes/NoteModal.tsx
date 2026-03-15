@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-    Calendar as CalendarIcon, Loader2, AlertCircle
+    Calendar as CalendarIcon, Loader2, AlertCircle, X
 } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 import { DbNote, DbNoteCategory } from '@/lib/supabase-types';
@@ -30,11 +30,13 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
     const [noteCategoryId, setNoteCategoryId] = useState('');
     const [status, setStatus] = useState<'New' | 'In Progress' | 'Urgent' | 'Done'>('New');
     const [isFavorite, setIsFavorite] = useState(false);
-    const [dueDate, setDueDate] = useState('');
+    const [dueDates, setDueDates] = useState<string[]>([]);
+    const [tempDate, setTempDate] = useState<string>('');
     const [categories, setCategories] = useState<DbNoteCategory[]>([]);
     const [loading, setLoading] = useState(false);
     const [editorKey, setEditorKey] = useState(0);
     const [submitted, setSubmitted] = useState(false);
+    const [isMultiDateMode, setIsMultiDateMode] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -47,14 +49,19 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                 setNoteCategoryId(note.note_category_id || '');
                 setStatus(note.status || 'New');
                 setIsFavorite(note.is_favorite || false);
-                setDueDate(isClone ? '' : (note.reminders?.due_date ? new Date(note.reminders.due_date).toISOString().split('T')[0] : ''));
+                const initialDate = note.reminders?.due_date ? new Date(note.reminders.due_date).toISOString().split('T')[0] : '';
+                setDueDates(isClone ? [] : (initialDate ? [initialDate] : []));
+                setTempDate(isClone ? '' : initialDate);
+                setIsMultiDateMode(false);
             } else {
                 setTitle('');
                 setContent('');
                 setNoteCategoryId('');
                 setStatus('New');
                 setIsFavorite(false);
-                setDueDate(defaultDueDate || '');
+                setDueDates(defaultDueDate ? [defaultDueDate] : []);
+                setTempDate('');
+                setIsMultiDateMode(false);
             }
         }
     }, [isOpen, note]);
@@ -86,34 +93,48 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitted(true);
-        if (!title.trim() || !dueDate) return;
+        if (!title.trim() || dueDates.length === 0) return;
         setLoading(true);
         try {
-            const payload = {
-                title,
-                content,
-                note_category_id: noteCategoryId || null,
-                status,
-                is_favorite: isFavorite,
-                due_date: dueDate || null
-            };
-
-            let res;
             if (note && !isClone) {
-                res = await apiClient.fetch(`/api/notes/${note.note_id}`, {
+                const payload = {
+                    title,
+                    content,
+                    note_category_id: noteCategoryId || null,
+                    status,
+                    is_favorite: isFavorite,
+                    due_date: dueDates[0] || null
+                };
+                const res = await apiClient.fetch(`/api/notes/${note.note_id}`, {
                     method: 'PATCH',
                     body: JSON.stringify(payload)
                 });
+                const json = await res.json();
+                if (json.success) {
+                    onSave(json.data);
+                    onClose();
+                }
             } else {
-                res = await apiClient.fetch('/api/notes', {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
-            }
-
-            const json = await res.json();
-            if (json.success) {
-                onSave(json.data);
+                let firstCreatedNote = null;
+                for (const date of dueDates) {
+                    const payload = {
+                        title,
+                        content,
+                        note_category_id: noteCategoryId || null,
+                        status,
+                        is_favorite: isFavorite,
+                        due_date: date
+                    };
+                    const res = await apiClient.fetch('/api/notes', {
+                        method: 'POST',
+                        body: JSON.stringify(payload)
+                    });
+                    const json = await res.json();
+                    if (json.success && !firstCreatedNote) {
+                        firstCreatedNote = json.data;
+                    }
+                }
+                onSave(firstCreatedNote || {});
                 onClose();
             }
         } catch (error) {
@@ -176,7 +197,9 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                 {/* Status & Deadline row */}
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-bold text-muted-foreground ml-1">Status</label>
+                        <div className="flex items-center h-8 ml-1">
+                            <label className="text-sm font-bold text-muted-foreground">Status</label>
+                        </div>
                         <select
                             className="w-full h-12 px-4 rounded-xl bg-card/50 border border-border/50 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none transition-all"
                             value={status}
@@ -189,24 +212,103 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                         </select>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-bold text-muted-foreground ml-1">Deadline <span className="text-rose-500">*</span></label>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 ml-1 h-8">
+                            <label className="text-sm font-bold text-muted-foreground whitespace-nowrap">
+                                Deadline <span className="text-rose-500">*</span>
+                            </label>
+                            {!(note && !isClone) && (
+                                <div className="flex bg-muted/50 p-0.5 rounded-full border border-border/50 shrink-0 self-start sm:self-auto w-fit">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (isMultiDateMode) {
+                                                setIsMultiDateMode(false);
+                                                if (dueDates.length > 1) setDueDates(dueDates.length > 0 ? [dueDates[0]] : []);
+                                            }
+                                        }}
+                                        className={`text-[10px] font-bold px-3 py-1 rounded-full transition-all ${!isMultiDateMode ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                    >
+                                        1 Day
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsMultiDateMode(true)}
+                                        className={`text-[10px] font-bold px-3 py-1 rounded-full transition-all ${isMultiDateMode ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                    >
+                                        Multi Days
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                         <div className="relative">
                             <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input
                                 type="date"
-                                value={dueDate}
-                                onChange={(e) => setDueDate(e.target.value)}
-                                className={`pl-12 h-12 bg-card/50 rounded-xl ${submitted && !dueDate ? 'border-rose-500 focus:ring-rose-500/20' : 'border-border/50'}`}
+                                value={note && !isClone ? tempDate : (isMultiDateMode ? '' : (dueDates[0] || ''))}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (note && !isClone) {
+                                        setTempDate(val);
+                                        setDueDates(val ? [val] : []);
+                                    } else {
+                                        if (isMultiDateMode) {
+                                            if (val && !dueDates.includes(val)) {
+                                                setDueDates([...dueDates, val].sort());
+                                            }
+                                        } else {
+                                            setDueDates(val ? [val] : []);
+                                        }
+                                        // Reset the input value temporarily to allow selecting the same date again if needed in multi mode
+                                        if (isMultiDateMode) e.target.value = '';
+                                    }
+                                }}
+                                className={`pl-12 h-12 bg-card/50 rounded-xl ${submitted && dueDates.length === 0 ? 'border-rose-500 focus:ring-rose-500/20' : 'border-border/50'} ${isMultiDateMode && dueDates.length > 0 ? 'text-transparent [&::-webkit-datetime-edit]:text-transparent selection:bg-transparent' : ''}`}
                             />
+                            {/* Overlay text when multiple dates are selected in multi mode */}
+                            {!(note && !isClone) && isMultiDateMode && dueDates.length > 0 && (
+                                <div className="absolute left-12 top-1/2 -translate-y-1/2 pointer-events-none text-sm font-bold text-primary">
+                                    {dueDates.length} days selected
+                                </div>
+                            )}
                         </div>
-                        {submitted && !dueDate && (
+                        {submitted && dueDates.length === 0 && (
                             <p className="text-xs text-rose-500 font-medium ml-1 mt-1 flex items-center gap-1">
                                 <AlertCircle className="w-3.5 h-3.5" />
-                                Deadline is required
+                                {note && !isClone ? 'Deadline is required' : 'Deadline is required'}
                             </p>
                         )}
                     </div>
                 </div>
+
+                {/* Selected Deadlines Chips - Full Width Horizontal Scroll */}
+                {!(note && !isClone) && isMultiDateMode && dueDates.length > 0 && (
+                    <div className="space-y-2 bg-card/30 p-3 rounded-xl border border-border/50">
+                        <div className="flex items-center justify-between px-1">
+                            <label className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
+                                <CalendarIcon className="w-3.5 h-3.5 text-primary" />
+                                Selected Dates
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded-full">{dueDates.length} selected</span>
+                                <button type="button" onClick={() => setDueDates([])} className="text-[10px] font-bold text-rose-500 hover:text-rose-600 transition-colors bg-rose-500/10 px-2 py-0.5 rounded-full">Clear all</button>
+                            </div>
+                        </div>
+                        <div className="flex flex-nowrap overflow-x-auto gap-2 pb-1 custom-scrollbar">
+                            {dueDates.map(date => {
+                                const [y, m, d] = date.split('-');
+                                const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+                                return (
+                                    <div key={date} className="flex items-center gap-1.5 bg-background text-foreground px-3 py-1.5 rounded-lg text-xs font-bold border border-border/50 shadow-sm shrink-0">
+                                        <span>{dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric'})}</span>
+                                        <button type="button" onClick={() => setDueDates(dueDates.filter(d => d !== date))} className="p-1 hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground rounded-full transition-colors ml-0.5">
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {/* Content - Rich Text Editor */}
                 <div className="space-y-2">
