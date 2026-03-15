@@ -9,7 +9,12 @@ const BACKUP_TABLES = [
     'categories',
     'payment_channels',
     'expenses',
-    'expense_installments'
+    'expense_installments',
+    'notes',
+    'note_categories',
+    'tags',
+    'note_tags',
+    'reminders'
 ];
 
 // Verify cron secret (same as expense-reminders)
