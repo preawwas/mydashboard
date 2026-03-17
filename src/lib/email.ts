@@ -339,17 +339,24 @@ function generateUnifiedEmailTemplate(
             <div style="background-color: #15140F; border-radius: 12px; overflow: hidden; border: 1px solid #2E2C24;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tbody>
-                        ${data.journey.map(item => `
-                            <tr>
-                                <td style="padding: 16px; border-bottom: 1px solid #2E2C24;">
-                                    <div style="color: #FAFAFA; font-weight: 600; font-size: 15px; margin-bottom: 8px;">${item.noteTitle}</div>
-                                    <div>
-                                        <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; background-color: #3B82F61A; color: #60A5FA; font-size: 10px; font-weight: 700; text-transform: uppercase;">${item.status}</span>
-                                        <span style="color: #71717A; font-size: 11px; margin-left: 8px;">Due today</span>
-                                    </div>
-                                </td>
-                            </tr>
-                        `).join('')}
+                        ${data.journey.map(item => {
+                            const isToday = item.dueDate === new Date().toISOString().split('T')[0];
+                            const dueLabel = isToday ? 'Today' : item.dueDate;
+                            const labelColor = isToday ? '#60A5FA' : '#EF4444'; // Red for overdue
+                            const bgColor = isToday ? '#3B82F61A' : '#EF44441A';
+
+                            return `
+                                <tr>
+                                    <td style="padding: 16px; border-bottom: 1px solid #2E2C24;">
+                                        <div style="color: #FAFAFA; font-weight: 600; font-size: 15px; margin-bottom: 8px;">${item.noteTitle}</div>
+                                        <div>
+                                            <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; background-color: ${bgColor}; color: ${labelColor}; font-size: 10px; font-weight: 700; text-transform: uppercase;">${item.status}</span>
+                                            <span style="color: ${isToday ? '#71717A' : '#EF4444'}; font-size: 11px; margin-left: 8px;">Due: ${dueLabel}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
                     </tbody>
                 </table>
             </div>

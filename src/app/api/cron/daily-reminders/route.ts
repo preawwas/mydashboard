@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
                 pendingExpenses.push(...getMonthlyPendingExpenses(exp));
             }
 
-            // 2. Fetch Tasks due today (Any category)
+            // 2. Fetch Tasks due today or earlier (Any category, not Done)
             const { data: notes, error: notesError } = await supabase
                 .from('notes')
                 .select(`
@@ -118,21 +118,23 @@ export async function GET(request: NextRequest) {
                 .neq('status', 'Done')
                 .eq('is_deleted', false)
                 .eq('is_archived', false)
-                .eq('reminders.due_date', today);
+                .lte('reminders.due_date', today);
 
             if (notesError) {
                 console.error(`[Unified Cron] Error fetching notes for ${user.email}:`, notesError);
             }
 
-            const taskItems: JourneyReminderItem[] = (notes || []).map(note => ({
-                noteTitle: note.title,
-                description: note.content || '',
-                dueDate: (note as any).reminders[0]?.due_date || today,
-                status: note.status
-            }));
+            const taskItems: JourneyReminderItem[] = (notes || [])
+                .map(note => ({
+                    noteTitle: note.title,
+                    description: note.content || '',
+                    dueDate: (note as any).reminders[0]?.due_date || today,
+                    status: note.status
+                }))
+                .sort((a, b) => a.dueDate.localeCompare(b.dueDate)); // Sort by due date (overdue first)
 
             if (taskItems.length > 0) {
-                console.log(`[Unified Cron] Found ${taskItems.length} tasks for ${user.email}`);
+                console.log(`[Unified Cron] Found ${taskItems.length} tasks for ${user.email} (including possible overdue)`);
             }
 
             // 3. Send Unified Email if needed
