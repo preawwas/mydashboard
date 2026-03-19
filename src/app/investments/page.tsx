@@ -61,12 +61,12 @@ export default function InvestmentsPage() {
 
     return (
         <DashboardLayout>
-            <div className="space-y-6">
+            <div className="space-y-4">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                        <h1 className="text-2xl font-bold text-foreground">Investment</h1>
-                        <p className="text-muted-foreground">Manage your investment portfolio effectively.</p>
+                        <h1 className="text-xl font-bold text-foreground">Investment</h1>
+                        <p className="text-sm text-muted-foreground">Manage your investment portfolio effectively.</p>
                     </div>
                     <Button
                         onClick={openAddModal}
@@ -102,7 +102,7 @@ export default function InvestmentsPage() {
 
                 {/* Content */}
                 {isLoading && investments.length === 0 ? null : activeTab === 'overview' ? (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <SummaryCards data={summaryData} />
                         <AssetAllocation data={allocationData} />
                     </div>

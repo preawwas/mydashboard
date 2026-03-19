@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
+import { Card, CardContent } from '@/components/ui';
 
 interface AllocationItem {
     category: string;
@@ -15,167 +15,82 @@ interface AssetAllocationProps {
 }
 
 const categoryColors: Record<string, string> = {
-    GOLD: '#F5C542',
-    CRYPTO: '#9F7AEA',
-    STOCK: '#4299E1',
-    FUND: '#38A169',
-    OTHER: '#718096',
-    USD: '#ED64A6',
+    GOLD: '#EAB308',
+    CRYPTO: '#8B5CF6',
+    STOCK: '#3B82F6',
+    FUND: '#22C55E',
+    OTHER: '#64748B',
+    USD: '#EC4899',
+};
+
+const categoryLabels: Record<string, string> = {
+    GOLD: 'Gold',
+    CRYPTO: 'Crypto',
+    STOCK: 'Stock',
+    FUND: 'Fund',
+    USD: 'USD',
+    OTHER: 'Others',
 };
 
 const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
     const total = data.reduce((sum, item) => sum + item.value, 0);
 
-    // Override colors for consistency
     const processedData = useMemo(() => {
         return data.map(item => ({
             ...item,
-            color: categoryColors[item.category] || item.color
+            color: categoryColors[item.category] || item.color,
+            label: categoryLabels[item.category] || item.category,
         })).sort((a, b) => b.value - a.value);
     }, [data]);
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'THB',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(amount);
+    const formatCurrency = (amount: number) =>
+        new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+
+    const formatCompact = (amount: number) => {
+        if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)}M`;
+        if (amount >= 1_000) return `${(amount / 1_000).toFixed(0)}K`;
+        return amount.toFixed(0);
     };
 
-    // Calculate SVG paths for donut chart
-    const chartPaths = useMemo(() => {
-        let accumulatedPercentage = 0;
-        return processedData.map((item) => {
-            const startPercentage = accumulatedPercentage;
-            accumulatedPercentage += item.percentage;
-
-            const startAngle = (startPercentage / 100) * 360;
-            const endAngle = (accumulatedPercentage / 100) * 360;
-
-            // Convert polar to cartesian
-            // Center is 50,50. Radius is 40.
-            const x1 = 50 + 40 * Math.cos((startAngle - 90) * Math.PI / 180);
-            const y1 = 50 + 40 * Math.sin((startAngle - 90) * Math.PI / 180);
-            const x2 = 50 + 40 * Math.cos((endAngle - 90) * Math.PI / 180);
-            const y2 = 50 + 40 * Math.sin((endAngle - 90) * Math.PI / 180);
-
-            // Large arc flag
-            const largeArcFlag = item.percentage > 50 ? 1 : 0;
-
-            // Path command
-            const path = [
-                `M 50 50`,
-                `L ${x1} ${y1}`,
-                `A 40 40 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-                `Z`
-            ].join(' ');
-
-            return { ...item, path };
-        });
-    }, [processedData]);
-
+    // Removed Donut logic, using Horizontal Stacked Bar instead
 
     return (
-        <Card className="bg-card border-border shadow-md">
-            <CardHeader className="border-b border-border pb-4">
-                <CardTitle className="text-foreground text-lg font-bold">Asset Allocation</CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
-                    {/* Donut Chart */}
-                    <div className="relative w-48 h-48 sm:w-64 sm:h-64 flex-shrink-0" role="img" aria-label="Donut chart showing asset allocation percentages">
-                        <svg viewBox="0 0 100 100" className="w-full h-full">
-                            {/* Background circle */}
-                            <circle cx="50" cy="50" r="40" fill="currentColor" className="text-muted/10" />
-
-                            {chartPaths.length > 0 ? (
-                                chartPaths.map((item, index) => (
-                                    <path
-                                        key={item.category}
-                                        d={item.path}
-                                        fill={item.color}
-                                        stroke="transparent"
-                                        strokeWidth="0"
-                                        className="cursor-pointer hover:opacity-90"
-                                    />
-                                ))
-                            ) : (
-                                <circle cx="50" cy="50" r="40" fill="currentColor" className="text-muted/20" />
-                            )}
-
-                            {/* Inner Hole for Donut effect */}
-                            <circle cx="50" cy="50" r="28" fill="var(--background)" fillOpacity="0.8" />
-
-                            {/* Center Text */}
-                            <foreignObject x="15" y="32" width="70" height="36">
-                                <div className="flex flex-col items-center justify-center h-full text-center">
-                                    <span className="text-[0.4rem] text-muted-foreground mb-0.5 tracking-wide uppercase font-bold">Total Value</span>
-                                    <span className="text-[0.6rem] font-black text-foreground truncate w-full px-1">
-                                        {formatCurrency(total).replace('฿', '')}
-                                    </span>
-                                </div>
-                            </foreignObject>
-                        </svg>
-                    </div>
-
-                    {/* Legend / List */}
-                    <div className="flex-1 w-full space-y-3 sm:space-y-4" role="list">
-                        {processedData.length > 0 ? (
-                            processedData.map((item) => (
-                                <div 
-                                    key={item.category} 
-                                    className="group flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-card border border-border hover:border-primary/40 transition-colors shadow-sm"
-                                    role="listitem"
-                                >
-                                    <div className="flex items-center gap-3 sm:gap-4">
-                                        <div
-                                            className="w-2 sm:w-3 h-10 sm:h-12 rounded-full shadow-lg"
-                                            style={{ backgroundColor: item.color, boxShadow: `0 0 15px ${item.color}30` }}
-                                            role="presentation"
-                                        />
-                                        <div>
-                                            <p className="text-foreground font-bold text-base sm:text-lg">
-                                                {item.category === 'GOLD' ? 'Gold' :
-                                                    item.category === 'CRYPTO' ? 'Crypto' :
-                                                        item.category === 'STOCK' ? 'Stock' :
-                                                            item.category === 'FUND' ? 'Fund' :
-                                                                item.category === 'USD' ? 'USD' :
-                                                                    'Others'}
-                                            </p>
-                                            <p className="text-xs text-muted-foreground font-bold" aria-label={`${item.percentage.toFixed(1)} percent`}>
-                                                {item.percentage.toFixed(1)}%
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-foreground font-black tracking-tight text-lg sm:text-xl" aria-label={`Value: ${formatCurrency(item.value)}`}>
-                                            {formatCurrency(item.value)}
-                                        </p>
-                                        <div 
-                                            className="hidden sm:block w-28 bg-muted h-2 rounded-full mt-2 ml-auto overflow-hidden border border-border"
-                                            role="progressbar"
-                                            aria-valuenow={item.percentage}
-                                            aria-valuemin={0}
-                                            aria-valuemax={100}
-                                            aria-label={`${item.category} proportion`}
-                                        >
-                                            <div
-                                                className="h-full rounded-full"
-                                                style={{ width: `${item.percentage}%`, backgroundColor: item.color }}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="text-center py-8 text-muted-foreground bg-muted/20 rounded-2xl border border-dashed border-border" role="status">
-                                <p>No investment found.</p>
-                                <p className="text-sm mt-2">Start adding investments to see allocation.</p>
-                            </div>
-                        )}
+        <Card className="bg-card border-border h-full">
+            <CardContent className="p-5 sm:p-6 flex flex-col h-full">
+                <div className="flex items-end justify-between mb-8">
+                    <div>
+                        <h3 className="text-sm font-semibold text-muted-foreground mb-1">Asset Allocation</h3>
+                        <p className="text-3xl font-bold text-foreground tracking-tight tabular-nums">{formatCurrency(total)}</p>
                     </div>
                 </div>
+
+                {processedData.length > 0 ? (
+                    <div className="flex flex-col flex-1">
+                        {/* Block/Square List below */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-auto">
+                            {processedData.map((item) => (
+                                <div 
+                                    key={item.category} 
+                                    className="flex items-center justify-between p-3 rounded-lg border border-border/60 bg-card hover:bg-muted/30 transition-colors"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-1.5 h-10 rounded-sm shrink-0" style={{ backgroundColor: item.color }} />
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-semibold text-foreground leading-none mb-1.5">{item.label}</span>
+                                            <span className="text-xs text-muted-foreground tabular-nums leading-none">{item.percentage.toFixed(1)}%</span>
+                                        </div>
+                                    </div>
+                                    <span className="text-sm font-bold text-foreground tabular-nums">{formatCurrency(item.value)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center flex-1 py-10 text-center">
+                        <p className="text-sm text-muted-foreground mb-1">No investment found.</p>
+                        <p className="text-xs text-muted-foreground/70">Start adding investments to see allocation.</p>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );

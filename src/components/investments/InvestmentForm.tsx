@@ -6,6 +6,7 @@ import { InvestmentFormData, SellRecord, SellRecordWithId } from '@/types';
 import { getCurrentLocalDate } from '@/lib/utils';
 import InvestmentDetails from './InvestmentDetails';
 import SellHistoryList from './SellHistoryList';
+import InvestmentCalculator from './InvestmentCalculator';
 
 interface InvestmentFormProps {
     isOpen: boolean;
@@ -22,7 +23,8 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
     initialData,
     mode,
 }) => {
-    const [activeTab, setActiveTab] = useState<'details' | 'sell_history'>('details');
+    const [activeTab, setActiveTab] = useState<'details' | 'sell_history' | 'calculator'>('details');
+    const [calcKey, setCalcKey] = useState(0);
     const idCounterRef = useRef(0);
 
     // Generate unique ID for each sell record
@@ -57,6 +59,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
             setFormData(getDefaultFormData());
             setErrors({});
             setActiveTab('details');
+            setCalcKey(k => k + 1);
             idCounterRef.current = 0;
         }
     }, [isOpen, getDefaultFormData]);
@@ -211,6 +214,19 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                             </span>
                         )}
                     </button>
+                    <button
+                        type="button"
+                        role="tab"
+                        aria-selected={activeTab === 'calculator'}
+                        aria-controls="calculator-panel"
+                        onClick={() => setActiveTab('calculator')}
+                        className={`px-4 sm:px-6 py-3 font-medium text-sm transition-colors border-b-2 whitespace-nowrap ${activeTab === 'calculator'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-muted-foreground hover:text-foreground'
+                            }`}
+                    >
+                        Calculator
+                    </button>
                 </div>
 
                 {/* Details Tab */}
@@ -242,6 +258,16 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                         onRemove={removeSellRecord}
                         onUpdate={updateSellRecord}
                     />
+                </div>
+
+                {/* Calculator Tab */}
+                <div 
+                    id="calculator-panel"
+                    role="tabpanel"
+                    aria-labelledby="calculator-tab"
+                    className={`${activeTab === 'calculator' ? 'block' : 'hidden'} space-y-4 h-[300px] sm:h-[380px] overflow-y-auto custom-scrollbar`}
+                >
+                    <InvestmentCalculator key={calcKey} />
                 </div>
 
                 {/* Actions */}
