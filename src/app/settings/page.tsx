@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardHeader, CardTitle, CardContent, Button, Input } from '@/components/ui';
 import { User, Mail, Save, Camera, Lock, Bell, Shield, Eye, EyeOff, Settings, PieChart, CreditCard, Languages, ToggleLeft, ToggleRight, Heart, Plus, Trash2, Image as ImageIcon, Smile } from 'lucide-react';
@@ -26,6 +26,13 @@ export default function SettingsPage() {
     const [isProfileLoading, setIsProfileLoading] = useState(false);
     const [profileMessage, setProfileMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+    useEffect(() => {
+        setProfileData({
+            name: user?.name || '',
+            email: user?.email || '',
+        });
+    }, [user?.name, user?.email]);
+
     // Settings State
     const [showPassword, setShowPassword] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
@@ -47,12 +54,31 @@ export default function SettingsPage() {
         setProfileMessage(null);
 
         try {
-            // Simulate API call
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            setUser({ ...user!, name: profileData.name });
-            setProfileMessage({ type: 'success', text: 'Settings saved successfully' });
+            const token = useAuthStore.getState().token;
+            if (!token) {
+                setProfileMessage({ type: 'error', text: 'Session expired. Please login again.' });
+                return;
+            }
+
+            const res = await fetch('/api/auth/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ name: profileData.name }),
+            });
+
+            const data = await res.json();
+            if (!res.ok || !data.success) {
+                setProfileMessage({ type: 'error', text: data.error || 'An error occurred. Please try again.' });
+                return;
+            }
+
+            setUser(data.user);
+            setProfileMessage({ type: 'success', text: 'Profile updated successfully' });
         } catch {
-            setProfileMessage({ type: 'error', text: 'An error occurred. Please try again.' });
+            setProfileMessage({ type: 'error', text: 'Connection error. Please try again.' });
         } finally {
             setIsProfileLoading(false);
         }

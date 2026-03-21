@@ -17,6 +17,10 @@ export const changePasswordSchema = z.object({
     newPassword: z.string().min(6, 'New password must be at least 6 characters'),
 });
 
+export const updateProfileSchema = z.object({
+    name: z.string().trim().min(1, 'Name is required').max(100),
+});
+
 // ── Expense Schemas ──
 export const createExpenseSchema = z.object({
     transactionDate: z.string().min(1, 'Transaction date is required'),
