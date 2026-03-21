@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui';
@@ -16,11 +16,11 @@ interface AssetAllocationProps {
 
 const categoryColors: Record<string, string> = {
     GOLD: '#EAB308',
-    CRYPTO: '#8B5CF6',
+    CRYPTO: '#5FAFAF',
     STOCK: '#3B82F6',
     FUND: '#22C55E',
     OTHER: '#64748B',
-    USD: '#EC4899',
+    USD: '#FF8F80',
 };
 
 const categoryLabels: Record<string, string> = {
@@ -97,3 +97,4 @@ const AssetAllocation: React.FC<AssetAllocationProps> = ({ data }) => {
 };
 
 export default AssetAllocation;
+

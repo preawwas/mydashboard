@@ -6,7 +6,9 @@ import { Button, Input, Modal } from '@/components/ui';
 import { DbShortNoteWithTags, DbTag } from '@/lib/supabase-types';
 import { apiClient } from '@/lib/api-client';
 import DynamicRichTextEditor from './DynamicRichTextEditor';
+import TagConeIcon from './TagConeIcon';
 import { cn } from '@/lib/utils';
+import { parseTag, getColorStyles } from '@/lib/tag-helpers';
 
 interface ShortNoteModalProps {
     isOpen: boolean;
@@ -98,6 +100,8 @@ const ShortNoteModal: React.FC<ShortNoteModalProps> = ({ isOpen, onClose, note, 
                     <label className="text-sm font-bold text-muted-foreground ml-1">Tags</label>
                     <div className="flex flex-wrap gap-2">
                         {tags.map(tag => {
+                            const parsed = parseTag(tag);
+                            const colorStyles = getColorStyles(parsed.colorClasses);
                             const isSelected = selectedTagIds.includes(tag.id);
                             return (
                                 <button
@@ -111,7 +115,10 @@ const ShortNoteModal: React.FC<ShortNoteModalProps> = ({ isOpen, onClose, note, 
                                             : "bg-card/50 text-muted-foreground border-border/50 hover:border-primary/50"
                                     )}
                                 >
-                                    #{tag.name}
+                                    <span className="inline-flex items-center gap-2">
+                                        <TagConeIcon circleColor={colorStyles.color} size={19} className="shrink-0" />
+                                        <span>{parsed.text}</span>
+                                    </span>
                                 </button>
                             );
                         })}

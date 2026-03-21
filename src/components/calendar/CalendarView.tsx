@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
@@ -208,7 +208,7 @@ const CalendarView: React.FC = () => {
                     aria-label={`Mark "${note.title}" as ${isDone ? 'incomplete' : 'done'}`}
                     className={cn(
                         "w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
-                        isDone ? "bg-green-500 border-green-500" : "border-current hover:border-green-400"
+                        isDone ? "bg-teal-400 border-teal-400" : "border-current hover:border-teal-300"
                     )}
                 >
                     {isDone && <Check className="w-2.5 h-2.5 text-white" />}
@@ -366,7 +366,7 @@ const CalendarView: React.FC = () => {
                             onClick={(e) => { e.stopPropagation(); handleEditNote(note); }}
                             className="flex items-center gap-4 p-4 bg-card border border-border/50 rounded-xl cursor-pointer hover:border-primary/30 shadow-[0_2px_8px_-3px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.1)] transition-all"
                         >
-                            <button onClick={(e) => handleMarkDone(note, e)} className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0", note.status === 'Done' ? "bg-green-500 border-green-500" : "border-muted-foreground/40 hover:border-green-400")}>
+                            <button onClick={(e) => handleMarkDone(note, e)} className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0", note.status === 'Done' ? "bg-teal-400 border-teal-400" : "border-muted-foreground/40 hover:border-teal-300")}>
                                 {note.status === 'Done' && <Check className="w-3.5 h-3.5 text-white" />}
                             </button>
                             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0" style={{ backgroundColor: `${note.note_categories?.color_code || '#718096'}15` }}>

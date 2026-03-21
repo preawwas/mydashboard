@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui';
@@ -71,9 +71,9 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick }) => {
                             className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm shrink-0"
                             style={{ backgroundColor: `${categoryColor}15`, color: categoryColor }}
                         >
-                            {note.note_categories?.icon || '📝'}
+                            {note.note_categories?.icon || '\u{1F4DD}'}
                         </div>
-                        <h3 className="text-base font-bold text-foreground line-clamp-2 group-hover:text-[#6D28D9] transition-colors leading-tight">
+                        <h3 className="text-base font-bold text-foreground line-clamp-2 group-hover:text-[#1F4E50] transition-colors leading-tight">
                             {note.title}
                         </h3>
                     </div>
@@ -102,7 +102,7 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick }) => {
                                 "text-xs font-bold px-2 py-0.5 rounded-full",
                                 deadline?.isOverdue
                                     ? "bg-rose-500/10 text-rose-700"
-                                    : "bg-primary/10 text-[#6D28D9]"
+                                    : "bg-primary/10 text-[#1F4E50]"
                             )}>
                                 {deadline?.text}
                             </span>
@@ -121,3 +121,4 @@ const NoteCard: React.FC<NoteCardProps> = ({ note, onClick }) => {
 };
 
 export default NoteCard;
+

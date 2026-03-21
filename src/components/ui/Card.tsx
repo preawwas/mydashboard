@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { cn } from '@/lib/utils';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -9,8 +9,8 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ({ className, variant = 'default', padding = 'md', children, ...props }, ref) => {
         const variants = {
-            default: 'bg-card shadow-xl shadow-primary/5 border border-border',
-            gradient: 'bg-card shadow-xl border border-border relative overflow-hidden',
+            default: 'bg-card shadow-md shadow-[#2E7D7F]/8 border border-border',
+            gradient: 'bg-card shadow-md border border-[#2E7D7F]/20 relative overflow-hidden before:absolute before:inset-x-0 before:top-0 before:h-0.5 before:bg-gradient-to-r before:from-[#1F4E50] before:via-[#2E7D7F] before:to-[#FF8F80]',
             bordered: 'bg-transparent border border-border',
         };
 
@@ -25,7 +25,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
             <div
                 ref={ref}
                 className={cn(
-                    'rounded-xl transition-all duration-200',
+                    'rounded-2xl transition-all duration-200',
                     variants[variant],
                     paddings[padding],
                     className
@@ -107,3 +107,4 @@ const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(
 CardFooter.displayName = 'CardFooter';
 
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter };
+

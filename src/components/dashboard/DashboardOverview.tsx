@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent, DashboardSkeleton } from '@/components/ui';
@@ -18,10 +18,10 @@ import { useLoading } from '@/components/providers/LoadingProvider';
 // Color palette for charts
 const COLORS = {
     GOLD: '#F59E0B', // Amber 500
-    CRYPTO: '#8B5CF6',
+    CRYPTO: '#5FAFAF',
     STOCK: '#10B981',
     FUND: '#38A169',
-    USD: '#ED64A6',
+    USD: '#FF8F80',
     OTHER: '#718096',
     expense: '#EF4444',
     income: '#22C55E'
@@ -30,11 +30,11 @@ const COLORS = {
 // Fallback colors for unknown categories (preventing overlap with main COLORS)
 const CATEGORY_COLORS = [
     '#3B82F6', // Blue
-    '#F97316', // Orange
+    '#FF7A6B', // Orange
     '#06B6D4', // Cyan
-    '#6366F1', // Indigo
-    '#EC4899', // Pink (different shade)
-    '#14B8A6', // Teal
+    '#2E7D7F', // Teal (primary)
+    '#EC4899', // Pink
+    '#FF8F80', // Coral (accent)
 ];
 
 export default function DashboardOverview() {
@@ -264,7 +264,7 @@ export default function DashboardOverview() {
                                 <PiggyBank className="w-12 h-12 mx-auto mb-2 opacity-50" />
                                 <p>No investments yet</p>
                                 <Link href="/investments" className="text-primary text-sm mt-2 inline-block">
-                                    Start investing →
+                                    Start investing -&gt;
                                 </Link>
                             </div>
                         )}
@@ -322,7 +322,7 @@ export default function DashboardOverview() {
                                 <Wallet className="w-12 h-12 mx-auto mb-2 opacity-50" />
                                 <p>No expenses yet</p>
                                 <Link href="/expenses" className="text-primary text-sm mt-2 inline-block">
-                                    Record expense →
+                                    Record expense -&gt;
                                 </Link>
                             </div>
                         )}
@@ -380,3 +380,4 @@ function StatCard({ title, value, subtitle, icon, trend, trendLabel, color }: St
         </div>
     );
 }
+

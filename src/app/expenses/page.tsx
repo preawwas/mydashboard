@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout';
@@ -154,7 +154,7 @@ export default function ExpensesPage() {
                 <span className={cn(
                     "px-2 py-1 rounded text-xs font-medium",
                     item.status === 'PAID'
-                        ? "bg-green-500/10 text-green-500"
+                        ? "bg-teal-400/10 text-teal-400"
                         : "bg-orange-500/10 text-orange-500"
                 )}>
                     {item.status === 'PAID' ? 'Paid' : 'Pending'}

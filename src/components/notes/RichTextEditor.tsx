@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -45,7 +45,7 @@ const HIGHLIGHT_COLORS = [
     { name: 'Green', color: '#bbf7d0' },
     { name: 'Blue', color: '#bfdbfe' },
     { name: 'Pink', color: '#fbcfe8' },
-    { name: 'Orange', color: '#fed7aa' },
+    { name: 'Orange', color: '#FFB3A7' },
     { name: 'Purple', color: '#ddd6fe' },
 ];
 
@@ -87,7 +87,7 @@ const HighlightColorPicker = ({ editor }: { editor: any }) => {
                             className="w-6 h-6 rounded-full border-2 transition-transform hover:scale-125"
                             style={{
                                 backgroundColor: color,
-                                borderColor: editor.isActive('highlight', { color }) ? 'var(--primary, #7c3aed)' : 'transparent',
+                                borderColor: editor.isActive('highlight', { color }) ? 'var(--primary, #2E7D7F)' : 'transparent',
                             }}
                         />
                     ))}
@@ -102,7 +102,7 @@ const HighlightColorPicker = ({ editor }: { editor: any }) => {
                         }}
                         className="w-6 h-6 rounded-full border-2 border-border/50 flex items-center justify-center text-muted-foreground hover:scale-125 transition-transform text-xs"
                     >
-                        ✕
+                        âœ•
                     </button>
                 </div>
             )}
@@ -289,7 +289,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
                 .tiptap ul[data-type="taskList"] li label input[type="checkbox"] {
                     width: 1rem;
                     height: 1rem;
-                    accent-color: var(--primary, #7c3aed);
+                    accent-color: var(--primary, #2E7D7F);
                     cursor: pointer;
                     border-radius: 0.25rem;
                 }
@@ -308,3 +308,4 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onChange, plac
 };
 
 export default RichTextEditor;
+

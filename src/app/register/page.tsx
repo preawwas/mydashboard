@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -91,7 +91,7 @@ export default function RegisterPage() {
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-[#5FAFAF] bg-clip-text text-transparent">
                         Register
                     </h1>
                     <p className="text-muted-foreground mt-2">Create a new account to get started</p>
@@ -129,7 +129,7 @@ export default function RegisterPage() {
                         <Input
                             label="Password"
                             type={showPassword ? 'text' : 'password'}
-                            placeholder="••••••••"
+                            placeholder="********"
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             error={errors.password}
@@ -152,7 +152,7 @@ export default function RegisterPage() {
                         <Input
                             label="Confirm Password"
                             type={showPassword ? 'text' : 'password'}
-                            placeholder="••••••••"
+                            placeholder="********"
                             value={formData.confirmPassword}
                             onChange={(e) =>
                                 setFormData({ ...formData, confirmPassword: e.target.value })
@@ -188,3 +188,4 @@ export default function RegisterPage() {
         </div>
     );
 }
+

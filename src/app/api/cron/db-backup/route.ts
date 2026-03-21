@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
 import nodemailer from 'nodemailer';
 
@@ -64,7 +64,7 @@ function generateBackupEmailHtml(
                 <span style="color: #FAFAFA; font-weight: 500;">${stat.table}</span>
             </td>
             <td style="padding: 12px; border-bottom: 1px solid #2E2C24; text-align: right;">
-                <span style="color: #F5C542; font-weight: 600;">${stat.count.toLocaleString()} records</span>
+                <span style="color: #2E7D7F; font-weight: 600;">${stat.count.toLocaleString()} records</span>
             </td>
         </tr>
     `).join('');
@@ -82,20 +82,20 @@ function generateBackupEmailHtml(
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #1C1B16 0%, #15140F 100%); border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 1px solid #2E2C24;">
-            <h1 style="color: #F5C542; margin: 0 0 8px 0; font-size: 24px;">💾 Database Backup</h1>
+            <h1 style="color: #2E7D7F; margin: 0 0 8px 0; font-size: 24px;">Database Backup</h1>
             <p style="color: #A1A1AA; margin: 0; font-size: 14px;">
                 Backup created on <strong style="color: #FAFAFA;">${backupDate}</strong>
             </p>
         </div>
 
         <!-- Summary Card -->
-        <div style="background-color: #15140F; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #F5C542; text-align: center;">
+        <div style="background-color: #FFFFFF; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #2E7D7F; text-align: center;">
             <p style="color: #A1A1AA; margin: 0 0 8px 0; font-size: 12px; text-transform: uppercase;">Total Records</p>
-            <p style="color: #F5C542; margin: 0; font-size: 32px; font-weight: 700;">${totalRecords.toLocaleString()}</p>
+            <p style="color: #2E7D7F; margin: 0; font-size: 32px; font-weight: 700;">${totalRecords.toLocaleString()}</p>
         </div>
 
         <!-- Table Stats -->
-        <div style="background-color: #15140F; border-radius: 12px; overflow: hidden; border: 1px solid #2E2C24;">
+        <div style="background-color: #FFFFFF; border-radius: 12px; overflow: hidden; border: 1px solid #2E2C24;">
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="background-color: #1C1B16;">
@@ -110,10 +110,10 @@ function generateBackupEmailHtml(
         </div>
 
         <!-- Info -->
-        <div style="margin-top: 20px; padding: 16px; background-color: #15140F; border-radius: 12px; border: 1px solid #2E2C24;">
+        <div style="margin-top: 20px; padding: 16px; background-color: #FFFFFF; border-radius: 12px; border: 1px solid #2E2C24;">
             <p style="color: #A1A1AA; margin: 0; font-size: 13px;">
-                📎 Backup file is attached to this email in JSON format.<br>
-                🔒 Please keep the file in a safe place.
+                Backup file is attached to this email in JSON format.<br>
+                Please keep the file in a safe place.
             </p>
         </div>
 
@@ -223,3 +223,5 @@ export async function GET(request: NextRequest) {
         );
     }
 }
+
+

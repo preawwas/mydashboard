@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+﻿import React, { useId } from 'react';
 import { cn } from '@/lib/utils';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -50,7 +50,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                             'w-full px-4 py-2.5 border rounded-lg text-foreground placeholder-muted-foreground',
                             'bg-background',
                             'transition-all duration-200 ease-out',
-                            'focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent focus:shadow-[0_0_12px_rgba(var(--primary-rgb),0.15)]',
+                            'focus:outline-none focus:ring-2 focus:ring-[#2E7D7F] focus:border-transparent focus:shadow-[0_0_12px_rgba(22,163,74,0.15)]',
                             'disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed',
                             error
                                 ? 'border-destructive focus:ring-destructive'
@@ -90,3 +90,4 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 Input.displayName = 'Input';
 
 export default Input;
+

@@ -1,39 +1,44 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 :root {
-  /* Default Light Theme (White-Purple) */
-  --background: #FFFFFF;
-  --background-subtle: #F5F3FF;
-  --foreground: #1E1B4B;
+  /* Teal + Coral Theme */
+  --background: #F5F7F8;
+  --background-subtle: #EAF4F4;
+  --foreground: #1F2937;
 
   --muted: #374151;
-  --muted-foreground: #4B5563;
+  --muted-foreground: #6B7280;
 
   --card: #FFFFFF;
-  --card-hover: #F8F7FF;
-  --card-border: #E9E3FF;
+  --card-hover: #F0FAFA;
+  --card-border: #C8E6E6;
   --popover: #FFFFFF;
-  --popover-foreground: #1E1B4B;
+  --popover-foreground: #1F2937;
 
-  --primary: #7C3AED;
-  --primary-hover: #6D28D9;
-  --primary-dark: #5B21B6;
+  --primary: #2E7D7F;
+  --primary-hover: #1F4E50;
+  --primary-dark: #0F2E2F;
   --primary-foreground: #FFFFFF;
 
+  --accent: #FF7A6B;
+  --accent-hover: #FF8F80;
+  --accent-light: #FFB3A7;
+  --accent-foreground: #FFFFFF;
+
   --secondary: #FFFFFF;
-  --secondary-foreground: #15140F;
-  --secondary-hover: #F8F9FA;
+  --secondary-foreground: #1F2937;
+  --secondary-hover: #F5F7F8;
 
   --success: #10B981;
   --error: #EF4444;
   --warning: #F59E0B;
 
-  --border: #EDE9FE;
+  --border: #E5E7EB;
   --input: #FFFFFF;
-  --ring: #7C3AED;
+  --ring: #2E7D7F;
 
   --glass-bg: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(139, 92, 246, 0.1);
+  --glass-border: rgba(46, 125, 127, 0.15);
 }
 
 @theme inline {
@@ -56,21 +61,61 @@
   --color-error: var(--error);
   --color-destructive: var(--error);
   --color-warning: var(--warning);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-light: var(--accent-light);
+  --color-accent-foreground: var(--accent-foreground);
 
-  --font-sans: var(--font-montserrat), sans-serif;
+  --font-sans: "Bolder Loopless", var(--font-noto-sans-thai), "Strong Bodoni", var(--font-libre-bodoni), serif;
   --font-mono: monospace;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-montserrat), sans-serif;
+  font-family: var(--font-sans);
   min-height: 100vh;
 }
 
 .glass {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
+}
+
+/* ===== Button Gradient Utilities ===== */
+
+/* Primary button: teal gradient */
+.btn-primary-gradient {
+  background: linear-gradient(135deg, #1F4E50 0%, #2E7D7F 100%);
+  color: #FFFFFF;
+  border: none;
+}
+.btn-primary-gradient:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0F2E2F 0%, #1F4E50 100%);
+  box-shadow: 0 8px 24px rgba(46, 125, 127, 0.4);
+}
+
+/* Accent/CTA button: coral gradient */
+.btn-accent-gradient {
+  background: linear-gradient(135deg, #FF7A6B 0%, #FF8F80 100%);
+  color: #FFFFFF;
+  border: none;
+}
+.btn-accent-gradient:hover:not(:disabled) {
+  background: linear-gradient(135deg, #e86a5c 0%, #FF7A6B 100%);
+  box-shadow: 0 8px 24px rgba(255, 122, 107, 0.4);
+}
+
+/* Main gradient - green -> black -> orange */
+/* Main gradient — teal → teal → coral */
+.btn-main-gradient {
+  background: linear-gradient(135deg, #1F4E50 0%, #2E7D7F 50%, #FF7A6B 100%);
+  color: #FFFFFF;
+  border: none;
+}
+.btn-main-gradient:hover:not(:disabled) {
+  background: linear-gradient(135deg, #0F2E2F 0%, #1F4E50 60%, #e86a5c 100%);
+  box-shadow: 0 8px 28px rgba(46, 125, 127, 0.35);
 }
 
 /* Custom animations */
@@ -176,31 +221,31 @@ body {
 
 /* Focus styles */
 *:focus-visible {
-  outline: 2px solid #F5C542;
+  outline: 2px solid #2E7D7F;
   outline-offset: 2px;
 }
 
-/* Selection - dark theme */
+/* Selection - teal theme */
 ::selection {
-  background: #F5C542;
-  color: #15140F;
+  background: #5FAFAF;
+  color: #0F2E2F;
 }
 
 /* ===== Visual Depth Utilities ===== */
 
-/* Golden glow effect - for premium elements */
+/* Teal glow effect - for premium elements */
 .glow-gold {
-  box-shadow: 0 0 20px rgba(245, 197, 66, 0.15),
-    0 0 40px rgba(245, 197, 66, 0.08);
+  box-shadow: 0 0 20px rgba(46, 125, 127, 0.2),
+    0 0 40px rgba(46, 125, 127, 0.1);
 }
 
 .glow-gold-sm {
-  box-shadow: 0 0 12px rgba(245, 197, 66, 0.12);
+  box-shadow: 0 0 12px rgba(46, 125, 127, 0.15);
 }
 
 /* Gradient text effect */
 .text-gradient-gold {
-  background: linear-gradient(135deg, #F5C542 0%, #FFC83D 50%, #F5C542 100%);
+  background: linear-gradient(135deg, #2E7D7F 0%, #5FAFAF 50%, #FF8F80 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -210,7 +255,7 @@ body {
 .border-gradient-gold {
   border: 1px solid transparent;
   background: linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(135deg, rgba(245, 197, 66, 0.3), rgba(245, 197, 66, 0.05)) border-box;
+    linear-gradient(135deg, rgba(46, 125, 127, 0.3), rgba(255, 122, 107, 0.1)) border-box;
 }
 
 /* Subtle noise texture overlay */
@@ -224,7 +269,7 @@ body {
   border-radius: inherit;
 }
 
-/* Premium card with golden accent line */
+/* Premium card with teal accent line */
 .card-premium {
   position: relative;
 }
@@ -237,8 +282,8 @@ body {
   transform: translateX(-50%);
   width: 60%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, #F5C542, transparent);
-  opacity: 0.5;
+  background: linear-gradient(90deg, transparent, #2E7D7F, #FF8F80, #2E7D7F, transparent);
+  opacity: 0.6;
 }
 
 /* Animated gradient border on hover */
@@ -262,7 +307,7 @@ body {
   content: '';
   position: absolute;
   inset: -1px;
-  background: linear-gradient(90deg, #F5C542, #FFC83D, #F5C542);
+  background: linear-gradient(90deg, #2E7D7F, #5FAFAF, #FF8F80, #5FAFAF, #2E7D7F);
   background-size: 200% 100%;
   border-radius: inherit;
   opacity: 0;
@@ -275,7 +320,7 @@ body {
   animation: gradient-shift 2s ease infinite;
 }
 
-/* ===== Moderately Cute Animations 🌸 ===== */
+/* ===== Moderately Cute Animations ===== */
 
 /* Gentle bounce for icons */
 @keyframes bounce-gentle {
@@ -363,8 +408,8 @@ body {
 }
 
 .card-hover:hover {
-  border-color: rgba(245, 197, 66, 0.5);
-  box-shadow: 0 0 20px rgba(245, 197, 66, 0.1);
+  border-color: rgba(46, 125, 127, 0.4);
+  box-shadow: 0 0 20px rgba(46, 125, 127, 0.12);
 }
 
 /* Icon hover bounce */
@@ -374,7 +419,15 @@ body {
 
 /* Gradient text */
 .text-gradient-purple {
-  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  background: linear-gradient(135deg, #1F4E50 0%, #2E7D7F 50%, #FF8F80 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Gradient text - teal alias */
+.text-gradient-teal {
+  background: linear-gradient(135deg, #1F4E50 0%, #2E7D7F 50%, #FF8F80 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -382,7 +435,7 @@ body {
 
 /* Subtle glow on active elements */
 .glow-active {
-  box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 15px rgba(46, 125, 127, 0.35);
 }
 
 /* ===== Page Transition Animations ===== */

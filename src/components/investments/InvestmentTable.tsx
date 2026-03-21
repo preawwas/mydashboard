@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { Table, Badge, Button } from '@/components/ui';
@@ -114,7 +114,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                 );
                 const isProfit = profitLoss >= 0;
                 return (
-                    <div className={isProfit ? 'text-green-500' : 'text-destructive'}>
+                    <div className={isProfit ? 'text-teal-400' : 'text-destructive'}>
                         <p className="font-medium">
                             {isProfit ? '+' : ''}{formatCurrency(profitLoss, item.buy_currency)}
                         </p>

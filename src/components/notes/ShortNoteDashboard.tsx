@@ -2,16 +2,27 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLoading } from '@/components/providers/LoadingProvider';
-import { Search, Plus, Filter, Tag as TagIcon, StickyNote, Zap, Settings, Trash2, Send, X, Pin, Edit2 } from 'lucide-react';
+import { Search, Plus, Filter, Tag as TagIcon, StickyNote, Zap, Settings, Trash2, Send, X, Asterisk, Edit2 } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 import { apiClient } from '@/lib/api-client';
 import { DbShortNoteWithTags, DbTag } from '@/lib/supabase-types';
 import ShortNoteCard from './ShortNoteCard';
 import ShortNoteEditor from './ShortNoteEditor';
+import TagConeIcon from './TagConeIcon';
 import { cn } from '@/lib/utils';
-import { parseTag, stringifyTag, TAG_COLORS } from '@/lib/tag-helpers';
+import { parseTag, stringifyTag, TAG_COLORS, getColorStyles } from '@/lib/tag-helpers';
 
 const getSolidColorClass = (colorValue: string) => {
+    // Handle custom hex colors
+    if (colorValue.includes('#C4C3E3')) return 'bg-[#C4C3E3] text-[#504E76]';
+    if (colorValue.includes('#FDF8E2')) return 'bg-[#FDF8E2] text-[#D9B99F]';
+    if (colorValue.includes('#A3B565')) return 'bg-[#A3B565] text-white';
+    if (colorValue.includes('#FCDD9D')) return 'bg-[#FCDD9D] text-[#F1642E]';
+    if (colorValue.includes('#F1642E')) return 'bg-[#F1642E] text-white';
+    if (colorValue.includes('#A75F37')) return 'bg-[#A75F37] text-white';
+    if (colorValue.includes('#D9B99F')) return 'bg-[#D9B99F] text-[#A75F37]';
+    if (colorValue.includes('#504E76')) return 'bg-[#504E76] text-white';
+    // Fallback for legacy colors
     if (colorValue.includes('red')) return 'bg-red-500 text-white';
     if (colorValue.includes('orange')) return 'bg-orange-500 text-white';
     if (colorValue.includes('amber')) return 'bg-amber-500 text-white';
@@ -21,6 +32,24 @@ const getSolidColorClass = (colorValue: string) => {
     if (colorValue.includes('purple')) return 'bg-purple-500 text-white';
     if (colorValue.includes('pink')) return 'bg-pink-500 text-white';
     return 'bg-primary text-primary-foreground';
+};
+
+// Helper to ensure color is a valid TAG_COLORS value
+const getValidColorValue = (colorValue: string): string => {
+    // If already a valid TAG_COLORS value, return it
+    if (TAG_COLORS.some(c => c.value === colorValue)) {
+        return colorValue;
+    }
+    // If it contains |#|, extract from stringified format
+    if (colorValue.includes('|#|')) {
+        const parts = colorValue.split('|#|');
+        const colorIndex = parseInt(parts[parts.length - 1], 10);
+        if (colorIndex >= 0 && colorIndex < TAG_COLORS.length) {
+            return TAG_COLORS[colorIndex].value;
+        }
+    }
+    // Default to first color
+    return TAG_COLORS[0].value;
 };
 
 const ShortNoteDashboard: React.FC = () => {
@@ -218,10 +247,21 @@ const ShortNoteDashboard: React.FC = () => {
         if (!editingTagText.trim() || isSavingEditTagId === tagId) return;
         setIsSavingEditTagId(tagId);
         try {
+            // Ensure editingTagColor is a valid color class string, not a tag name format
+            let finalColor = editingTagColor;
+            if (finalColor.includes('|#|')) {
+                // If it contains |#|, it's been stringified already - find the original color
+                const parts = finalColor.split('|#|');
+                const colorIndex = parseInt(parts[parts.length - 1], 10);
+                finalColor = (colorIndex >= 0 && colorIndex < TAG_COLORS.length) 
+                    ? TAG_COLORS[colorIndex].value 
+                    : TAG_COLORS[0].value;
+            }
+
             const res = await apiClient.fetch(`/api/tags/${tagId}`, {
                 method: 'PATCH',
                 body: JSON.stringify({
-                    name: stringifyTag(editingTagText.trim(), editingTagColor)
+                    name: stringifyTag(editingTagText.trim(), finalColor)
                 })
             });
             const json = await res.json();
@@ -287,6 +327,15 @@ const ShortNoteDashboard: React.FC = () => {
         });
     }, [notes, searchQuery, selectedTagId, filterPinned]);
 
+    const createDefaultTagIds = useMemo<string[]>(() => {
+        if (selectedTagId) {
+            return tags.some(tag => tag.id === selectedTagId) ? [selectedTagId] : [];
+        }
+
+        const generalTag = tags.find(tag => parseTag(tag).text.toLowerCase() === 'general');
+        return generalTag ? [generalTag.id] : [];
+    }, [selectedTagId, tags]);
+
     return (
         <div className="flex flex-col lg:flex-row gap-6 min-h-screen p-6 bg-background">
             {/* Sidebar Tags */}
@@ -318,6 +367,7 @@ const ShortNoteDashboard: React.FC = () => {
                     <div className="space-y-1">
                         {tags.map((tag) => {
                             const parsed = parseTag(tag);
+                            const colorStyles = getColorStyles(parsed.colorClasses);
                             return (
                                 <button
                                     key={tag.id}
@@ -331,17 +381,17 @@ const ShortNoteDashboard: React.FC = () => {
                                     onClick={() => { setSelectedTagId(tag.id); setViewMode('grid'); }}
                                     className={cn(
                                         "w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all border group cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/20",
-                                        selectedTagId === tag.id ? parsed.colorClasses : "bg-transparent border-transparent hover:bg-muted/30"
+                                        selectedTagId !== tag.id && "bg-transparent border-transparent hover:bg-muted/30"
                                     )}
+                                    style={selectedTagId === tag.id ? {
+                                        backgroundColor: colorStyles.backgroundColor,
+                                        color: colorStyles.color,
+                                        borderColor: colorStyles.borderColor
+                                    } : undefined}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <span className={cn(
-                                            "font-black text-lg leading-none opacity-80",
-                                            selectedTagId === tag.id ? "text-current opacity-70" : parsed.colorClasses.match(/text-\S+/)?.[0] || "text-muted-foreground"
-                                        )}>#</span>
-                                        <span className={cn(
-                                            selectedTagId !== tag.id ? "text-foreground" : ""
-                                        )}>{parsed.text}</span>
+                                        <TagConeIcon circleColor={colorStyles.color} size={24} className="shrink-0" />
+                                        <span>{parsed.text}</span>
                                     </div>
                                     <div className="opacity-0 group-hover:opacity-30 transition-opacity">
                                         ::
@@ -366,6 +416,7 @@ const ShortNoteDashboard: React.FC = () => {
                     <ShortNoteEditor
                         note={selectedNote}
                         tags={tags}
+                        defaultTagIds={createDefaultTagIds}
                         onSave={handleSave}
                         onCancel={handleCancel}
                     />
@@ -407,7 +458,7 @@ const ShortNoteDashboard: React.FC = () => {
                                     )}
                                     title={filterPinned ? "Show All Notes" : "Show Pinned Notes Only"}
                                 >
-                                    <Pin className={cn("w-5 h-5 transition-transform", filterPinned ? "fill-current" : "")} />
+                                    <Asterisk className="w-6 h-6" strokeWidth={2.8} />
                                 </Button>
                                 <Button
                                     onClick={handleOpenCreate}
@@ -429,7 +480,7 @@ const ShortNoteDashboard: React.FC = () => {
                         </header>
 
                         {/* Quick Note Input */}
-                        <div className="bg-card border border-border/50 rounded-3xl p-4 shadow-xl shadow-primary/5 transition-all focus-within:ring-2 focus-within:ring-primary/20">
+                        <div className="bg-primary/10 border-2 border-[#8DB2B2] rounded-3xl p-4 shadow-xl shadow-primary/5 transition-all focus-within:border-[#6E9C9C]">
                             <div className="flex items-center gap-2 mb-3 px-1">
                                 <Zap className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                                 <h2 className="text-sm font-black text-foreground">Quick Note</h2>
@@ -438,7 +489,7 @@ const ShortNoteDashboard: React.FC = () => {
                                 <textarea
                                     placeholder="What's on your mind?..."
                                     aria-label="Quick note content"
-                                    className="flex-1 bg-transparent border-0 focus:ring-0 resize-none text-sm min-h-[60px] custom-scrollbar"
+                                    className="flex-1 bg-transparent border-0 outline-none focus:outline-none ring-0 focus:ring-0 shadow-none focus:shadow-none resize-none text-sm min-h-[60px] custom-scrollbar"
                                     value={quickNoteContent}
                                     onChange={(e) => setQuickNoteContent(e.target.value)}
                                 />
@@ -515,13 +566,13 @@ const ShortNoteDashboard: React.FC = () => {
                                     type="button"
                                     onClick={() => setNewTagColor(color.value)}
                                     className={cn(
-                                        "w-8 h-8 rounded-full flex items-center justify-center transition-all border-2",
+                                        "w-10 h-10 rounded-full flex items-center justify-center transition-all border-2",
                                         getSolidColorClass(color.value),
                                         newTagColor === color.value ? "ring-2 ring-primary ring-offset-2 scale-110 shadow-md border-transparent" : "border-transparent opacity-50 hover:opacity-100"
                                     )}
                                     title={color.label}
                                 >
-                                    {newTagColor === color.value && <div className="w-2.5 h-2.5 rounded-full bg-current opacity-90" />}
+                                    {newTagColor === color.value && <div className="w-3.5 h-3.5 rounded-full bg-current opacity-90" />}
                                 </button>
                             ))}
                         </div>
@@ -571,13 +622,13 @@ const ShortNoteDashboard: React.FC = () => {
                                                     type="button"
                                                     onClick={() => setEditingTagColor(color.value)}
                                                     className={cn(
-                                                        "w-6 h-6 rounded-full flex items-center justify-center transition-all border-2",
+                                                        "w-8 h-8 rounded-full flex items-center justify-center transition-all border-2",
                                                         getSolidColorClass(color.value),
                                                         editingTagColor === color.value ? "ring-2 ring-primary ring-offset-1 scale-110 shadow-sm border-transparent" : "border-transparent opacity-50 hover:opacity-100"
                                                     )}
                                                     title={color.label}
                                                 >
-                                                    {editingTagColor === color.value && <div className="w-2 h-2 rounded-full bg-current opacity-90" />}
+                                                    {editingTagColor === color.value && <div className="w-2.5 h-2.5 rounded-full bg-current opacity-90" />}
                                                 </button>
                                             ))}
                                         </div>
@@ -599,7 +650,10 @@ const ShortNoteDashboard: React.FC = () => {
                             return (
                                 <div key={tag.id} className="flex items-center justify-between p-3 rounded-xl border bg-card/50 hover:bg-muted/30 transition-colors">
                                     <div className="flex items-center gap-3">
-                                        <div className={cn("w-3 h-3 rounded-full", parsed.colorClasses.split(' ')[0])} />
+                                        <div 
+                                            className="w-3 h-3 rounded-full"
+                                            style={{ backgroundColor: getColorStyles(parsed.colorClasses).backgroundColor }}
+                                        />
                                         <div>
                                             <p className="font-bold text-sm text-foreground">
                                                 {parsed.text}
@@ -619,7 +673,7 @@ const ShortNoteDashboard: React.FC = () => {
                                             onClick={() => {
                                                 setEditingTagId(tag.id);
                                                 setEditingTagText(parsed.text);
-                                                setEditingTagColor(parsed.colorClasses);
+                                                setEditingTagColor(getValidColorValue(parsed.colorClasses));
                                             }}
                                             title={isGeneralTag ? "System tag cannot be edited" : "Edit tag"}
                                         >

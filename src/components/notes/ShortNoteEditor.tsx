@@ -6,22 +6,23 @@ import { Button, Input } from '@/components/ui';
 import { DbShortNoteWithTags, DbTag } from '@/lib/supabase-types';
 import { apiClient } from '@/lib/api-client';
 import DynamicRichTextEditor from './DynamicRichTextEditor';
+import TagConeIcon from './TagConeIcon';
 import { cn } from '@/lib/utils';
-import { parseTag } from '@/lib/tag-helpers';
+import { parseTag, getColorStyles } from '@/lib/tag-helpers';
 
 interface ShortNoteEditorProps {
     note?: DbShortNoteWithTags | null;
     onSave: () => void;
     onCancel: () => void;
     tags: DbTag[];
+    defaultTagIds?: string[];
 }
 
-const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCancel, tags }) => {
+const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCancel, tags, defaultTagIds = [] }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
     const [editorKey, setEditorKey] = useState(0);
     const [submitted, setSubmitted] = useState(false);
 
@@ -34,20 +35,18 @@ const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCance
         } else {
             setTitle('');
             setContent('');
-            setSelectedTagIds([]);
+            setSelectedTagIds(defaultTagIds);
         }
-    }, [note]);
+    }, [note, defaultTagIds]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError('');
         setSubmitted(true);
 
         if (!title.trim()) {
             return;
         }
         if (selectedTagIds.length === 0) {
-            setError('Please select at least one tag for your note.');
             return;
         }
 
@@ -140,11 +139,15 @@ const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCance
                 </div>
 
                 {/* Tags */}
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-muted-foreground ml-1">Tags</label>
+                <div className={cn("space-y-2 rounded-2xl p-3 -mx-1 transition-colors", submitted && selectedTagIds.length === 0 && "border-2 border-rose-500 bg-rose-500/5")}>
+                    <label className="text-sm font-bold text-muted-foreground ml-1 flex items-center gap-1">
+                        Tags
+                        <span className="text-rose-500">*</span>
+                    </label>
                     <div className="flex flex-wrap gap-2">
                         {tags.map(tag => {
                             const parsed = parseTag(tag);
+                            const colorStyles = getColorStyles(parsed.colorClasses);
                             const isSelected = selectedTagIds.includes(tag.id);
                             return (
                                 <button
@@ -158,8 +161,10 @@ const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCance
                                             : "bg-background text-muted-foreground border-border/50 hover:border-border hover:bg-muted/50"
                                     )}
                                 >
-                                    <span className="opacity-50 mr-1">#</span>
-                                    {parsed.text}
+                                    <span className="inline-flex items-center gap-2">
+                                        <TagConeIcon circleColor={colorStyles.color} size={20} className="shrink-0" />
+                                        <span>{parsed.text}</span>
+                                    </span>
                                 </button>
                             );
                         })}
@@ -182,12 +187,6 @@ const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCance
                     </div>
                 </div>
 
-                {/* Error Message */}
-                {error && (
-                    <div className="text-sm font-bold text-rose-500 bg-rose-500/10 px-4 py-3 rounded-xl border border-rose-500/20">
-                        {error}
-                    </div>
-                )}
             </form>
         </div>
     );

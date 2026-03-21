@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
@@ -47,7 +47,7 @@ export default function InvestmentDashboard() {
             <div>
                 <div className="flex items-center gap-2">
                     <h2 className="text-xl font-semibold text-[#FAFAFA]">Investment</h2>
-                    <span className="text-lg">📊</span>
+                    <span className="text-lg">{'\u{1F4CA}'}</span>
                 </div>
                 <p className="text-[#A1A1AA] text-sm">Track your portfolio performance</p>
             </div>
@@ -60,7 +60,7 @@ export default function InvestmentDashboard() {
                     change={!loading && stats?.totalProfitLoss ? `${stats.totalProfitLoss > 0 ? '+' : ''}${formatCurrency(stats.totalProfitLoss)}` : undefined}
                     icon={<BarChart3 className="w-6 h-6" />}
                     color="blue"
-                    emoji="💎"
+                    emoji={'\u{1F48E}'}
                     loading={loading}
                 />
                 <QuickStatCard
@@ -69,7 +69,7 @@ export default function InvestmentDashboard() {
                     change={!loading && stats?.profitLossPercentage ? `${stats.profitLossPercentage > 0 ? '+' : ''}${stats.profitLossPercentage.toFixed(2)}%` : undefined}
                     icon={<TrendingUp className="w-6 h-6" />}
                     color="green"
-                    emoji="📈"
+                    emoji={'\u{1F4C8}'}
                     loading={loading}
                 />
                 <QuickStatCard
@@ -78,7 +78,7 @@ export default function InvestmentDashboard() {
                     subtitle="Items"
                     icon={<PieChart className="w-6 h-6" />}
                     color="purple"
-                    emoji="✨"
+                    emoji={'\u2728'}
                     loading={loading}
                 />
                 <QuickStatCard
@@ -87,7 +87,7 @@ export default function InvestmentDashboard() {
                     subtitle="Items"
                     icon={<Target className="w-6 h-6" />}
                     color="orange"
-                    emoji="🎯"
+                    emoji={'\u{1F3AF}'}
                     loading={loading}
                 />
             </div>
@@ -98,7 +98,7 @@ export default function InvestmentDashboard() {
                     <CardHeader>
                         <div className="flex items-center gap-2">
                             <CardTitle>Get Started</CardTitle>
-                            <span>🚀</span>
+                            <span>{'\u{1F680}'}</span>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -107,7 +107,7 @@ export default function InvestmentDashboard() {
                         </p>
                         <Link
                             href="/dashboard/investments"
-                            className="inline-flex items-center gap-2 text-[#F5C542] hover:text-[#FFC83D] font-medium group"
+                            className="inline-flex items-center gap-2 text-primary hover:text-primary-hover font-medium group"
                         >
                             Go to Investment
                             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -119,7 +119,7 @@ export default function InvestmentDashboard() {
                     <CardHeader>
                         <div className="flex items-center gap-2">
                             <CardTitle>Main Features</CardTitle>
-                            <span>💡</span>
+                            <span>{'\u{1F4A1}'}</span>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -163,8 +163,8 @@ function QuickStatCard({ title, value, change, subtitle, icon, color, emoji, loa
     const colorMap = {
         blue: 'from-blue-600 to-blue-700 shadow-blue-500/20 text-white',
         green: 'from-emerald-600 to-emerald-700 shadow-emerald-500/20 text-white',
-        purple: 'from-purple-600 to-purple-700 shadow-purple-500/20 text-white',
-        orange: 'from-[#F5C542] to-[#FFC83D] shadow-[#F5C542]/20 text-[#15140F]',
+        purple: 'from-teal-600 to-teal-700 shadow-teal-500/20 text-white',
+        orange: 'from-[#FF8F80] to-[#FFB3A7] shadow-[#FF8F80]/20 text-white',
     };
 
     return (
@@ -188,7 +188,7 @@ function QuickStatCard({ title, value, change, subtitle, icon, color, emoji, loa
 
                     {!loading && change && (
                         <p className={`text-sm ${change.startsWith('+') ? 'text-[#059669]' : change.startsWith('-') ? 'text-red-500' : 'text-[#A1A1AA]'}`}>
-                            {change} {change.startsWith('+') && '🎉'}
+                            {change} {change.startsWith('+') && '\u{1F389}'}
                         </p>
                     )}
                     {!loading && subtitle && <p className="text-sm text-[#A1A1AA]">{subtitle}</p>}
@@ -197,3 +197,4 @@ function QuickStatCard({ title, value, change, subtitle, icon, color, emoji, loa
         </Card>
     );
 }
+

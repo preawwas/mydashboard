@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
@@ -113,8 +113,8 @@ function LoginForm() {
     return (
         <div className="w-full max-w-md">
             {/* Logo */}
-            <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
+                <div className="text-center mb-8">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-[#5FAFAF] bg-clip-text text-transparent">
                     Login
                 </h1>
                 <p className="text-muted-foreground mt-2">Management System</p>
@@ -159,7 +159,7 @@ function LoginForm() {
                     <Input
                         label="Password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="••••••••"
+                        placeholder="********"
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                         error={errors.password}
@@ -230,9 +230,10 @@ function LoginForm() {
 export default function LoginPage() {
     return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
-            <Suspense fallback={<Loading fullScreen text="Loading…" />}>
+            <Suspense fallback={<Loading fullScreen text="Loadingâ€¦" />}>
                 <LoginForm />
             </Suspense>
         </div>
     );
 }
+

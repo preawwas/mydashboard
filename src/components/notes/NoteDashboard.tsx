@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
@@ -387,7 +387,7 @@ const NoteDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-black text-foreground tracking-tight">Journey</h1>
-                    {/* Status Summary — name before count, colored pill background */}
+                    {/* Status Summary - name before count, colored pill background */}
                     <div className="flex items-center gap-2 mt-3 flex-wrap">
                         {statusSummary.map(({ status, count }) => {
                             const style = statusStyles[status];
@@ -485,7 +485,7 @@ const NoteDashboard: React.FC = () => {
                                                     )}
                                                     style={{ backgroundColor: isVisible ? `${cat.color_code}20` : '#e2e8f0' }}
                                                 >
-                                                    {cat.icon || '📝'}
+                                                    {cat.icon || '\u{1F4DD}'}
                                                 </div>
                                                 <span className={cn("flex-1 text-sm font-bold", isVisible ? "text-foreground" : "text-muted-foreground line-through")}>
                                                     {cat.name}
@@ -530,7 +530,7 @@ const NoteDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Category Tabs — Draggable */}
+            {/* Category Tabs - Draggable */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
                 {orderedCategories.map(cat => {
                     const count = getCategoryCount(cat.note_category_id);
@@ -553,7 +553,7 @@ const NoteDashboard: React.FC = () => {
                                 isDragOverCat && 'ring-2 ring-primary/30 scale-105'
                             )}
                         >
-                            <span className="text-base">{cat.icon || '📝'}</span>
+                            <span className="text-base">{cat.icon || '\u{1F4DD}'}</span>
                             <span>{cat.name}</span>
                             <span className={cn('ml-1 px-2 py-0.5 rounded-full text-[10px] font-black', isSelected ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground')}>
                                 {count}
@@ -659,7 +659,7 @@ const NoteDashboard: React.FC = () => {
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex items-start justify-between gap-2">
                                                                     <div className="flex items-center gap-1.5 min-w-0">
-                                                                        <span className="text-xs shrink-0">{note.note_categories?.icon || '📝'}</span>
+                                                                        <span className="text-xs shrink-0">{note.note_categories?.icon || '\u{1F4DD}'}</span>
                                                                         <h3 title={note.title} className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{note.title}</h3>
                                                                     </div>
                                                                     <div className="relative">
@@ -686,13 +686,13 @@ const NoteDashboard: React.FC = () => {
                                                                 {deadline && (
                                                                     <div className="mt-2.5 flex items-center justify-between">
                                                                         <span className="text-[10px] text-muted-foreground">
-                                                                            📅 {new Date(note.reminders!.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                                            {'\u{1F4C5}'} {new Date(note.reminders!.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                                                         </span>
                                                                         <span className={cn(
                                                                             "text-[10px] font-bold px-2 py-0.5 rounded-full",
                                                                             deadline.isOverdue ? "bg-rose-500/10 text-rose-700" :
                                                                                 (deadline as any).isDueToday ? "bg-orange-500/15 text-orange-700" :
-                                                                                    "bg-primary/10 text-[#6D28D9]"
+                                                                                    "bg-primary/10 text-[#1F4E50]"
                                                                         )}>
                                                                             {deadline.text}
                                                                         </span>
@@ -718,7 +718,7 @@ const NoteDashboard: React.FC = () => {
             <NoteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} note={selectedNote} onSave={handleSave} isClone={isCloneMode} />
 
             {/* Trash Popup */}
-            <Modal isOpen={showTrash} onClose={() => setShowTrash(false)} title="🗑️ Trash">
+            <Modal isOpen={showTrash} onClose={() => setShowTrash(false)} title="Trash">
                 <div className="space-y-3 max-h-[60vh] overflow-y-auto">
                     {trashedNotes.length === 0 ? (
                         <div className="py-12 text-center text-muted-foreground">
@@ -727,7 +727,7 @@ const NoteDashboard: React.FC = () => {
                         </div>
                     ) : trashedNotes.map(note => (
                         <div key={note.note_id} className="flex items-center gap-3 p-4 bg-card border border-border/50 rounded-xl">
-                            <span className="text-sm">{note.note_categories?.icon || '📝'}</span>
+                            <span className="text-sm">{note.note_categories?.icon || '\u{1F4DD}'}</span>
                             <div className="flex-1 min-w-0">
                                 <h3 className="text-sm font-bold text-foreground line-clamp-1">{note.title}</h3>
                                 <p className="text-[10px] text-muted-foreground">{note.note_categories?.name || 'Uncategorized'}</p>
@@ -749,3 +749,4 @@ const NoteDashboard: React.FC = () => {
 };
 
 export default NoteDashboard;
+

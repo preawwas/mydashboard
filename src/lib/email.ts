@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+﻿import nodemailer from 'nodemailer';
 
 export interface PendingExpenseItem {
     itemName: string;
@@ -55,7 +55,7 @@ function generateEmailTemplate(
                     <span style="color: #FAFAFA; font-weight: 500;">${item.itemName}${periodLabel}</span>
                 </td>
                 <td style="padding: 12px; border-bottom: 1px solid #2E2C24; text-align: right;">
-                    <span style="color: #F5C542; font-weight: 600;">฿${item.amount.toLocaleString()}</span>
+                    <span style="color: #2E7D7F; font-weight: 600;">THB ${item.amount.toLocaleString()}</span>
                 </td>
                 <td style="padding: 12px; border-bottom: 1px solid #2E2C24; text-align: right;">
                     <span style="color: #A1A1AA; font-size: 12px;">${item.date}</span>
@@ -75,20 +75,20 @@ function generateEmailTemplate(
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #1C1B16 0%, #15140F 100%); border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 1px solid #2E2C24;">
-            <h1 style="color: #F5C542; margin: 0 0 8px 0; font-size: 24px;">📋 Expense Reminder</h1>
+            <h1 style="color: #2E7D7F; margin: 0 0 8px 0; font-size: 24px;">Expense Reminder</h1>
             <p style="color: #A1A1AA; margin: 0; font-size: 14px;">
                 Hello ${recipientName || 'there'}, you have <strong style="color: #FAFAFA;">${pendingItems.length} items</strong> pending payment.
             </p>
         </div>
 
         <!-- Summary Card -->
-        <div style="background-color: #15140F; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #F5C542; text-align: center;">
+        <div style="background-color: #FFFFFF; border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #2E7D7F; text-align: center;">
             <p style="color: #A1A1AA; margin: 0 0 8px 0; font-size: 12px; text-transform: uppercase;">Total amount due</p>
-            <p style="color: #F5C542; margin: 0; font-size: 32px; font-weight: 700;">฿${totalAmount.toLocaleString()}</p>
+            <p style="color: #2E7D7F; margin: 0; font-size: 32px; font-weight: 700;">THB ${totalAmount.toLocaleString()}</p>
         </div>
 
         <!-- Items Table -->
-        <div style="background-color: #15140F; border-radius: 12px; overflow: hidden; border: 1px solid #2E2C24;">
+        <div style="background-color: #FFFFFF; border-radius: 12px; overflow: hidden; border: 1px solid #2E2C24;">
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="background-color: #1C1B16;">
@@ -105,7 +105,7 @@ function generateEmailTemplate(
 
         <!-- CTA Button -->
         <div style="text-align: center; margin-top: 24px;">
-            <a href="${dashboardUrl}" style="display: inline-block; background-color: #F5C542; color: #15140F; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
+            <a href="${dashboardUrl}" style="display: inline-block; background-color: #2E7D7F; color: #FFFFFF; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">
                 View Details
             </a>
         </div>
@@ -146,7 +146,7 @@ export async function sendExpenseReminderEmail(
         const mailOptions = {
             from: process.env.EMAIL_FROM || `PWSN Dashboard <${process.env.SMTP_USER}>`,
             to: recipient.email,
-            subject: `[PWSN] Reminder: ${pendingItems.length} items pending payment (฿${totalAmount.toLocaleString()})`,
+            subject: `[PWSN] Reminder: ${pendingItems.length} items pending payment (THB ${totalAmount.toLocaleString()})`,
             html: generateEmailTemplate(
                 recipient.name || '',
                 pendingItems,
@@ -199,14 +199,14 @@ function generateJourneyEmailTemplate(
     <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <!-- Header -->
         <div style="background: linear-gradient(135deg, #161D2E 0%, #0F1420 100%); border-radius: 16px; padding: 24px; margin-bottom: 20px; border: 1px solid #1E293B;">
-            <h1 style="color: #60A5FA; margin: 0 0 8px 0; font-size: 24px;">🚀 Journey Reminder</h1>
+            <h1 style="color: #60A5FA; margin: 0 0 8px 0; font-size: 24px;">Journey Reminder</h1>
             <p style="color: #94A3B8; margin: 0; font-size: 14px;">
                 Hello ${recipientName || 'there'}, you have <strong style="color: #FAFAFA;">${journeyItems.length} Journey tasks</strong> due today.
             </p>
         </div>
 
         <!-- Items Table -->
-        <div style="background-color: #15140F; border-radius: 12px; overflow: hidden; border: 1px solid #2E2C24;">
+        <div style="background-color: #FFFFFF; border-radius: 12px; overflow: hidden; border: 1px solid #2E2C24;">
             <table style="width: 100%; border-collapse: collapse;">
                 <tbody>
                     ${itemsHtml}
@@ -289,14 +289,14 @@ function generateUnifiedEmailTemplate(
         <!-- Expenses Section -->
         <div style="margin-bottom: 32px;">
             <div style="display: flex; align-items: center; margin-bottom: 16px;">
-                <h2 style="color: #F5C542; margin: 0; font-size: 18px; display: flex; align-items: center;">
-                    <span style="font-size: 20px; margin-right: 8px;">💰</span> Pending Expenses
+                <h2 style="color: #2E7D7F; margin: 0; font-size: 18px; display: flex; align-items: center;">
+                    Pending Expenses
                 </h2>
-                <div style="margin-left: auto; background-color: #F5C5421A; color: #F5C542; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;">
-                    ฿${expenseTotal.toLocaleString()}
+                <div style="margin-left: auto; background-color: #2E7D7F1A; color: #2E7D7F; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;">
+                    THB ${expenseTotal.toLocaleString()}
                 </div>
             </div>
-            <div style="background-color: #15140F; border-radius: 12px; overflow: hidden; border: 1px solid #2E2C24;">
+            <div style="background-color: #FFFFFF; border-radius: 12px; overflow: hidden; border: 1px solid #2E2C24;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="background-color: #1C1B16;">
@@ -312,7 +312,7 @@ function generateUnifiedEmailTemplate(
                                     <div style="color: #71717A; font-size: 11px;">Due: ${item.date}</div>
                                 </td>
                                 <td style="padding: 12px; border-bottom: 1px solid #2E2C24; text-align: right;">
-                                    <span style="color: #F5C542; font-weight: 600;">฿${item.amount.toLocaleString()}</span>
+                                    <span style="color: #2E7D7F; font-weight: 600;">THB ${item.amount.toLocaleString()}</span>
                                 </td>
                             </tr>
                         `).join('')}
@@ -320,7 +320,7 @@ function generateUnifiedEmailTemplate(
                 </table>
             </div>
             <div style="text-align: center; margin-top: 16px;">
-                <a href="${dashboardUrl}/expenses" style="color: #F5C542; text-decoration: none; font-size: 13px; font-weight: 500;">Manage Expenses →</a>
+                <a href="${dashboardUrl}/expenses" style="color: #2E7D7F; text-decoration: none; font-size: 13px; font-weight: 500;">Manage Expenses -></a>
             </div>
         </div>
     ` : '';
@@ -330,13 +330,13 @@ function generateUnifiedEmailTemplate(
         <div style="margin-bottom: 16px;">
             <div style="display: flex; align-items: center; margin-bottom: 16px;">
                 <h2 style="color: #60A5FA; margin: 0; font-size: 18px; display: flex; align-items: center;">
-                    <span style="font-size: 20px; margin-right: 8px;">🚀</span> Daily Tasks
+                    Daily Tasks
                 </h2>
                 <div style="margin-left: auto; background-color: #3B82F61A; color: #60A5FA; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700;">
                     ${data.journey.length} Tasks
                 </div>
             </div>
-            <div style="background-color: #15140F; border-radius: 12px; overflow: hidden; border: 1px solid #2E2C24;">
+            <div style="background-color: #FFFFFF; border-radius: 12px; overflow: hidden; border: 1px solid #2E2C24;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tbody>
                         ${data.journey.map(item => {
@@ -361,7 +361,7 @@ function generateUnifiedEmailTemplate(
                 </table>
             </div>
             <div style="text-align: center; margin-top: 16px;">
-                <a href="${dashboardUrl}/notes" style="color: #60A5FA; text-decoration: none; font-size: 13px; font-weight: 500;">View Journey Board →</a>
+                <a href="${dashboardUrl}/notes" style="color: #60A5FA; text-decoration: none; font-size: 13px; font-weight: 500;">View Journey Board -></a>
             </div>
         </div>
     ` : '';
@@ -379,7 +379,7 @@ function generateUnifiedEmailTemplate(
         <div style="background: linear-gradient(135deg, #1C1B16 0%, #0F0F0C 100%); border-radius: 20px; padding: 32px 24px; margin-bottom: 32px; border: 1px solid #2E2C24; text-align: center;">
             <div style="width: 60px; height: 64px; background-color: #FAFAFA; border-radius: 12px; overflow: hidden; margin: 0 auto 20px auto; border: 1px solid #2E2C24;">
                 <div style="background-color: #EF4444; color: #FAFAFA; font-size: 11px; font-weight: 900; padding: 4px 0; text-transform: uppercase; letter-spacing: 1px;">${month}</div>
-                <div style="color: #15140F; font-size: 28px; font-weight: 800; padding-top: 6px;">${day}</div>
+                <div style="color: #FFFFFF; font-size: 28px; font-weight: 800; padding-top: 6px;">${day}</div>
             </div>
             <h1 style="color: #FAFAFA; margin: 0 0 8px 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em;">Daily Summary</h1>
             <p style="color: #A1A1AA; margin: 0; font-size: 15px; line-height: 1.5;">
@@ -393,7 +393,7 @@ function generateUnifiedEmailTemplate(
         <!-- Footer -->
         <div style="text-align: center; margin-top: 48px; padding-top: 24px; border-top: 1px solid #2E2C24;">
             <p style="color: #71717A; font-size: 12px; margin: 0; line-height: 1.6;">
-                Sent with ❤️ from <strong>PWSN Dashboard</strong><br>
+                Sent with love from <strong>PWSN Dashboard</strong><br>
                 This is an automated daily overview.
             </p>
         </div>
@@ -453,3 +453,5 @@ export async function sendUnifiedReminderEmail(
         return { success: false, error: error.message };
     }
 }
+
+

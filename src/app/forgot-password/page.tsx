@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -55,35 +55,35 @@ export default function ForgotPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#0F0F0C] via-[#15140F] to-[#1C1B16] flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-[#0F2E2F] via-[#1F4E50] to-[#2E7D7F] flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#F5C542] to-[#FFC83D] shadow-xl shadow-[#F5C542]/20 mb-4">
-                        <TrendingUp className="w-8 h-8 text-[#15140F]" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#2E7D7F] to-[#5FAFAF] shadow-xl shadow-[#2E7D7F]/30 mb-4">
+                        <TrendingUp className="w-8 h-8 text-white" />
                     </div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-[#F5C542] to-[#FFD54F] bg-clip-text text-transparent">
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-white to-[#5FAFAF] bg-clip-text text-transparent">
                         Forgot Password?
                     </h1>
-                    <p className="text-[#A1A1AA] mt-2">
+                    <p className="text-white/70 mt-2">
                         Enter your email to receive a password reset link
                     </p>
                 </div>
 
-                <div className="bg-[#1C1B16] border border-[#2E2C24] rounded-2xl shadow-xl shadow-black/20 p-8">
+                <div className="bg-white/10 border border-white/20 rounded-2xl shadow-xl shadow-black/20 p-8 backdrop-blur-sm">
                     {isSubmitted ? (
                         <div className="text-center space-y-6">
                             <div className="flex justify-center">
-                                <CheckCircle className="w-16 h-16 text-[#059669]" />
+                                <CheckCircle className="w-16 h-16 text-[#5FAFAF]" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-semibold text-[#FAFAFA]">Reset link sent!</h3>
-                                <p className="text-[#A1A1AA] mt-2">
+                                <h3 className="text-xl font-semibold text-white">Reset link sent!</h3>
+                                <p className="text-white/70 mt-2">
                                     We have sent a password reset link to<br />
-                                    <span className="font-medium text-[#FAFAFA]">{email}</span>
+                                    <span className="font-medium text-white">{email}</span>
                                 </p>
                             </div>
-                            <div className="text-sm text-[#71717A]">
+                            <div className="text-sm text-white/50">
                                 If you don't receive the email, please check your Spam/Junk folder.
                             </div>
                             <div className="pt-4">
@@ -97,8 +97,8 @@ export default function ForgotPasswordPage() {
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {error && (
-                                <div className="p-4 rounded-lg bg-red-900/10 border border-red-900/20">
-                                    <p className="text-sm text-red-500">{error}</p>
+                                <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+                                    <p className="text-sm text-red-400">{error}</p>
                                 </div>
                             )}
 
@@ -124,7 +124,7 @@ export default function ForgotPasswordPage() {
                             <div className="text-center mt-4">
                                 <Link
                                     href="/login"
-                                    className="inline-flex items-center text-sm text-[#71717A] hover:text-[#FAFAFA] transition-colors"
+                                    className="inline-flex items-center text-sm text-white/60 hover:text-white transition-colors"
                                 >
                                     <ArrowLeft className="w-4 h-4 mr-1" />
                                     Back to Login
@@ -137,3 +137,4 @@ export default function ForgotPasswordPage() {
         </div>
     );
 }
+

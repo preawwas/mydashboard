@@ -42,8 +42,8 @@ const Topbar: React.FC = () => {
     return (
         <header
             className={cn(
-                'fixed top-0 right-0 z-30 h-16 border-b border-border',
-                'bg-card border-b border-border',
+                'fixed top-0 right-0 z-30 h-16 border-b border-border shadow-sm',
+                'bg-white/90 backdrop-blur-md',
                 'transition-all duration-300',
                 'left-0 lg:left-20',
                 sidebarOpen && 'lg:left-64'

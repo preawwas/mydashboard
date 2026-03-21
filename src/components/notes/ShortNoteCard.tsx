@@ -1,11 +1,12 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
-import { Pin, Edit2, Copy, Trash2, Check } from 'lucide-react';
+import { Asterisk, Edit2, Copy, Trash2, Check } from 'lucide-react';
 import { DbShortNoteWithTags } from '@/lib/supabase-types';
 import { cn } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
-import { parseTag } from '@/lib/tag-helpers';
+import { parseTag, getColorStyles } from '@/lib/tag-helpers';
+import TagConeIcon from './TagConeIcon';
 import Modal from '@/components/ui/Modal';
 import Button from '@/components/ui/Button';
 import { format } from 'date-fns';
@@ -16,28 +17,15 @@ interface ShortNoteCardProps {
     onEdit: () => void;
 }
 
-const getShadowClass = (colorClasses: string) => {
-    if (colorClasses.includes('red-500')) return 'shadow-red-500/10 hover:shadow-red-500/20';
-    if (colorClasses.includes('orange-500')) return 'shadow-orange-500/10 hover:shadow-orange-500/20';
-    if (colorClasses.includes('amber-500')) return 'shadow-amber-500/10 hover:shadow-amber-500/20';
-    if (colorClasses.includes('emerald-500')) return 'shadow-emerald-500/10 hover:shadow-emerald-500/20';
-    if (colorClasses.includes('blue-500')) return 'shadow-blue-500/10 hover:shadow-blue-500/20';
-    if (colorClasses.includes('indigo-500')) return 'shadow-indigo-500/10 hover:shadow-indigo-500/20';
-    if (colorClasses.includes('purple-500')) return 'shadow-purple-500/10 hover:shadow-purple-500/20';
-    if (colorClasses.includes('pink-500')) return 'shadow-pink-500/10 hover:shadow-pink-500/20';
+const getShadowClass = (_colorClasses: string) => {
+    // For new hex colors, return a generic shadow styling
+    // Individual card styling will use borderColor from getColorStyles
     return 'shadow-primary/10 hover:shadow-primary/20';
 };
 
-const getBorderClass = (colorClasses: string) => {
-    if (colorClasses.includes('red-500')) return 'border-red-500/30 hover:border-red-500/60';
-    if (colorClasses.includes('orange-500')) return 'border-orange-500/30 hover:border-orange-500/60';
-    if (colorClasses.includes('amber-500')) return 'border-amber-500/30 hover:border-amber-500/60';
-    if (colorClasses.includes('emerald-500')) return 'border-emerald-500/30 hover:border-emerald-500/60';
-    if (colorClasses.includes('blue-500')) return 'border-blue-500/30 hover:border-blue-500/60';
-    if (colorClasses.includes('indigo-500')) return 'border-indigo-500/30 hover:border-indigo-500/60';
-    if (colorClasses.includes('purple-500')) return 'border-purple-500/30 hover:border-purple-500/60';
-    if (colorClasses.includes('pink-500')) return 'border-pink-500/30 hover:border-pink-500/60';
-    return 'border-primary/20 hover:border-primary/50';
+const getBorderClass = (_colorClasses: string) => {
+    // For new hex colors, we'll use inline styles instead
+    return 'hover:border-primary/30';
 };
 
 const ShortNoteCard: React.FC<ShortNoteCardProps> = ({ note, onUpdate, onEdit }) => {
@@ -109,22 +97,35 @@ const ShortNoteCard: React.FC<ShortNoteCardProps> = ({ note, onUpdate, onEdit })
     };
 
     const firstTag = note.tags && note.tags.length > 0 ? parseTag(note.tags[0]) : null;
+    const firstTagStyles = firstTag ? getColorStyles(firstTag.colorClasses) : null;
     const shadowClass = firstTag ? getShadowClass(firstTag.colorClasses) : 'shadow-primary/5 hover:shadow-primary/15';
     const borderClass = firstTag ? getBorderClass(firstTag.colorClasses) : 'border-border/50 hover:border-primary/30';
+    const borderStyle = firstTag ? { borderColor: getColorStyles(firstTag.colorClasses).borderColor } : undefined;
 
     return (
         <div
             onClick={onEdit}
             className={cn(
-                "group relative bg-card hover:bg-card/80 border rounded-[32px] p-6 transition-all duration-300 hover:-translate-y-1 flex flex-col h-full cursor-pointer shadow-md hover:shadow-2xl",
+                "group relative border rounded-[32px] p-6 transition-all duration-300 hover:-translate-y-1 flex flex-col h-[320px] cursor-pointer shadow-md hover:shadow-2xl",
+                firstTag ? "" : "bg-card hover:bg-card/80",
                 shadowClass,
                 borderClass
             )}
+            style={firstTag ? { ...borderStyle, backgroundColor: firstTagStyles?.backgroundColor } : borderStyle}
         >
             {/* Card Header */}
             <div className="flex items-start justify-between gap-4 mb-3">
                 <h3
-                    className="font-black text-foreground leading-tight line-clamp-2 transition-colors group-hover:text-[#6D28D9]"
+                    className="flex-1 min-w-0 font-black text-foreground transition-colors group-hover:text-[#1F4E50]"
+                    style={{
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        lineHeight: '1.4rem',
+                        maxHeight: '2.8rem',
+                        wordBreak: 'break-word'
+                    }}
                     title={note.title || 'Untitled Note'}
                 >
                     {note.title || 'Untitled Note'}
@@ -133,13 +134,13 @@ const ShortNoteCard: React.FC<ShortNoteCardProps> = ({ note, onUpdate, onEdit })
                     onClick={handleTogglePin}
                     aria-label={note.is_favorite ? "Unpin note" : "Pin note"}
                     className={cn(
-                        "p-2 rounded-xl transition-all",
+                        "p-1 transition-colors",
                         note.is_favorite
-                            ? "text-[#6D28D9] bg-primary/10"
-                            : "text-muted-foreground/40 hover:text-[#6D28D9] hover:bg-primary/10"
+                            ? "text-slate-700 hover:text-slate-400"
+                            : "text-slate-400 hover:text-slate-600"
                     )}
                 >
-                    <Pin className={cn("w-4 h-4", note.is_favorite && "fill-primary")} />
+                    <Asterisk className="w-10 h-10" strokeWidth={3} />
                 </button>
             </div>
 
@@ -161,15 +162,19 @@ const ShortNoteCard: React.FC<ShortNoteCardProps> = ({ note, onUpdate, onEdit })
                 {note.tags && note.tags.length > 0 ? (
                     note.tags.map(tag => {
                         const parsed = parseTag(tag);
+                        const colorStyles = getColorStyles(parsed.colorClasses);
                         return (
                             <span
                                 key={tag.id}
-                                className={cn(
-                                    "inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border",
-                                    parsed.colorClasses
-                                )}
+                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border"
+                                style={{
+                                    backgroundColor: colorStyles.backgroundColor,
+                                    color: '#000000',
+                                    borderColor: '#000000'
+                                }}
                             >
-                                #{parsed.text}
+                                <TagConeIcon circleColor={colorStyles.color} size={18} className="shrink-0" />
+                                {parsed.text}
                             </span>
                         );
                     })
@@ -181,13 +186,13 @@ const ShortNoteCard: React.FC<ShortNoteCardProps> = ({ note, onUpdate, onEdit })
             {/* Card Footer Actions */}
             <div className="flex items-center justify-between gap-1 mt-auto pt-4 border-t border-border/30">
                 <div className="text-[11px] font-medium text-muted-foreground/60 w-full pl-1">
-                    {format(new Date(note.updated_at || note.created_at), "MMM d, yyyy • h:mm a")}
+                    {format(new Date(note.updated_at || note.created_at), "MMM d, yyyy | h:mm a")}
                 </div>
                 <div className="flex items-center justify-end shrink-0 gap-1">
                     <button
                         onClick={handleCopy}
                         aria-label="Copy note content"
-                        className="p-2.5 rounded-xl text-muted-foreground hover:text-[#6D28D9] hover:bg-primary/10 transition-all z-10"
+                        className="p-2.5 rounded-xl text-muted-foreground hover:text-[#1F4E50] hover:bg-primary/10 transition-all z-10"
                         title="Copy Content"
                     >
                         {isCopied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
@@ -235,3 +240,4 @@ const ShortNoteCard: React.FC<ShortNoteCardProps> = ({ note, onUpdate, onEdit })
 };
 
 export default ShortNoteCard;
+

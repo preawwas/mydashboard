@@ -1,12 +1,18 @@
-import type { Metadata } from "next";
-import { Montserrat } from "next/font/google";
+﻿import type { Metadata } from "next";
+import { Libre_Bodoni, Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import ValentineTheme from "@/components/ValentineTheme";
 import { LoadingProvider } from "@/components/providers/LoadingProvider";
 
-const montserrat = Montserrat({
+const libreBodoni = Libre_Bodoni({
   subsets: ["latin"],
-  variable: "--font-montserrat",
+  variable: "--font-libre-bodoni",
+  display: "swap",
+});
+
+const notoSansThai = Noto_Sans_Thai({
+  subsets: ["thai", "latin"],
+  variable: "--font-noto-sans-thai",
   display: "swap",
 });
 
@@ -17,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: '#7C3AED',
+  themeColor: '#2E7D7F',
   width: 'device-width',
   initialScale: 1,
 };
@@ -34,7 +40,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body
-        className={`${montserrat.className} antialiased selection:bg-primary/20`}
+        className={`${libreBodoni.variable} ${notoSansThai.variable} antialiased selection:bg-primary/20`}
       >
         <ValentineTheme />
         <LoadingProvider>
@@ -44,3 +50,4 @@ export default function RootLayout({
     </html>
   );
 }
+

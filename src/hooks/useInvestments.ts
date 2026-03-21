@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import { useAuthStore, useInvestmentStore, useUIStore, useToastStore } from '@/lib/store';
 import { apiClient } from '@/lib/api-client';
 import { Investment, InvestmentFormData, InvestmentFilters } from '@/types';
 
-// ── Types ──
+// â”€â”€ Types â”€â”€
 interface SummaryData {
     totalValue: number;
     totalProfitLoss: number;
@@ -59,7 +59,7 @@ interface UseInvestmentsReturn {
 
 const CATEGORY_COLORS: Record<string, string> = {
     GOLD: '#f59e0b',
-    CRYPTO: '#8b5cf6',
+    CRYPTO: '#5FAFAF',
     STOCK: '#3b82f6',
 };
 
@@ -261,3 +261,4 @@ export function useInvestments(): UseInvestmentsReturn {
         setFilters: store.setFilters,
     };
 }
+

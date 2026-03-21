@@ -1,4 +1,4 @@
-/* LoadingOverlay.module.css */
+﻿/* LoadingOverlay.module.css */
 
 .fluffy-overlay {
     position: fixed;
@@ -19,21 +19,21 @@
     gap: 8px;
 }
 
-/* Base text: light purple-white */
+/* Base text: light teal-white */
 .text {
     font-family: 'Comic Sans MS', 'Fredoka One', 'Nunito', 'Arial Rounded MT Bold', sans-serif;
     font-size: 26px;
     font-weight: 900;
     letter-spacing: 3px;
-    color: #f0e8ff;
-    -webkit-text-stroke: 0.5px rgba(139, 92, 246, 0.3);
+    color: #e0f4f4;
+    -webkit-text-stroke: 0.5px rgba(46, 125, 127, 0.3);
     paint-order: stroke fill;
     text-shadow:
         0 1px 0 rgba(255, 255, 255, 0.4),
         0 -1px 1px rgba(0, 0, 0, 0.1),
         0 2px 3px rgba(0, 0, 0, 0.25),
-        0 4px 8px rgba(139, 92, 246, 0.35),
-        0 0 20px rgba(139, 92, 246, 0.15);
+        0 4px 8px rgba(46, 125, 127, 0.35),
+        0 0 20px rgba(46, 125, 127, 0.15);
     white-space: nowrap;
 }
 
@@ -60,18 +60,18 @@
     filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9));
 }
 
-/* Loading text: shimmer with main website purple */
+/* Loading text: shimmer with main website teal/coral */
 .text-loading {
     background: linear-gradient(90deg,
-            #f0e8ff 0%,
-            #f0e8ff 38%,
-            #8B5CF6 48%,
-            #7C3AED 55%,
-            #5B21B6 62%,
-            #7C3AED 69%,
-            #8B5CF6 76%,
-            #f0e8ff 86%,
-            #f0e8ff 100%);
+            #e0f4f4 0%,
+            #e0f4f4 38%,
+            #5FAFAF 48%,
+            #2E7D7F 55%,
+            #FF8F80 62%,
+            #2E7D7F 69%,
+            #5FAFAF 76%,
+            #e0f4f4 86%,
+            #e0f4f4 100%);
     background-size: 200% 100%;
 
     color: transparent;
@@ -86,7 +86,7 @@
     -webkit-text-stroke: 0;
     paint-order: stroke fill;
     text-shadow: none;
-    filter: drop-shadow(0 0 12px rgba(91, 33, 182, 0.7));
+    filter: drop-shadow(0 0 12px rgba(15, 46, 47, 0.7));
 }
 
 /* Dash running along border from left to right */

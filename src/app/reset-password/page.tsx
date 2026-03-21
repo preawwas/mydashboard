@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -62,13 +62,13 @@ export default function ResetPasswordPage() {
 
     if (isSuccess) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-[#EAF4F4] flex items-center justify-center p-4">
                 <div className="w-full max-w-md bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-8 text-center">
                     <div className="flex justify-center mb-6">
-                        <CheckCircle className="w-16 h-16 text-green-500" />
+                        <CheckCircle className="w-16 h-16 text-teal-400" />
                     </div>
-                    <h3 className="text-xl font-semibold text-[#FAFAFA] mb-2">Password changed!</h3>
-                    <p className="text-[#A1A1AA] mb-6">
+                    <h3 className="text-xl font-semibold text-foreground mb-2">Password changed!</h3>
+                    <p className="text-muted-foreground mb-6">
                         Your password has been successfully changed.<br />
                         Redirecting you to the login page...
                     </p>
@@ -84,14 +84,14 @@ export default function ResetPasswordPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-[#EAF4F4] flex items-center justify-center p-4">
             <div className="w-full max-w-md">
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-xl shadow-blue-500/30 mb-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#2E7D7F] to-[#1F4E50] shadow-xl shadow-[#2E7D7F]/30 mb-4">
                         <TrendingUp className="w-8 h-8 text-white" />
                     </div>
-                    <h1 className="text-2xl font-bold text-[#FAFAFA]">
+                    <h1 className="text-2xl font-bold text-foreground">
                         Reset Password
                     </h1>
                     <p className="text-gray-500 mt-2">
@@ -110,7 +110,7 @@ export default function ResetPasswordPage() {
                         <Input
                             label="New Password"
                             type={showPassword ? 'text' : 'password'}
-                            placeholder="••••••••"
+                            placeholder="********"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             leftIcon={<Lock className="w-4 h-4" />}
@@ -132,7 +132,7 @@ export default function ResetPasswordPage() {
                         <Input
                             label="Confirm New Password"
                             type={showConfirmPassword ? 'text' : 'password'}
-                            placeholder="••••••••"
+                            placeholder="********"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             leftIcon={<Lock className="w-4 h-4" />}
@@ -165,3 +165,4 @@ export default function ResetPasswordPage() {
         </div>
     );
 }
+

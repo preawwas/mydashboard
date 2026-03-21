@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -668,7 +668,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                             className={cn(
                                                 "flex-1 flex items-center justify-center gap-1 py-2 rounded-md transition-all text-xs font-medium",
                                                 formData.status === s
-                                                    ? (s === 'PAID' ? "bg-green-500/20 text-green-400 border border-green-500/30" : "bg-orange-500/20 text-orange-400 border border-orange-500/30")
+                                                    ? (s === 'PAID' ? "bg-teal-400/20 text-teal-300 border border-teal-400/30" : "bg-orange-500/20 text-orange-400 border border-orange-500/30")
                                                     : "text-muted-foreground"
                                             )}
                                         >
@@ -735,7 +735,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                                                     }}
                                                     className={cn(
                                                         "bg-transparent border-none text-[10px] font-bold uppercase focus:ring-0 cursor-pointer",
-                                                        inst.status === 'PAID' ? "text-green-400" : "text-yellow-400"
+                                                        inst.status === 'PAID' ? "text-teal-300" : "text-yellow-400"
                                                     )}
                                                 >
                                                     <option value="PENDING">Pending</option>
