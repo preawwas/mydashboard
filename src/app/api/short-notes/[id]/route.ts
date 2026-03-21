@@ -26,6 +26,7 @@ export const PATCH = withAuth(async (request: NextRequest, user: AuthUser, conte
             .update(updateData)
             .eq('note_id', id)
             .eq('user_id', user.id)
+            .is('note_category_id', null)
             .select()
             .single();
 
@@ -57,6 +58,8 @@ export const PATCH = withAuth(async (request: NextRequest, user: AuthUser, conte
             .from('notes')
             .select('*, note_tags(tags(*))')
             .eq('note_id', id)
+            .eq('user_id', user.id)
+            .is('note_category_id', null)
             .single();
 
         if (fetchError) {
@@ -85,14 +88,16 @@ export const DELETE = withAuth(async (request: NextRequest, user: AuthUser, cont
                 .from('notes')
                 .delete()
                 .eq('note_id', id)
-                .eq('user_id', user.id);
+                .eq('user_id', user.id)
+                .is('note_category_id', null);
             error = deleteError;
         } else {
             const { error: updateError } = await supabase
                 .from('notes')
                 .update({ is_deleted: true })
                 .eq('note_id', id)
-                .eq('user_id', user.id);
+                .eq('user_id', user.id)
+                .is('note_category_id', null);
             error = updateError;
         }
 

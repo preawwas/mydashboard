@@ -3,18 +3,41 @@ import { createSupabaseAdminClient } from '@/lib/supabase-server';
 import { withAuth } from '@/lib/api-middleware';
 import { AuthUser } from '@/types';
 
+const PAGE_SIZE = 9;
+
 export const GET = withAuth(async (request: NextRequest, user: AuthUser) => {
     try {
         const supabase = createSupabaseAdminClient();
         const { searchParams } = new URL(request.url);
         const searchQuery = searchParams.get('q');
         const tagId = searchParams.get('tag');
+        const filter = searchParams.get('filter'); // 'deleted' | 'pinned' | null
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+
+        const isDeleted = filter === 'deleted';
+        const isPinned = filter === 'pinned';
+
+        // Server-side tag filtering: resolve matching note_ids first
+        let tagFilteredNoteIds: string[] | null = null;
+        if (tagId) {
+            const { data: tagNotes } = await supabase
+                .from('note_tags')
+                .select('note_id')
+                .eq('tag_id', tagId);
+            tagFilteredNoteIds = (tagNotes || []).map((nt: any) => nt.note_id);
+
+            if (tagFilteredNoteIds.length === 0) {
+                return NextResponse.json({ success: true, data: [], total: 0, page, totalPages: 0 });
+            }
+        }
 
         let query = supabase
             .from('notes')
-            .select('*, note_tags(tags(*))')
+            .select('*, note_tags(tags(*))', { count: 'exact' })
             .eq('user_id', user.id)
-            .eq('is_deleted', searchParams.get('filter') === 'deleted')
+            .is('note_category_id', null)
+            .eq('is_archived', false)
+            .eq('is_deleted', isDeleted)
             .order('is_favorite', { ascending: false })
             .order('updated_at', { ascending: false });
 
@@ -22,22 +45,32 @@ export const GET = withAuth(async (request: NextRequest, user: AuthUser) => {
             query = query.or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`);
         }
 
-        const { data, error } = await query;
+        if (isPinned) {
+            query = query.eq('is_favorite', true);
+        }
+
+        if (tagFilteredNoteIds !== null) {
+            query = query.in('note_id', tagFilteredNoteIds);
+        }
+
+        // Apply pagination only for non-deleted views
+        if (!isDeleted) {
+            const from = (page - 1) * PAGE_SIZE;
+            const to = from + PAGE_SIZE - 1;
+            query = query.range(from, to);
+        }
+
+        const { data, error, count } = await query;
 
         if (error) {
             console.error('Fetch short notes error:', error);
             return NextResponse.json({ success: false, error: error.message }, { status: 500 });
         }
 
-        // Apply tag filtering in memory if tagId is provided
-        let filteredData = data;
-        if (tagId) {
-            filteredData = data.filter((note: any) =>
-                note.note_tags?.some((nt: any) => nt.tags?.id === tagId)
-            );
-        }
+        const total = count || 0;
+        const totalPages = !isDeleted ? Math.ceil(total / PAGE_SIZE) : 1;
 
-        return NextResponse.json({ success: true, data: filteredData });
+        return NextResponse.json({ success: true, data, total, page, totalPages });
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Internal Server Error';
         return NextResponse.json({ success: false, error: message }, { status: 500 });
@@ -55,6 +88,7 @@ export const POST = withAuth(async (request: NextRequest, user: AuthUser) => {
             .from('notes')
             .insert({
                 user_id: user.id,
+                note_category_id: null,
                 title: title || 'Untitled Note',
                 content,
                 status: 'New',

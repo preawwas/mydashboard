@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLoading } from '@/components/providers/LoadingProvider';
-import { Search, Plus, Filter, Tag as TagIcon, StickyNote, Zap, Settings, Trash2, Send, X, Asterisk, Edit2 } from 'lucide-react';
+import { Search, Plus, Filter, Tag as TagIcon, StickyNote, Zap, Settings, Trash2, Send, X, Asterisk, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button, Input, Modal } from '@/components/ui';
 import { apiClient } from '@/lib/api-client';
 import { DbShortNoteWithTags, DbTag } from '@/lib/supabase-types';
@@ -58,8 +58,12 @@ const ShortNoteDashboard: React.FC = () => {
     const [tags, setTags] = useState<DbTag[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [selectedTagId, setSelectedTagId] = useState<string | null>(null);
     const [filterPinned, setFilterPinned] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
     const [quickNoteContent, setQuickNoteContent] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'edit'>('grid');
     const [selectedNote, setSelectedNote] = useState<DbShortNoteWithTags | null>(null);
@@ -82,30 +86,42 @@ const ShortNoteDashboard: React.FC = () => {
     const [editingTagColor, setEditingTagColor] = useState('');
     const [isSavingEditTagId, setIsSavingEditTagId] = useState<string | null>(null);
 
-    const fetchData = useCallback(async () => {
+    const fetchNotes = useCallback(async () => {
         setLoading(true);
         try {
-            const [notesRes, tagsRes] = await Promise.all([
-                apiClient.fetch('/api/short-notes'),
-                apiClient.fetch('/api/tags')
-            ]);
+            const queryParams = new URLSearchParams();
+            if (debouncedSearch) queryParams.set('q', debouncedSearch);
+            if (selectedTagId) queryParams.set('tag', selectedTagId);
+            if (filterPinned) queryParams.set('filter', 'pinned');
+            queryParams.set('page', String(currentPage));
+
+            const notesRes = await apiClient.fetch(`/api/short-notes?${queryParams.toString()}`);
 
             const notesJson = await notesRes.json();
-            const tagsJson = await tagsRes.json();
 
             if (notesJson.success) {
-                // Map the complex tag structure to a simple array
                 const mappedNotes = notesJson.data.map((n: any) => ({
                     ...n,
                     tags: n.note_tags?.map((nt: any) => nt.tags).filter(Boolean) || []
                 }));
                 setNotes(mappedNotes);
+                setTotalPages(notesJson.totalPages || 1);
+                setTotalCount(notesJson.total || 0);
             }
-            if (tagsJson.success) setTags(tagsJson.data || []);
         } catch (error) {
             console.error('Error fetching short notes data:', error);
         } finally {
             setLoading(false);
+        }
+    }, [debouncedSearch, selectedTagId, filterPinned, currentPage]);
+
+    const fetchTags = useCallback(async () => {
+        try {
+            const tagsRes = await apiClient.fetch('/api/tags');
+            const tagsJson = await tagsRes.json();
+            if (tagsJson.success) setTags(tagsJson.data || []);
+        } catch (error) {
+            console.error('Error fetching tags:', error);
         }
     }, []);
 
@@ -127,8 +143,21 @@ const ShortNoteDashboard: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+        fetchNotes();
+    }, [fetchNotes]);
+
+    useEffect(() => {
+        fetchTags();
+    }, [fetchTags]);
+
+    // Debounce search query — resets page to 1 on change
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchQuery);
+            setCurrentPage(1);
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     // Sync loading state with global LoadingOverlay
     useEffect(() => {
@@ -156,7 +185,7 @@ const ShortNoteDashboard: React.FC = () => {
             const json = await res.json();
             if (json.success) {
                 setQuickNoteContent('');
-                fetchData();
+                fetchNotes();
             }
         } catch (error) {
             console.error('Error creating quick note:', error);
@@ -191,7 +220,7 @@ const ShortNoteDashboard: React.FC = () => {
         } catch (err) {
             console.error('Failed to save tag order', err);
             // Revert on failure
-            fetchData();
+            fetchTags();
         }
     };
 
@@ -211,7 +240,7 @@ const ShortNoteDashboard: React.FC = () => {
                 setIsTagModalOpen(false);
                 setNewTagText('');
                 setNewTagColor(TAG_COLORS[0].value);
-                fetchData();
+                fetchTags();
             }
         } catch (error) {
             console.error('Error creating tag:', error);
@@ -231,7 +260,7 @@ const ShortNoteDashboard: React.FC = () => {
                 if (selectedTagId === tagId) {
                     setSelectedTagId(null);
                 }
-                fetchData();
+                fetchTags();
             } else {
                 alert(json.error || 'Failed to delete tag');
             }
@@ -267,7 +296,7 @@ const ShortNoteDashboard: React.FC = () => {
             const json = await res.json();
             if (json.success) {
                 setEditingTagId(null);
-                fetchData();
+                fetchTags();
             } else {
                 alert(json.error || 'Failed to update tag');
             }
@@ -286,7 +315,7 @@ const ShortNoteDashboard: React.FC = () => {
                 method: 'PATCH',
                 body: JSON.stringify({ is_deleted: false })
             });
-            fetchData();
+            fetchNotes();
         } catch (error) {
             console.error('Error restoring note:', error);
             fetchTrashedNotes();
@@ -307,25 +336,8 @@ const ShortNoteDashboard: React.FC = () => {
 
     const handleOpenCreate = () => { setSelectedNote(null); setViewMode('edit'); };
     const handleOpenEdit = (note: DbShortNoteWithTags) => { setSelectedNote(note); setViewMode('edit'); };
-    const handleSave = () => { setViewMode('grid'); fetchData(); };
+    const handleSave = () => { setViewMode('grid'); fetchNotes(); };
     const handleCancel = () => { setViewMode('grid'); };
-
-    const filteredNotes = useMemo<DbShortNoteWithTags[]>(() => {
-        return notes.filter(note => {
-            const matchesSearch = note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                note.content?.toLowerCase().includes(searchQuery.toLowerCase());
-
-            // If NO tag is selected (All Notes), only show notes that HAVE tags
-            // If A tag is selected, check if note has that specific tag
-            const matchesTag = selectedTagId
-                ? note.tags?.some(t => t.id === selectedTagId)
-                : (note.tags && note.tags.length > 0);
-
-            const matchesPin = filterPinned ? note.is_favorite : true;
-
-            return matchesSearch && matchesTag && matchesPin;
-        });
-    }, [notes, searchQuery, selectedTagId, filterPinned]);
 
     const createDefaultTagIds = useMemo<string[]>(() => {
         if (selectedTagId) {
@@ -335,6 +347,31 @@ const ShortNoteDashboard: React.FC = () => {
         const generalTag = tags.find(tag => parseTag(tag).text.toLowerCase() === 'general');
         return generalTag ? [generalTag.id] : [];
     }, [selectedTagId, tags]);
+
+    const paginationItems = useMemo<(number | '...')[]>(() => {
+        if (totalPages <= 5) {
+            return Array.from({ length: totalPages }, (_, i) => i + 1);
+        }
+
+        const items: (number | '...')[] = [1];
+        const start = Math.max(2, currentPage - 1);
+        const end = Math.min(totalPages - 1, currentPage + 1);
+
+        if (start > 2) {
+            items.push('...');
+        }
+
+        for (let page = start; page <= end; page += 1) {
+            items.push(page);
+        }
+
+        if (end < totalPages - 1) {
+            items.push('...');
+        }
+
+        items.push(totalPages);
+        return items;
+    }, [currentPage, totalPages]);
 
     return (
         <div className="flex flex-col lg:flex-row gap-6 min-h-screen p-6 bg-background">
@@ -355,7 +392,7 @@ const ShortNoteDashboard: React.FC = () => {
                 </div>
                 <nav className="space-y-1">
                     <button
-                        onClick={() => { setSelectedTagId(null); setViewMode('grid'); }}
+                        onClick={() => { setSelectedTagId(null); setCurrentPage(1); setViewMode('grid'); }}
                         className={cn(
                             "w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold transition-all",
                             !selectedTagId ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
@@ -378,7 +415,7 @@ const ShortNoteDashboard: React.FC = () => {
                                     }}
                                     onDragOver={(e) => e.preventDefault()}
                                     onDrop={(e) => handleDrop(e, tag.id)}
-                                    onClick={() => { setSelectedTagId(tag.id); setViewMode('grid'); }}
+                                    onClick={() => { setSelectedTagId(tag.id); setCurrentPage(1); setViewMode('grid'); }}
                                     className={cn(
                                         "w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all border group cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/20",
                                         selectedTagId !== tag.id && "bg-transparent border-transparent hover:bg-muted/30"
@@ -451,7 +488,7 @@ const ShortNoteDashboard: React.FC = () => {
                                 </div>
                                 <Button
                                     variant="outline"
-                                    onClick={() => setFilterPinned(!filterPinned)}
+                                    onClick={() => { setFilterPinned(!filterPinned); setCurrentPage(1); }}
                                     className={cn(
                                         "h-11 w-11 p-0 rounded-2xl border-border/50 transition-colors shrink-0 flex items-center justify-center shadow-sm",
                                         filterPinned ? "bg-primary text-primary-foreground border-primary/50" : "bg-card/50 text-muted-foreground hover:text-foreground"
@@ -520,25 +557,77 @@ const ShortNoteDashboard: React.FC = () => {
                         {/* Notes Grid */}
                         {loading ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                                {[1, 2, 3, 4, 5, 6].map(i => (
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(i => (
                                     <div key={i} className="h-48 bg-card/50 border border-border/20 rounded-3xl animate-pulse" />
                                 ))}
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-                                {filteredNotes.map((note: DbShortNoteWithTags) => (
-                                    <ShortNoteCard key={note.note_id} note={note} onUpdate={fetchData} onEdit={() => handleOpenEdit(note)} />
-                                ))}
-                                {filteredNotes.length === 0 && (
-                                    <div className="col-span-full py-20 text-center">
-                                        <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <StickyNote className="w-10 h-10 text-muted-foreground/30" />
+                            <>
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                                    {notes.map((note: DbShortNoteWithTags) => (
+                                        <ShortNoteCard key={note.note_id} note={note} onUpdate={fetchNotes} onEdit={() => handleOpenEdit(note)} />
+                                    ))}
+                                    {notes.length === 0 && (
+                                        <div className="col-span-full py-20 text-center">
+                                            <div className="w-20 h-20 bg-muted/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <StickyNote className="w-10 h-10 text-muted-foreground/30" />
+                                            </div>
+                                            <p className="text-muted-foreground font-bold">No notes found</p>
+                                            <p className="text-sm text-muted-foreground/50">Click a tag or create a new note</p>
                                         </div>
-                                        <p className="text-muted-foreground font-bold">No notes found</p>
-                                        <p className="text-sm text-muted-foreground/50">Click a tag or create a new note</p>
+                                    )}
+                                </div>
+                                {totalPages > 1 && (
+                                    <div className="flex justify-center items-center gap-4 pt-2">
+                                        <button
+                                            onClick={() => setCurrentPage(p => p - 1)}
+                                            disabled={currentPage <= 1}
+                                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border/50 bg-card/50 text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                            Prev
+                                        </button>
+                                        <div className="flex items-center gap-1">
+                                            {paginationItems.map((item, index) => {
+                                                if (item === '...') {
+                                                    return (
+                                                        <span
+                                                            key={`ellipsis-${index}`}
+                                                            className="w-9 h-9 flex items-center justify-center text-muted-foreground text-sm font-bold"
+                                                        >
+                                                            ...
+                                                        </span>
+                                                    );
+                                                }
+
+                                                const isActive = item === currentPage;
+                                                return (
+                                                    <button
+                                                        key={item}
+                                                        onClick={() => setCurrentPage(item)}
+                                                        className={cn(
+                                                            'w-9 h-9 rounded-lg text-sm font-bold transition-all border',
+                                                            isActive
+                                                                ? 'bg-primary text-primary-foreground border-primary'
+                                                                : 'bg-card/50 text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted/50'
+                                                        )}
+                                                    >
+                                                        {item}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <button
+                                            onClick={() => setCurrentPage(p => p + 1)}
+                                            disabled={currentPage >= totalPages}
+                                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border/50 bg-card/50 text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                        >
+                                            Next
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
                                     </div>
                                 )}
-                            </div>
+                            </>
                         )}
                     </>
                 )}
