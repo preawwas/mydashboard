@@ -8,6 +8,7 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { useAuthStore, useUIStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Loading, Toast } from '@/components/ui';
+import QuickNoteFloatingButton from '@/components/notes/QuickNoteFloatingButton';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -70,6 +71,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </div>
             </main>
             <Toast />
+            <QuickNoteFloatingButton />
         </div>
     );
 };

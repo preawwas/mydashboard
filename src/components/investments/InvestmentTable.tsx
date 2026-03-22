@@ -1,10 +1,10 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { Table, Badge, Button } from '@/components/ui';
 import { Investment, InvestmentFilters } from '@/types';
 import { formatCurrency, formatDate, getCategoryColor, getStrategyColor, getStatusColor, calculateProfitLoss } from '@/lib/utils';
-import { Eye, Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 
 interface InvestmentTableProps {
     investments: Investment[];
@@ -30,115 +30,129 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
     onEdit,
     onDelete,
 }) => {
+    // Icon backgrounds per category
+    const getCategoryIcon = (category: string) => {
+        switch (category) {
+            case 'STOCK': return { bg: 'bg-[#e0f2f1]', text: 'text-[#0D3B38]', icon: '₿' };
+            case 'GOLD': return { bg: 'bg-[#fef3c7]', text: 'text-[#92400e]', icon: '$' };
+            case 'CRYPTO': return { bg: 'bg-[#dbeafe]', text: 'text-[#1e40af]', icon: '◆' };
+            case 'FUND': return { bg: 'bg-[#ede9fe]', text: 'text-[#6d28d9]', icon: '◉' };
+            default: return { bg: 'bg-[#f3f4f6]', text: 'text-[#374151]', icon: '●' };
+        }
+    };
+
+    // Position type label
+    const getPositionLabel = (inv: Investment) => {
+        const totalCost = inv.buy_quantity * inv.buy_price_per_unit;
+        if (totalCost >= 500000) return 'Premium Vault';
+        if (totalCost >= 100000) return 'High Value';
+        if (totalCost >= 10000) return 'Commodity';
+        if (totalCost >= 1000) return 'Digital Asset';
+        return '';
+    };
+
+    // Strategy badge label & style
+    const getAutoLabel = (inv: Investment) => {
+        const totalCost = inv.buy_quantity * inv.buy_price_per_unit;
+        if (inv.strategy_type === 'DCA') {
+            if (totalCost >= 100000) return { label: 'HIGH VALUE', style: 'bg-[#fef3c7] text-[#92400e] border border-[#d97706]/30' };
+            return { label: 'AUTOMATED', style: 'bg-[#e0f2f1] text-[#0D3B38] border border-[#0D3B38]/30' };
+        }
+        return { label: 'STANDARD', style: 'bg-[#f5f5f4] text-[#78716c] border border-[#a8a29e]/30' };
+    };
+
     const columns = [
         {
             key: 'asset',
             header: 'Asset',
-            render: (item: Investment) => (
-                <div className="flex items-center gap-3">
-                    <div>
-                        <p className="font-medium text-foreground">{item.asset_code}</p>
-                        <p className="text-sm text-muted-foreground">{item.asset_name}</p>
+            render: (item: Investment) => {
+                const catIcon = getCategoryIcon(item.asset_category);
+                return (
+                    <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-full ${catIcon.bg} ${catIcon.text} flex items-center justify-center text-sm font-bold shrink-0`}>
+                            {catIcon.icon}
+                        </div>
+                        <div>
+                            <p className="font-bold text-[#0D3B38] text-sm leading-tight">
+                                {item.asset_code}
+                                <span className="font-bold text-[#0D3B38] ml-0.5"> ({item.asset_category})</span>
+                            </p>
+                            <p className="text-[11px] text-gray-400 mt-0.5 italic">{getPositionLabel(item)}</p>
+                        </div>
                     </div>
-                </div>
-            ),
+                );
+            },
         },
         {
             key: 'market',
             header: 'Market',
             className: 'hidden lg:table-cell',
             render: (item: Investment) => (
-                <span className="text-foreground">{item.market}</span>
+                <span className="text-[13px] font-semibold text-[#0D3B38]">{item.market || '—'}</span>
             ),
         },
         {
-            key: 'category',
+            key: 'type',
             header: 'Type',
             className: 'hidden md:table-cell',
             render: (item: Investment) => (
-                <Badge className={getCategoryColor(item.asset_category)}>
-                    {item.asset_category === 'GOLD' ? 'Gold' :
-                        item.asset_category === 'CRYPTO' ? 'Crypto' :
-                            item.asset_category === 'STOCK' ? 'Stock' :
-                                item.asset_category === 'FUND' ? 'Fund' :
-                                    item.asset_category === 'USD' ? 'USD' :
-                                        'Others'}
-                </Badge>
+                <span className="text-[13px] font-medium text-[#374151]">{item.strategy_type}</span>
             ),
         },
         {
             key: 'strategy',
             header: 'Strategy',
             className: 'hidden xl:table-cell',
-            render: (item: Investment) => (
-                <Badge className={getStrategyColor(item.strategy_type)}>
-                    {item.strategy_type}
-                </Badge>
-            ),
+            render: (item: Investment) => {
+                const auto = getAutoLabel(item);
+                return (
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${auto.style}`}>
+                        {item.strategy_type}
+                    </span>
+                );
+            },
         },
         {
-            key: 'buy_info',
-            header: 'Buy',
+            key: 'units',
+            header: 'Units',
             className: 'hidden sm:table-cell',
             render: (item: Investment) => (
                 <div>
-                    <p className="font-medium text-foreground">
-                        {item.buy_quantity} × {formatCurrency(item.buy_price_per_unit, item.buy_currency)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{formatDate(item.buy_datetime)}</p>
+                    <p className="font-bold text-[#0D3B38] text-[15px]">{item.buy_quantity}</p>
+                    <p className="text-[11px] text-gray-400">units</p>
                 </div>
             ),
         },
         {
-            key: 'total_cost',
-            header: 'Total Cost',
-            className: 'hidden md:table-cell',
-            render: (item: Investment) => {
-                const totalCost = item.buy_quantity * item.buy_price_per_unit + item.buy_fee;
-                return (
-                    <p className="font-medium text-foreground">
-                        {formatCurrency(totalCost, item.buy_currency)}
+            key: 'buy_price',
+            header: 'Buy Price',
+            className: 'hidden sm:table-cell',
+            render: (item: Investment) => (
+                <div>
+                    <p className="font-semibold text-[#0D3B38] text-[13px]">
+                        {formatCurrency(item.buy_price_per_unit, item.buy_currency)}
                     </p>
-                );
-            },
-        },
-        {
-            key: 'profit_loss',
-            header: 'Profit/Loss',
-            render: (item: Investment) => {
-                const { profitLoss, percentage } = calculateProfitLoss(
-                    item.buy_quantity,
-                    item.buy_price_per_unit,
-                    item.buy_fee,
-                    item.sell_history
-                );
-                const isProfit = profitLoss >= 0;
-                return (
-                    <div className={isProfit ? 'text-teal-400' : 'text-destructive'}>
-                        <p className="font-medium">
-                            {isProfit ? '+' : ''}{formatCurrency(profitLoss, item.buy_currency)}
-                        </p>
-                        <p className="text-sm">
-                            {isProfit ? '+' : ''}{percentage.toFixed(2)}%
-                        </p>
-                    </div>
-                );
-            },
+                    <p className="text-[11px] text-gray-400">/unit</p>
+                </div>
+            ),
         },
         {
             key: 'status',
             header: 'Status',
             className: 'hidden sm:table-cell',
             render: (item: Investment) => (
-                <Badge className={getStatusColor(item.status)}>
-                    {item.status === 'OPEN' ? 'Open' : 'Closed'}
-                </Badge>
+                <div className="flex items-center gap-2">
+                    <span className={`w-2.5 h-2.5 rounded-full ${item.status === 'OPEN' ? 'bg-[#10b981]' : 'bg-gray-400'}`} />
+                    <span className={`text-[13px] font-bold ${item.status === 'OPEN' ? 'text-[#10b981]' : 'text-gray-400'}`}>
+                        {item.status}
+                    </span>
+                </div>
             ),
         },
         {
             key: 'actions',
-            header: '',
-            className: 'w-32',
+            header: 'Action',
+            className: 'w-28',
             render: (item: Investment) => (
                 <div className="flex items-center gap-1">
                     <button
@@ -147,7 +161,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                             onEdit(item);
                         }}
                         aria-label={`Edit ${item.asset_code}`}
-                        className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 hover:text-[#0D3B38] hover:bg-[#0D3B38]/10 rounded-lg transition-colors"
                         title="Edit"
                     >
                         <Edit className="w-4 h-4" />
@@ -158,7 +172,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
                             onDelete(item);
                         }}
                         aria-label={`Delete ${item.asset_code}`}
-                        className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                        className="p-2 text-gray-400 hover:text-rose-600 hover:bg-rose-600/10 rounded-lg transition-colors"
                         title="Delete"
                     >
                         <Trash2 className="w-4 h-4" />

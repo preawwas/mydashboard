@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout';
@@ -6,6 +6,7 @@ import { Button, Card, CardHeader, CardTitle, CardContent, Input, Table, Modal }
 import { Plus, Search, Filter, Calendar, Edit, Trash2, Bell } from 'lucide-react';
 import { cn, getMonthlyPendingAmount } from '@/lib/utils';
 import ExpenseFormModal from '@/components/expenses/ExpenseFormModal';
+import MonthlyRemindersCard from '@/components/expenses/MonthlyRemindersCard';
 import { useExpenses, Expense } from '@/hooks';
 import { useLoading } from '@/components/providers/LoadingProvider';
 import dynamic from 'next/dynamic';
@@ -52,6 +53,9 @@ export default function ExpensesPage() {
     const [editId, setEditId] = useState<string | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<Expense | null>(null);
+    const [showExpenseFilters, setShowExpenseFilters] = useState(false);
+
+    const hasActiveExpenseFilters = filters.category !== 'ALL' || filters.payment !== 'ALL' || filters.status !== 'ALL' || filters.startDate || filters.endDate || filters.minAmount || filters.maxAmount;
 
     const confirmDelete = (item: Expense) => {
         setItemToDelete(item);
@@ -207,88 +211,66 @@ export default function ExpensesPage() {
                 </div>
 
                 {/* Monthly Reminders */}
-                {pendingExpenses.length > 0 && (
-                    <Card className="border-primary/30 bg-primary/5">
-                        <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <div className="flex items-center gap-3">
-                                <button
-                                    onClick={() => refreshAll()}
-                                    className="p-2 bg-primary/10 rounded-lg shrink-0 hover:bg-primary/20 transition-all active:scale-95"
-                                    title="Refresh reminders"
-                                >
-                                    <Bell className="w-5 h-5 text-primary" />
-                                </button>
-                                <div className="min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <h2 className="text-base sm:text-lg font-bold text-foreground">Monthly Reminders</h2>
-                                        <span className="bg-primary text-primary-foreground px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-black">
-                                            ฿{totalPending.toLocaleString()}
-                                        </span>
-                                    </div>
-                                    <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                                        You have {pendingExpenses.length} pending items this month.
-                                    </p>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-3">
-                                <ul className="space-y-3 sm:space-y-2">
-                                    {pendingExpenses.map(exp => {
-                                        let progressText = "";
-                                        if (exp.payment_type === 'INSTALLMENT' && exp.expense_installments) {
-                                            const total = exp.expense_installments.length;
-                                            const paid = exp.expense_installments.filter((i: any) => i.status === 'PAID').length;
-                                            progressText = ` (${paid}/${total})`;
-                                        }
-
-                                        return (
-                                            <li key={exp.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm border-b border-primary/10 pb-2 sm:border-0 sm:pb-0">
-                                                <div className="flex items-center gap-2 min-w-0">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                                                    <span className="text-foreground truncate font-medium">{exp.item_name}{progressText}</span>
-                                                    <span className="text-[10px] sm:text-xs text-muted-foreground shrink-0">({formatDate(exp.transaction_date)})</span>
-                                                </div>
-                                                <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto mt-1 sm:mt-0">
-                                                    <span className="font-bold text-foreground">฿{getMonthlyPendingAmount(exp).toLocaleString()}</span>
-                                                    <button
-                                                        onClick={() => { setEditId(exp.id); setIsModalOpen(true); }}
-                                                        aria-label="Edit expense"
-                                                        className="p-1.5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors bg-muted/5 sm:bg-transparent"
-                                                    >
-                                                        <Edit className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </li>
-                                        );
-                                    })}
-                                </ul>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+                <MonthlyRemindersCard
+                    pendingExpenses={pendingExpenses}
+                    totalPending={totalPending}
+                    formatDate={formatDate}
+                    getMonthlyPendingAmount={getMonthlyPendingAmount}
+                    refreshAll={refreshAll}
+                />
 
                 {/* History Table with Integrated Filters */}
-                <Card>
-                    <CardHeader className="pb-0">
+                <Card className="border-0 shadow-none bg-transparent">
+                    <CardHeader className="pb-0 px-0">
                         <div className="flex flex-col space-y-4">
                             <h2 className="text-lg sm:text-xl font-bold">Expense History</h2>
 
-                            <div className="space-y-4 bg-muted/5 p-3 sm:p-4 rounded-xl border border-border">
-                                <div className="flex flex-col xl:flex-row gap-4">
+                            <div className="bg-[#f8f8f9] rounded-[32px] p-4 sm:p-6 flex flex-col gap-5">
+                                {/* Row 1: Search + Filter Button */}
+                                <div className="flex flex-col sm:flex-row gap-3">
                                     <div className="relative flex-1">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <Input
-                                            placeholder="Search"
+                                            placeholder="Search item..."
                                             aria-label="Search expenses"
-                                            className="pl-9 w-full bg-background border-border text-foreground text-sm h-10"
+                                            className="h-[52px] rounded-full border-transparent hover:border-transparent focus:border-transparent focus:ring-2 focus:ring-[#0D3B38]/20 shadow-sm pl-[44px] pr-4 bg-white text-sm text-[#18181b] w-full"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                         />
                                     </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4 xl:w-[600px]">
+                                    <div className="flex gap-3">
+                                        <Button
+                                            onClick={() => setShowExpenseFilters(!showExpenseFilters)}
+                                            leftIcon={<Filter className={`w-4 h-4 sm:w-5 sm:h-5 ${showExpenseFilters ? 'text-[#0D3B38]' : 'text-white'}`} />}
+                                            className={`h-[52px] rounded-full px-6 sm:px-8 text-sm sm:text-base font-medium transition-colors border-0 ${
+                                                showExpenseFilters
+                                                    ? 'bg-white text-[#0D3B38] hover:bg-gray-50 shadow-sm'
+                                                    : 'bg-[#062d2a] text-white hover:bg-[#0c3935] shadow-sm'
+                                            }`}
+                                        >
+                                            Filter
+                                            {hasActiveExpenseFilters && (
+                                                <span className={`ml-2 w-2 h-2 rounded-full ${showExpenseFilters ? 'bg-[#0D3B38]' : 'bg-white'}`} />
+                                            )}
+                                        </Button>
+                                        {(hasActiveExpenseFilters || searchTerm) && (
+                                            <Button
+                                                variant="ghost"
+                                                onClick={clearFilters}
+                                                className="h-[52px] rounded-full px-6 text-gray-500 hover:text-gray-900 bg-white shadow-sm border border-transparent"
+                                            >
+                                                Clear
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Expandable Filters */}
+                                <div className={`flex flex-col gap-4 transition-all duration-300 origin-top ${showExpenseFilters ? 'opacity-100 scale-y-100 h-auto' : 'opacity-0 scale-y-0 h-0 overflow-hidden hidden'}`}>
+                                    {/* Dropdowns */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <select
-                                            className="bg-background border-border text-foreground rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:ring-primary focus:outline-none h-10"
+                                            className="h-[48px] rounded-full border-transparent bg-white shadow-sm px-5 text-xs sm:text-sm font-bold text-[#374151] uppercase tracking-wide focus:ring-2 focus:ring-[#0D3B38]/20 focus:outline-none appearance-none cursor-pointer"
                                             value={filters.category}
                                             aria-label="Filter by category"
                                             onChange={(e) => setFilters({ category: e.target.value })}
@@ -299,7 +281,7 @@ export default function ExpensesPage() {
                                             ))}
                                         </select>
                                         <select
-                                            className="bg-background border-border text-foreground rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:ring-primary focus:outline-none h-10"
+                                            className="h-[48px] rounded-full border-transparent bg-white shadow-sm px-5 text-xs sm:text-sm font-bold text-[#374151] uppercase tracking-wide focus:ring-2 focus:ring-[#0D3B38]/20 focus:outline-none appearance-none cursor-pointer"
                                             value={filters.payment}
                                             aria-label="Filter by payment channel"
                                             onChange={(e) => setFilters({ payment: e.target.value })}
@@ -310,7 +292,7 @@ export default function ExpensesPage() {
                                             ))}
                                         </select>
                                         <select
-                                            className="bg-background border-border text-foreground rounded-lg px-2 sm:px-3 py-2 text-xs sm:text-sm focus:ring-primary focus:outline-none col-span-2 md:col-span-1 h-10"
+                                            className="h-[48px] rounded-full border-transparent bg-white shadow-sm px-5 text-xs sm:text-sm font-bold text-[#374151] uppercase tracking-wide focus:ring-2 focus:ring-[#0D3B38]/20 focus:outline-none appearance-none cursor-pointer"
                                             value={filters.status}
                                             aria-label="Filter by status"
                                             onChange={(e) => setFilters({ status: e.target.value })}
@@ -320,68 +302,50 @@ export default function ExpensesPage() {
                                             <option value="PENDING">Pending</option>
                                         </select>
                                     </div>
-                                </div>
 
-                                <div className="flex flex-col md:flex-row items-start md:items-center gap-4 pt-4 border-t border-[#2E2C24]">
-                                    {/* Date Range */}
-                                    <div className="flex items-center gap-2 flex-1 w-full">
-                                        <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-                                        <Input
-                                            type="date"
-                                            aria-label="Start date"
-                                            className="flex-1 h-9 py-1 text-xs bg-background border-border"
-                                            value={filters.startDate}
-                                            onChange={(e) => setFilters({ startDate: e.target.value })}
-                                        />
-                                        <span className="text-muted-foreground">-</span>
-                                        <Input
-                                            type="date"
-                                            aria-label="End date"
-                                            className="flex-1 h-9 py-1 text-xs bg-background border-border"
-                                            value={filters.endDate}
-                                            onChange={(e) => setFilters({ endDate: e.target.value })}
-                                        />
-                                    </div>
-
-                                    {/* Amount Range */}
-                                    <div className="flex items-center gap-2 flex-1 w-full">
-                                        <Filter className={cn("w-4 h-4 shrink-0", (filters.minAmount || filters.maxAmount) ? "text-primary" : "text-muted-foreground")} />
-                                        <div className="relative flex-1">
-                                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">฿</span>
+                                    {/* Date Range + Amount Range */}
+                                    <div className="flex flex-col md:flex-row items-stretch gap-3">
+                                        <div className="flex items-center gap-2 bg-white rounded-full shadow-sm px-4 h-[48px]">
+                                            <Calendar className="w-4 h-4 text-gray-400 shrink-0" />
+                                            <Input
+                                                type="date"
+                                                aria-label="Start date"
+                                                className="h-9 py-1 text-xs bg-transparent border-none shadow-none focus:ring-0 px-1 w-[120px]"
+                                                value={filters.startDate}
+                                                onChange={(e) => setFilters({ startDate: e.target.value })}
+                                            />
+                                            <span className="text-xs text-gray-400 font-medium">to</span>
+                                            <Input
+                                                type="date"
+                                                aria-label="End date"
+                                                className="h-9 py-1 text-xs bg-transparent border-none shadow-none focus:ring-0 px-1 w-[120px]"
+                                                value={filters.endDate}
+                                                onChange={(e) => setFilters({ endDate: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="flex items-center gap-2 bg-white rounded-full shadow-sm px-4 h-[48px]">
+                                            <Filter className={cn("w-4 h-4 shrink-0", (filters.minAmount || filters.maxAmount) ? "text-[#0D3B38]" : "text-gray-400")} />
                                             <Input
                                                 type="number"
                                                 inputMode="decimal"
-                                                placeholder="Min"
+                                                placeholder="MIN"
                                                 aria-label="Minimum amount"
-                                                className="h-9 py-1 text-xs bg-background border-border pl-6 w-full"
+                                                className="h-9 py-1 text-xs bg-transparent border-none shadow-none focus:ring-0 px-1 w-[80px] uppercase font-bold placeholder:text-gray-300 placeholder:font-bold"
                                                 value={filters.minAmount}
                                                 onChange={(e) => setFilters({ minAmount: e.target.value })}
                                             />
-                                        </div>
-                                        <span className="text-muted-foreground">-</span>
-                                        <div className="relative flex-1">
-                                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">฿</span>
+                                            <span className="text-xs text-gray-400 font-medium">-</span>
                                             <Input
                                                 type="number"
                                                 inputMode="decimal"
-                                                placeholder="Max"
+                                                placeholder="MAX"
                                                 aria-label="Maximum amount"
-                                                className="h-9 py-1 text-xs bg-background border-border pl-6 w-full"
+                                                className="h-9 py-1 text-xs bg-transparent border-none shadow-none focus:ring-0 px-1 w-[80px] uppercase font-bold placeholder:text-gray-300 placeholder:font-bold"
                                                 value={filters.maxAmount}
                                                 onChange={(e) => setFilters({ maxAmount: e.target.value })}
                                             />
                                         </div>
                                     </div>
-
-                                    {(filters.startDate || filters.endDate || filters.category !== 'ALL' || filters.payment !== 'ALL' || filters.status !== 'ALL' || searchTerm || filters.minAmount || filters.maxAmount) && (
-                                        <Button
-                                            variant="ghost"
-                                            className="text-[10px] sm:text-xs text-primary hover:bg-primary/10 h-8 px-2 shrink-0"
-                                            onClick={clearFilters}
-                                        >
-                                            Clear
-                                        </Button>
-                                    )}
                                 </div>
                             </div>
                         </div>

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
@@ -501,7 +501,7 @@ const CalendarView: React.FC = () => {
                             value={statusFilter}
                             aria-label="Filter by status"
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="h-8 sm:h-9 px-2 sm:px-3 rounded-xl bg-card/60 border border-border/40 text-xs sm:text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer pr-7"
+                            className="h-8 sm:h-9 px-3 sm:px-4 rounded-full bg-card/60 border border-border/40 text-xs sm:text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer pr-7"
                             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center' }}
                         >
                             {STATUS_OPTIONS.map(s => (
@@ -510,10 +510,10 @@ const CalendarView: React.FC = () => {
                         </select>
 
                         {/* View Mode */}
-                        <div className="flex items-center bg-card/60 border border-border/40 rounded-xl p-0.5 sm:p-1">
+                        <div className="flex items-center bg-card/60 border border-border/40 rounded-full p-0.5 sm:p-1">
                             {(['month', 'week', 'day'] as ViewMode[]).map(mode => (
                                 <Button key={mode} variant="ghost" onClick={() => setViewMode(mode)}
-                                    className={cn("h-7 sm:h-8 px-2.5 sm:px-4 rounded-lg font-bold text-[10px] sm:text-xs capitalize", viewMode === mode ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+                                    className={cn("h-7 sm:h-8 px-3 sm:px-5 rounded-full font-bold text-[10px] sm:text-xs capitalize", viewMode === mode ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
                                     {mode}
                                 </Button>
                             ))}
@@ -524,7 +524,7 @@ const CalendarView: React.FC = () => {
                             variant="outline"
                             onClick={() => setShowDeadlines(!showDeadlines)}
                             className={cn(
-                                "h-8 sm:h-9 px-3 rounded-xl border-border/40 font-bold text-xs gap-1.5",
+                                "h-8 sm:h-9 px-3 sm:px-4 rounded-full border-border/40 font-bold text-xs gap-1.5",
                                 showDeadlines ? "bg-primary/10 text-primary border-primary/30" : "bg-card/60"
                             )}
                         >

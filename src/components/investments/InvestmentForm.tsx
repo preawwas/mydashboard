@@ -176,7 +176,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={mode === 'add' ? 'Add New Investment' : 'Edit Investment'}
+            title={mode === 'add' ? 'ADD NEW INVESTMENT' : 'EDIT INVESTMENT'}
             size="xl"
             className="max-w-[950px]"
         >

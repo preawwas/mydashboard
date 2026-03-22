@@ -71,16 +71,16 @@ function Table<T>({
     }
 
     return (
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="bg-[#f9faf9] rounded-[24px] overflow-hidden">
             <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full">
-                    <thead className="bg-muted/5 border-b border-border">
+                    <thead className="bg-[#BEBEBE] border-b border-gray-200/60">
                         <tr>
                             {columns.map((column) => (
                                 <th
                                     key={column.key}
                                     className={cn(
-                                        'px-6 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider',
+                                        'px-6 py-4 text-left text-[14px] font-extrabold text-[#111111] capitalize tracking-normal',
                                         column.className
                                     )}
                                 >
@@ -89,12 +89,12 @@ function Table<T>({
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-border">
+                    <tbody className="divide-y divide-gray-100">
                         {data.map((item) => (
                             <tr
                                 key={keyExtractor(item)}
                                 className={cn(
-                                    'hover:bg-muted/5 transition-colors',
+                                    'hover:bg-white/60 transition-colors',
                                     onRowClick && 'cursor-pointer'
                                 )}
                                 onClick={() => onRowClick?.(item)}
@@ -102,7 +102,7 @@ function Table<T>({
                                 {columns.map((column) => (
                                     <td
                                         key={column.key}
-                                        className={cn('px-6 py-4 text-sm text-foreground', column.className)}
+                                        className={cn('px-6 py-5 text-sm text-foreground', column.className)}
                                     >
                                         {column.render
                                             ? column.render(item)
