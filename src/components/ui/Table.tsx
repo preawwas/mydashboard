@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import Pagination from './Pagination';
 
 interface Column<T> {
     key: string;
@@ -117,7 +117,7 @@ function Table<T>({
 
             {/* Pagination */}
             {pagination && (
-                <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/5">
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between px-6 py-4 border-t border-border bg-muted/5">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <label htmlFor="pagination-limit" className="sr-only">Items per page</label>
                         <span aria-hidden="true">Show</span>
@@ -135,42 +135,13 @@ function Table<T>({
                         <span>entries of {pagination.total} total</span>
                     </div>
 
-                    <div className="flex items-center gap-1">
-                        <button
-                            onClick={() => pagination.onPageChange(1)}
-                            disabled={pagination.page === 1}
-                            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/10 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            aria-label="First page"
-                        >
-                            <ChevronsLeft className="w-4 h-4" aria-hidden="true" />
-                        </button>
-                        <button
-                            onClick={() => pagination.onPageChange(pagination.page - 1)}
-                            disabled={pagination.page === 1}
-                            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/10 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            aria-label="Previous page"
-                        >
-                            <ChevronLeft className="w-4 h-4" aria-hidden="true" />
-                        </button>
-                        <span className="px-4 py-2 text-sm font-medium text-foreground">
-                            Page {pagination.page} of {pagination.totalPages || 1}
-                        </span>
-                        <button
-                            onClick={() => pagination.onPageChange(pagination.page + 1)}
-                            disabled={pagination.page >= pagination.totalPages}
-                            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/10 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            aria-label="Next page"
-                        >
-                            <ChevronRight className="w-4 h-4" aria-hidden="true" />
-                        </button>
-                        <button
-                            onClick={() => pagination.onPageChange(pagination.totalPages)}
-                            disabled={pagination.page >= pagination.totalPages}
-                            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/10 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            aria-label="Last page"
-                        >
-                            <ChevronsRight className="w-4 h-4" aria-hidden="true" />
-                        </button>
+                    <div className="w-full lg:w-auto overflow-x-auto scrollbar-hide">
+                        <Pagination
+                            page={pagination.page}
+                            totalPages={pagination.totalPages || 1}
+                            onPageChange={pagination.onPageChange}
+                            className="w-max"
+                        />
                     </div>
                 </div>
             )}

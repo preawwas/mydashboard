@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Bell } from 'lucide-react';
 import { Expense } from '@/hooks';
 
@@ -19,11 +19,7 @@ export default function MonthlyRemindersCard({
     getMonthlyPendingAmount,
     refreshAll,
 }: MonthlyRemindersCardProps) {
-    const [showAll, setShowAll] = useState(false);
-
     if (pendingExpenses.length === 0) return null;
-
-    const visible = showAll ? pendingExpenses : pendingExpenses.slice(0, 4);
 
     return (
         <div className="bg-[#0D3B38] rounded-[24px] p-6 sm:p-8 text-white overflow-hidden">
@@ -58,8 +54,8 @@ export default function MonthlyRemindersCard({
 
                 {/* Right Column - Reminder List */}
                 <div className="flex-1 flex flex-col justify-between lg:border-l lg:border-white/10 lg:pl-8">
-                    <div className="space-y-0">
-                        {visible.map((exp, idx) => {
+                    <div className="space-y-0 max-h-[220px] sm:max-h-[260px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
+                        {pendingExpenses.map((exp, idx) => {
                             let progressText = "";
                             if (exp.payment_type === 'INSTALLMENT' && exp.expense_installments) {
                                 const total = exp.expense_installments.length;
@@ -70,7 +66,7 @@ export default function MonthlyRemindersCard({
                             return (
                                 <div
                                     key={exp.id}
-                                    className={`flex items-center justify-between py-3.5 ${idx < visible.length - 1 ? 'border-b border-white/10' : ''}`}
+                                    className={`flex items-center justify-between py-3.5 ${idx < pendingExpenses.length - 1 ? 'border-b border-white/10' : ''}`}
                                 >
                                     <div className="flex items-center gap-3 min-w-0">
                                         <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-[#f59e0b]" />
@@ -88,18 +84,6 @@ export default function MonthlyRemindersCard({
                             );
                         })}
                     </div>
-
-                    {pendingExpenses.length > 4 && (
-                        <button
-                            onClick={() => setShowAll(!showAll)}
-                            className="mt-4 w-full py-3 rounded-full border border-white/20 text-[11px] font-bold tracking-widest text-white/70 uppercase hover:bg-white/10 transition-colors flex items-center justify-center gap-2"
-                        >
-                            {showAll ? 'Show Less' : 'View More Reminders'}
-                            <svg className={`w-3.5 h-3.5 transition-transform ${showAll ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-                    )}
                 </div>
             </div>
         </div>

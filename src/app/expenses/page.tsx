@@ -357,52 +357,15 @@ export default function ExpensesPage() {
                             keyExtractor={(item) => item.id}
                             isLoading={loading}
                             emptyMessage="No expenses found."
+                            pagination={{
+                                page: currentPage,
+                                limit: itemsPerPage,
+                                total: totalItems,
+                                totalPages,
+                                onPageChange: (page) => setCurrentPage(page),
+                                onLimitChange: () => { },
+                            }}
                         />
-
-                        {/* Pagination Controls */}
-                        {totalPages > 1 && (
-                            <div className="flex items-center justify-between px-2 pt-4 border-t border-border">
-                                <p className="text-sm text-muted-foreground">
-                                    Showing {Math.min(totalItems, (currentPage - 1) * itemsPerPage + 1)} to {Math.min(totalItems, currentPage * itemsPerPage)} of {totalItems} entries
-                                </p>
-                                <div className="flex items-center gap-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={currentPage === 1}
-                                        onClick={() => setCurrentPage(prev => prev - 1)}
-                                        className="bg-transparent border-border text-foreground"
-                                    >
-                                        Previous
-                                    </Button>
-                                    <div className="flex items-center gap-1 mx-2">
-                                        {[...Array(totalPages)].map((_, i) => (
-                                            <button
-                                                key={i + 1}
-                                                onClick={() => setCurrentPage(i + 1)}
-                                                className={cn(
-                                                    "w-8 h-8 rounded-lg text-xs font-medium transition-colors",
-                                                    currentPage === i + 1
-                                                        ? "bg-primary text-primary-foreground"
-                                                        : "text-muted-foreground hover:bg-muted/10 hover:text-foreground"
-                                                )}
-                                            >
-                                                {i + 1}
-                                            </button>
-                                        ))}
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={currentPage === totalPages}
-                                        onClick={() => setCurrentPage(prev => prev + 1)}
-                                        className="bg-transparent border-border text-foreground"
-                                    >
-                                        Next
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
                     </CardContent>
                 </Card>
             </div>

@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLoading } from '@/components/providers/LoadingProvider';
-import { Search, Plus, Filter, Tag as TagIcon, StickyNote, Zap, Settings, Trash2, Send, X, Asterisk, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button, Input, Modal } from '@/components/ui';
+import { Search, Plus, Filter, Tag as TagIcon, StickyNote, Zap, Settings, Trash2, Send, X, Asterisk, Edit2 } from 'lucide-react';
+import { Button, Input, Modal, Pagination } from '@/components/ui';
 import { apiClient } from '@/lib/api-client';
 import { DbShortNoteWithTags, DbTag } from '@/lib/supabase-types';
 import ShortNoteCard from './ShortNoteCard';
@@ -348,31 +348,6 @@ const ShortNoteDashboard: React.FC = () => {
         return generalTag ? [generalTag.id] : [];
     }, [selectedTagId, tags]);
 
-    const paginationItems = useMemo<(number | '...')[]>(() => {
-        if (totalPages <= 5) {
-            return Array.from({ length: totalPages }, (_, i) => i + 1);
-        }
-
-        const items: (number | '...')[] = [1];
-        const start = Math.max(2, currentPage - 1);
-        const end = Math.min(totalPages - 1, currentPage + 1);
-
-        if (start > 2) {
-            items.push('...');
-        }
-
-        for (let page = start; page <= end; page += 1) {
-            items.push(page);
-        }
-
-        if (end < totalPages - 1) {
-            items.push('...');
-        }
-
-        items.push(totalPages);
-        return items;
-    }, [currentPage, totalPages]);
-
     return (
         <div className="flex flex-col lg:flex-row gap-6 min-h-screen p-6 bg-background">
             {/* Sidebar Tags */}
@@ -578,53 +553,13 @@ const ShortNoteDashboard: React.FC = () => {
                                     )}
                                 </div>
                                 {totalPages > 1 && (
-                                    <div className="flex justify-center items-center gap-4 pt-2">
-                                        <button
-                                            onClick={() => setCurrentPage(p => p - 1)}
-                                            disabled={currentPage <= 1}
-                                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border/50 bg-card/50 text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                            Prev
-                                        </button>
-                                        <div className="flex items-center gap-1">
-                                            {paginationItems.map((item, index) => {
-                                                if (item === '...') {
-                                                    return (
-                                                        <span
-                                                            key={`ellipsis-${index}`}
-                                                            className="w-9 h-9 flex items-center justify-center text-muted-foreground text-sm font-bold"
-                                                        >
-                                                            ...
-                                                        </span>
-                                                    );
-                                                }
-
-                                                const isActive = item === currentPage;
-                                                return (
-                                                    <button
-                                                        key={item}
-                                                        onClick={() => setCurrentPage(item)}
-                                                        className={cn(
-                                                            'w-9 h-9 rounded-lg text-sm font-bold transition-all border',
-                                                            isActive
-                                                                ? 'bg-primary text-primary-foreground border-primary'
-                                                                : 'bg-card/50 text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted/50'
-                                                        )}
-                                                    >
-                                                        {item}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                        <button
-                                            onClick={() => setCurrentPage(p => p + 1)}
-                                            disabled={currentPage >= totalPages}
-                                            className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-border/50 bg-card/50 text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-muted/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                                        >
-                                            Next
-                                            <ChevronRight className="w-4 h-4" />
-                                        </button>
+                                    <div className="pt-2 overflow-x-auto scrollbar-hide">
+                                        <Pagination
+                                            page={currentPage}
+                                            totalPages={totalPages}
+                                            onPageChange={setCurrentPage}
+                                            className="w-max mx-auto"
+                                        />
                                     </div>
                                 )}
                             </>
