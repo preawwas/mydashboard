@@ -62,7 +62,7 @@ export default function InvestmentsPage() {
 
     return (
         <DashboardLayout>
-            <div className="space-y-6 max-w-6xl mx-auto pb-10">
+            <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
                 {/* Header & Tabs */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4 mb-6 pt-2">
                     <div className="flex flex-col gap-1">
@@ -181,7 +181,7 @@ export default function InvestmentsPage() {
                                     <label className="block text-[10px] font-extrabold tracking-widest text-[#a1a1aa] uppercase mb-2 ml-2">Strategy</label>
                                     <Select
                                         options={[
-                                            { value: '', label: 'Select Strategy' },
+                                            { value: '', label: 'All Strategy' },
                                             { value: 'DCA', label: 'DCA' },
                                             { value: 'LONG_TERM', label: 'Long Term' },
                                             { value: 'TRADE', label: 'Trade' },
@@ -197,7 +197,7 @@ export default function InvestmentsPage() {
                                     <label className="block text-[10px] font-extrabold tracking-widest text-[#a1a1aa] uppercase mb-2 ml-2">Status</label>
                                     <Select
                                         options={[
-                                            { value: '', label: 'Select Status' },
+                                            { value: '', label: 'All Status' },
                                             { value: 'OPEN', label: 'Open' },
                                             { value: 'CLOSED', label: 'Closed' },
                                         ]}

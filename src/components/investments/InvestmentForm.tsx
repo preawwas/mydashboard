@@ -64,6 +64,13 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
         }
     }, [isOpen, getDefaultFormData]);
 
+    // Automatically set status to CLOSED if there is sell history
+    useEffect(() => {
+        if (formData.sell_history.length > 0 && formData.status !== 'CLOSED') {
+            setFormData(prev => ({ ...prev, status: 'CLOSED' }));
+        }
+    }, [formData.sell_history.length, formData.status]);
+
 
     const clearError = useCallback((field: string) => {
         setErrors(prev => {

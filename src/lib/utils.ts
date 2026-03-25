@@ -1,4 +1,4 @@
-﻿import { type ClassValue, clsx } from 'clsx';
+import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
@@ -33,8 +33,15 @@ export function formatNumber(num: number, decimals: number = 2): string {
     }).format(num);
 }
 
+export function formatQuantity(num: number): string {
+    return new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 3,
+    }).format(num);
+}
+
 export function formatDate(date: string | Date): string {
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat('en-GB', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -42,7 +49,7 @@ export function formatDate(date: string | Date): string {
 }
 
 export function formatDateTime(date: string | Date): string {
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat('en-GB', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',

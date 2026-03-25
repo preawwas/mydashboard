@@ -3,7 +3,7 @@
 import React from 'react';
 import { Table, Badge, Button } from '@/components/ui';
 import { Investment, InvestmentFilters } from '@/types';
-import { formatCurrency, formatDate, getCategoryColor, getStrategyColor, getStatusColor, calculateProfitLoss } from '@/lib/utils';
+import { formatCurrency, formatDate, getCategoryColor, getStrategyColor, getStatusColor, calculateProfitLoss, formatQuantity } from '@/lib/utils';
 import { Edit, Trash2 } from 'lucide-react';
 
 interface InvestmentTableProps {
@@ -51,20 +51,15 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         return '';
     };
 
-    // Strategy badge label & style
-    const getAutoLabel = (inv: Investment) => {
-        const totalCost = inv.buy_quantity * inv.buy_price_per_unit;
-        if (inv.strategy_type === 'DCA') {
-            if (totalCost >= 100000) return { label: 'HIGH VALUE', style: 'bg-[#fef3c7] text-[#92400e] border border-[#d97706]/30' };
-            return { label: 'AUTOMATED', style: 'bg-[#e0f2f1] text-[#0D3B38] border border-[#0D3B38]/30' };
-        }
-        return { label: 'STANDARD', style: 'bg-[#f5f5f4] text-[#78716c] border border-[#a8a29e]/30' };
+    // Strategy badge style using getStrategyColor from utils
+    const getStrategyStyle = (strategy: string) => {
+        return getStrategyColor(strategy);
     };
 
     const columns = [
         {
             key: 'asset',
-            header: 'Asset',
+            header: 'ASSET',
             render: (item: Investment) => {
                 const catIcon = getCategoryIcon(item.asset_category);
                 return (
@@ -85,60 +80,54 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         },
         {
             key: 'market',
-            header: 'Market',
+            header: 'MARKET',
             className: 'hidden lg:table-cell',
             render: (item: Investment) => (
                 <span className="text-[13px] font-semibold text-[#0D3B38]">{item.market || '—'}</span>
             ),
         },
         {
-            key: 'type',
-            header: 'Type',
-            className: 'hidden md:table-cell',
-            render: (item: Investment) => (
-                <span className="text-[13px] font-medium text-[#374151]">{item.strategy_type}</span>
-            ),
-        },
-        {
             key: 'strategy',
-            header: 'Strategy',
+            header: 'STRATEGY',
             className: 'hidden xl:table-cell',
             render: (item: Investment) => {
-                const auto = getAutoLabel(item);
+                const style = getStrategyStyle(item.strategy_type);
                 return (
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${auto.style}`}>
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${style}`}>
                         {item.strategy_type}
                     </span>
                 );
             },
         },
         {
-            key: 'units',
-            header: 'Units',
-            className: 'hidden sm:table-cell',
-            render: (item: Investment) => (
-                <div>
-                    <p className="font-bold text-[#0D3B38] text-[15px]">{item.buy_quantity}</p>
-                    <p className="text-[11px] text-gray-400">units</p>
-                </div>
-            ),
-        },
-        {
             key: 'buy_price',
-            header: 'Buy Price',
+            header: 'BUY PRICE',
             className: 'hidden sm:table-cell',
             render: (item: Investment) => (
                 <div>
                     <p className="font-semibold text-[#0D3B38] text-[13px]">
-                        {formatCurrency(item.buy_price_per_unit, item.buy_currency)}
+                        {formatQuantity(item.buy_quantity)} * {formatCurrency(item.buy_price_per_unit, item.buy_currency)}
                     </p>
-                    <p className="text-[11px] text-gray-400">/unit</p>
+                    <p className="text-[11px] text-gray-400 mt-0.5">{formatDate(item.buy_datetime)}</p>
                 </div>
             ),
         },
         {
+            key: 'total_cost',
+            header: 'TOTAL COST',
+            className: 'hidden lg:table-cell',
+            render: (item: Investment) => {
+                const totalCost = item.buy_quantity * item.buy_price_per_unit;
+                return (
+                    <span className="font-bold text-[#0D3B38] text-[14px]">
+                        {formatCurrency(totalCost, item.buy_currency)}
+                    </span>
+                );
+            },
+        },
+        {
             key: 'status',
-            header: 'Status',
+            header: 'STATUS',
             className: 'hidden sm:table-cell',
             render: (item: Investment) => (
                 <div className="flex items-center gap-2">
@@ -150,8 +139,44 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
             ),
         },
         {
+            key: 'profit_loss',
+            header: 'PROFIT/LOSS',
+            className: 'hidden md:table-cell',
+            render: (item: Investment) => {
+                if (item.status !== 'CLOSED') return <span className="text-gray-400 text-sm">—</span>;
+
+                const { profitLoss, percentage } = calculateProfitLoss(
+                    item.buy_quantity,
+                    item.buy_price_per_unit,
+                    item.buy_fee,
+                    item.sell_history || []
+                );
+
+                const isProfit = profitLoss >= 0;
+                const firstSellDate = item.sell_history && item.sell_history.length > 0
+                    ? formatDate(item.sell_history[0].datetime)
+                    : null;
+
+                return (
+                    <div className="flex flex-col">
+                        <div className="flex items-baseline gap-1.5">
+                            <span className={`font-bold text-[13px] ${isProfit ? 'text-[#10b981]' : 'text-rose-500'}`}>
+                                {isProfit ? '+' : ''}{formatCurrency(profitLoss, item.buy_currency)}
+                            </span>
+                            <span className={`text-[10px] font-medium ${isProfit ? 'text-[#10b981]/80' : 'text-rose-500/80'}`}>
+                                {isProfit ? '+' : ''}{percentage.toFixed(2)}%
+                            </span>
+                        </div>
+                        {firstSellDate && (
+                            <p className="text-[11px] text-gray-400 mt-0.5">{firstSellDate}</p>
+                        )}
+                    </div>
+                );
+            },
+        },
+        {
             key: 'actions',
-            header: 'Action',
+            header: 'ACTION',
             className: 'w-28',
             render: (item: Investment) => (
                 <div className="flex items-center gap-1">

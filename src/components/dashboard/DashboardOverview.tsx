@@ -42,7 +42,7 @@ export default function DashboardOverview() {
     });
 
     return (
-        <div className="space-y-6 max-w-6xl mx-auto pb-10">
+        <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div className="flex flex-col gap-1">
