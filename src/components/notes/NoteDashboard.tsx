@@ -1,11 +1,20 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import {
     Search, Plus, Loader2, Trash2, GripVertical,
     Filter, X, CalendarDays, ChevronUp, ChevronDown, Settings,
-    MoreVertical, Copy
+    MoreVertical, Copy, Calendar as LucideCalendar
 } from 'lucide-react';
+import { 
+    startOfDay, 
+    endOfDay, 
+    startOfWeek, 
+    endOfWeek, 
+    startOfMonth, 
+    endOfMonth,
+    format
+} from 'date-fns';
 import { Button, Input, Modal } from '@/components/ui';
 import NoteModal from './NoteModal';
 import { DbNote, DbNoteCategory, DbReminder } from '@/lib/supabase-types';
@@ -58,6 +67,13 @@ const NoteDashboard: React.FC = () => {
     const [isCloneMode, setIsCloneMode] = useState(false);
     const [selectedNote, setSelectedNote] = useState<ExtendedNote | null>(null);
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
+
+    // Search debouncing
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearchQuery(searchQuery), 400);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
     const [draggedNote, setDraggedNote] = useState<ExtendedNote | null>(null);
     const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
     const [dragOverNoteId, setDragOverNoteId] = useState<string | null>(null);
@@ -84,8 +100,10 @@ const NoteDashboard: React.FC = () => {
         return `${year}-${month}-${day}`;
     };
 
-    const [dateFrom, setDateFrom] = useState(formatDate(pastDate));
-    const [dateTo, setDateTo] = useState(formatDate(futureDate));
+    const defaultDateFrom = formatDate(pastDate);
+    const defaultDateTo = formatDate(futureDate);
+    const [dateFrom, setDateFrom] = useState(defaultDateFrom);
+    const [dateTo, setDateTo] = useState(defaultDateTo);
 
     // Trash popup
     const [showTrash, setShowTrash] = useState(false);
@@ -160,10 +178,17 @@ const NoteDashboard: React.FC = () => {
     const fetchNotes = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await apiClient.fetch('/api/notes?filter=all');
+            const params = new URLSearchParams();
+            params.append('filter', 'journey');
+            if (debouncedSearchQuery) params.append('search', debouncedSearchQuery);
+            if (selectedCategoryIds.length > 0) params.append('category_ids', selectedCategoryIds.join(','));
+            if (dateFrom) params.append('due_date_from', dateFrom);
+            if (dateTo) params.append('due_date_to', dateTo);
+
+            const res = await apiClient.fetch(`/api/notes?${params.toString()}`);
             const json = await res.json();
             if (json.success) {
-                // Filter out notes that have tags (they belong in Short Notes)
+                // Keep Journey logic: filter out notes that have tags (they belong in Short Notes)
                 const allNotes = json.data || [];
                 const journeyNotes = allNotes.filter((n: any) => !n.note_tags || n.note_tags.length === 0);
                 setNotes(journeyNotes);
@@ -173,7 +198,7 @@ const NoteDashboard: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [debouncedSearchQuery, selectedCategoryIds, dateFrom, dateTo]);
 
     const fetchTrashedNotes = useCallback(async () => {
         try {
@@ -185,7 +210,8 @@ const NoteDashboard: React.FC = () => {
         }
     }, []);
 
-    useEffect(() => { fetchCategories(); fetchNotes(); }, []);
+    useEffect(() => { fetchCategories(); }, []);
+    useEffect(() => { fetchNotes(); }, [fetchNotes]);
 
     // Sync loading state with global LoadingOverlay
     useEffect(() => {
@@ -232,26 +258,10 @@ const NoteDashboard: React.FC = () => {
         );
     };
 
-    // Filtered notes
+    // Filered notes (now handled mostly by API, except for journey/tags logic)
     const filteredNotes = useMemo<ExtendedNote[]>(() => {
-        return notes.filter(n => {
-            const matchesCat = selectedCategoryIds.length > 0 ? (n.note_category_id ? selectedCategoryIds.includes(n.note_category_id) : false) : true;
-            const matchesSearch = searchQuery
-                ? n.title.toLowerCase().includes(searchQuery.toLowerCase()) || n.content?.toLowerCase().includes(searchQuery.toLowerCase())
-                : true;
-            let matchesDate = true;
-            if (dateFrom || dateTo) {
-                const dueDate = n.reminders?.due_date;
-                if (!dueDate) { matchesDate = false; }
-                else {
-                    const d = new Date(dueDate); d.setHours(0, 0, 0, 0);
-                    if (dateFrom) { const from = new Date(dateFrom); from.setHours(0, 0, 0, 0); if (d < from) matchesDate = false; }
-                    if (dateTo) { const to = new Date(dateTo); to.setHours(23, 59, 59, 999); if (d > to) matchesDate = false; }
-                }
-            }
-            return matchesCat && matchesSearch && matchesDate;
-        });
-    }, [notes, selectedCategoryIds, searchQuery, dateFrom, dateTo]);
+        return notes;
+    }, [notes]);
 
     const getCategoryCount = (catId: string) => notes.filter(n => n.note_category_id === catId).length;
 
@@ -519,14 +529,82 @@ const NoteDashboard: React.FC = () => {
 
             {/* Filters Row */}
             <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-2 bg-card/50 border border-border/50 rounded-xl px-3 py-1.5 focus-within:ring-1 focus-within:ring-primary">
-                    <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                    <Input type="date" aria-label="From date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-8 w-36 bg-transparent border-0 text-sm p-0 focus:ring-0" />
-                    <span className="text-muted-foreground text-xs">to</span>
-                    <Input type="date" aria-label="To date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-8 w-36 bg-transparent border-0 text-sm p-0 focus:ring-0" />
-                    {(dateFrom || dateTo) && (
-                        <button onClick={() => { setDateFrom(''); setDateTo(''); }} aria-label="Clear date range" className="p-1 text-muted-foreground hover:text-rose-500"><X className="w-3.5 h-3.5" /></button>
+                <div className="flex items-center gap-2 bg-card/50 border border-border/50 rounded-xl px-3 py-1.5 focus-within:ring-1 focus-within:ring-primary shadow-sm">
+                    <CalendarDays className="w-4 h-4 text-muted-foreground mr-1" />
+                    <Input type="date" aria-label="From date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-8 w-36 bg-transparent border-0 text-sm p-0 focus:ring-0 font-medium" />
+                    <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest opacity-40">to</span>
+                    <Input type="date" aria-label="To date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-8 w-36 bg-transparent border-0 text-sm p-0 focus:ring-0 font-medium" />
+                    {(dateFrom !== defaultDateFrom || dateTo !== defaultDateTo) && (
+                        <button onClick={() => { setDateFrom(defaultDateFrom); setDateTo(defaultDateTo); }} aria-label="Clear date range" className="p-1 text-muted-foreground hover:text-rose-500 transition-colors"><X className="w-3.5 h-3.5" /></button>
                     )}
+                </div>
+
+                {/* Quick Filters */}
+                <div className="flex items-center gap-1.5 p-1 bg-card/30 border border-border/50 rounded-xl shadow-sm">
+                    <button
+                        onClick={() => {
+                            const today = format(new Date(), 'yyyy-MM-dd');
+                            if (dateFrom === today && dateTo === today) {
+                                setDateFrom(defaultDateFrom);
+                                setDateTo(defaultDateTo);
+                            } else {
+                                setDateFrom(today);
+                                setDateTo(today);
+                            }
+                        }}
+                        className={cn(
+                            "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                            dateFrom === format(new Date(), 'yyyy-MM-dd') && dateTo === format(new Date(), 'yyyy-MM-dd')
+                                ? "bg-primary text-primary-foreground shadow-md"
+                                : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                        )}
+                    >
+                        Today
+                    </button>
+                    <button
+                        onClick={() => {
+                            const now = new Date();
+                            const start = format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+                            const end = format(endOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+                            if (dateFrom === start && dateTo === end) {
+                                setDateFrom(defaultDateFrom);
+                                setDateTo(defaultDateTo);
+                            } else {
+                                setDateFrom(start);
+                                setDateTo(end);
+                            }
+                        }}
+                        className={cn(
+                            "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                            dateFrom === format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd') && dateTo === format(endOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
+                                ? "bg-primary text-primary-foreground shadow-md"
+                                : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                        )}
+                    >
+                        Week
+                    </button>
+                    <button
+                        onClick={() => {
+                            const now = new Date();
+                            const start = format(startOfMonth(now), 'yyyy-MM-dd');
+                            const end = format(endOfMonth(now), 'yyyy-MM-dd');
+                            if (dateFrom === start && dateTo === end) {
+                                setDateFrom(defaultDateFrom);
+                                setDateTo(defaultDateTo);
+                            } else {
+                                setDateFrom(start);
+                                setDateTo(end);
+                            }
+                        }}
+                        className={cn(
+                            "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                            dateFrom === format(startOfMonth(new Date()), 'yyyy-MM-dd') && dateTo === format(endOfMonth(new Date()), 'yyyy-MM-dd')
+                                ? "bg-primary text-primary-foreground shadow-md"
+                                : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                        )}
+                    >
+                        Month
+                    </button>
                 </div>
             </div>
 
@@ -636,7 +714,8 @@ const NoteDashboard: React.FC = () => {
                                     {/* Cards */}
                                     <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
                                         {columnNotes.map(note => {
-                                            const deadline = note.reminders ? getDaysRemainingText(note.reminders.due_date, note.status, note.updated_at) : null;
+                                            const reminderData = Array.isArray(note.reminders) ? note.reminders[0] : note.reminders;
+                                            const deadline = reminderData ? getDaysRemainingText(reminderData.due_date, note.status, note.updated_at) : null;
                                             return (
                                                 <React.Fragment key={note.note_id}>
                                                     {/* Drop indicator */}
@@ -686,7 +765,7 @@ const NoteDashboard: React.FC = () => {
                                                                 {deadline && (
                                                                     <div className="mt-2.5 flex items-center justify-between">
                                                                         <span className="text-[10px] text-muted-foreground">
-                                                                            {'\u{1F4C5}'} {new Date(note.reminders!.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                                                            {'\u{1F4C5}'} {new Date(reminderData!.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                                                         </span>
                                                                         <span className={cn(
                                                                             "text-[10px] font-bold px-2 py-0.5 rounded-full",

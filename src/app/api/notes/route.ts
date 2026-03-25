@@ -9,15 +9,25 @@ export const GET = withAuth(async (request: NextRequest, user: AuthUser) => {
         const { searchParams } = new URL(request.url);
         const filter = searchParams.get('filter');
         const sort = searchParams.get('sort');
+        const search = searchParams.get('search');
+        const categoryIds = searchParams.get('category_ids')?.split(',').filter(Boolean);
+        const dateFrom = searchParams.get('due_date_from');
+        const dateTo = searchParams.get('due_date_to');
+
+        let selectStr = '*, note_categories(*), reminders(*), note_tags(tags(*))';
+        if (dateFrom || dateTo) {
+            // Using !inner ensures that notes without matching reminders are filtered out
+            selectStr = '*, note_categories(*), reminders!inner(*), note_tags(tags(*))';
+        }
 
         let query = supabase
             .from('notes')
-            .select('*, note_categories(*), reminders(*), note_tags(tags(*))')
+            .select(selectStr)
             .eq('user_id', user.id);
 
         // Apply filters
-        if (filter === 'all') {
-            // All non-deleted, non-archived notes (INCLUDING Done)
+        if (filter === 'all' || filter === 'journey') {
+            // All non-deleted, non-archived notes
             query = query.eq('is_deleted', false).eq('is_archived', false);
         } else if (filter === 'favorites') {
             query = query.eq('is_favorite', true).eq('is_deleted', false).eq('is_archived', false);
@@ -28,15 +38,40 @@ export const GET = withAuth(async (request: NextRequest, user: AuthUser) => {
         } else if (filter === 'completed') {
             query = query.eq('status', 'Done').eq('is_deleted', false).eq('is_archived', false);
         } else {
-            // Default: Active notes (not done, not deleted, not archived)
+            // Default: Active notes
             query = query.neq('status', 'Done').eq('is_archived', false).eq('is_deleted', false);
+        }
+
+        // Search filter
+        if (search) {
+            query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
+        }
+
+        // Category filter
+        if (categoryIds && categoryIds.length > 0) {
+            query = query.in('note_category_id', categoryIds);
+        }
+
+        // Date range filter (via nested reminders)
+        if (dateFrom) {
+            query = query.filter('reminders.due_date', 'gte', dateFrom);
+        }
+        if (dateTo) {
+            query = query.filter('reminders.due_date', 'lte', dateTo);
         }
 
         // Apply sorting
         if (sort === 'recent') {
             query = query.order('updated_at', { ascending: false });
+        } else if (sort === 'due_date') {
+            query = query.order('due_date', { referencedTable: 'reminders', ascending: true });
         } else {
-            query = query.order('created_at', { ascending: false });
+            // Default for Journey/Notes: Order by due_date (soonest first), then by created_at
+            // Note: Supabase ordering on joined tables can be tricky if not all have reminders
+            // We'll order by created_at as backup
+            query = query
+                .order('due_date', { referencedTable: 'reminders', ascending: true, nullsFirst: false })
+                .order('created_at', { ascending: false });
         }
 
         const { data, error } = await query;

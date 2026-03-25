@@ -69,7 +69,8 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                 setNoteCategoryId(note.note_category_id || '');
                 setStatus(note.status || 'New');
                 setIsFavorite(note.is_favorite || false);
-                const initialDate = note.reminders?.due_date ? new Date(note.reminders.due_date).toISOString().split('T')[0] : '';
+                const reminderData = Array.isArray(note.reminders) ? note.reminders[0] : note.reminders;
+                const initialDate = reminderData?.due_date ? new Date(reminderData.due_date).toISOString().split('T')[0] : '';
                 setDueDates(isClone ? [] : (initialDate ? [initialDate] : []));
                 setTempDate(isClone ? '' : initialDate);
                 setIsMultiDateMode(false);
