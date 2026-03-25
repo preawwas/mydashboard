@@ -217,6 +217,7 @@ export default function ExpensesPage() {
                     formatDate={formatDate}
                     getMonthlyPendingAmount={getMonthlyPendingAmount}
                     refreshAll={refreshAll}
+                    onEdit={(id) => { setEditId(id); setIsModalOpen(true); }}
                 />
 
                 {/* History Table with Integrated Filters */}

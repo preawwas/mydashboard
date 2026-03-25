@@ -149,7 +149,9 @@ export function useExpenses(): UseExpensesReturn {
                 payment: filters.payment,
                 status: filters.status,
                 startDate: filters.startDate,
-                endDate: filters.endDate
+                endDate: filters.endDate,
+                minAmount: filters.minAmount,
+                maxAmount: filters.maxAmount
             });
 
             const response = await apiClient.fetch(`/api/expenses/user/${user.id}?${params.toString()}`);

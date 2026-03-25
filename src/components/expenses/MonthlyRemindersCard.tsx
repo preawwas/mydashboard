@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Edit } from 'lucide-react';
 import { Expense } from '@/hooks';
 
 interface MonthlyRemindersCardProps {
@@ -10,6 +10,7 @@ interface MonthlyRemindersCardProps {
     formatDate: (dateString: string) => string;
     getMonthlyPendingAmount: (exp: Expense) => number;
     refreshAll: () => void;
+    onEdit: (id: string) => void;
 }
 
 export default function MonthlyRemindersCard({
@@ -18,6 +19,7 @@ export default function MonthlyRemindersCard({
     formatDate,
     getMonthlyPendingAmount,
     refreshAll,
+    onEdit,
 }: MonthlyRemindersCardProps) {
     if (pendingExpenses.length === 0) return null;
 
@@ -77,9 +79,18 @@ export default function MonthlyRemindersCard({
                                             DUE {formatDate(exp.transaction_date)}
                                         </span>
                                     </div>
-                                    <span className="text-sm font-bold text-white shrink-0 ml-4">
-                                        ฿{getMonthlyPendingAmount(exp).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </span>
+                                    <div className="flex items-center gap-2 sm:gap-3 ml-2 sm:ml-4 shrink-0">
+                                        <span className="text-sm font-bold text-white">
+                                            ฿{getMonthlyPendingAmount(exp).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </span>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); onEdit(exp.id); }}
+                                            className="p-1 sm:p-1.5 text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer shrink-0"
+                                            title="Edit expense"
+                                        >
+                                            <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                        </button>
+                                    </div>
                                 </div>
                             );
                         })}

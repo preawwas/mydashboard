@@ -32,6 +32,8 @@ export async function GET(
         const status = searchParams.get('status');
         const startDate = searchParams.get('startDate');
         const endDate = searchParams.get('endDate');
+        const minAmount = searchParams.get('minAmount');
+        const maxAmount = searchParams.get('maxAmount');
         const sortField = searchParams.get('sortField') || 'transaction_date';
         const sortOrder = searchParams.get('sortOrder') || 'desc';
 
@@ -67,6 +69,12 @@ export async function GET(
         }
         if (endDate) {
             query = query.lte('transaction_date', endDate);
+        }
+        if (minAmount && !isNaN(parseFloat(minAmount))) {
+            query = query.gte('amount_total', parseFloat(minAmount));
+        }
+        if (maxAmount && !isNaN(parseFloat(maxAmount))) {
+            query = query.lte('amount_total', parseFloat(maxAmount));
         }
 
         // Apply sorting
