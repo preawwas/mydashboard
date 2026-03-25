@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     Calendar as CalendarIcon, Loader2, AlertCircle, X
 } from 'lucide-react';
@@ -8,6 +8,8 @@ import { Button, Input, Modal } from '@/components/ui';
 import { DbNote, DbNoteCategory } from '@/lib/supabase-types';
 import { apiClient } from '@/lib/api-client';
 import DynamicRichTextEditor from './DynamicRichTextEditor';
+import { MultiDatePicker } from '@/components/ui';
+import { cn } from '@/lib/utils';
 
 // Desired category display order
 const CATEGORY_ORDER = [
@@ -37,6 +39,24 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
     const [editorKey, setEditorKey] = useState(0);
     const [submitted, setSubmitted] = useState(false);
     const [isMultiDateMode, setIsMultiDateMode] = useState(false);
+    const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+    const datePickerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+                setIsDatePickerOpen(false);
+            }
+        };
+        if (isDatePickerOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        } else {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isDatePickerOpen]);
 
     useEffect(() => {
         if (isOpen) {
@@ -240,48 +260,65 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                                 </div>
                             )}
                         </div>
-                        <div className="relative">
-                            <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                            <Input
-                                type="date"
-                                value={note && !isClone ? tempDate : (isMultiDateMode ? '' : (dueDates[0] || ''))}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    if (note && !isClone) {
-                                        setTempDate(val);
-                                        setDueDates(val ? [val] : []);
-                                    } else {
-                                        if (isMultiDateMode) {
-                                            if (val && !dueDates.includes(val)) {
-                                                setDueDates([...dueDates, val].sort());
-                                            }
+                        {isMultiDateMode && !(note && !isClone) ? (
+                            <div className="relative" ref={datePickerRef}>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
+                                    className={cn(
+                                        "w-full h-12 px-4 flex items-center gap-3 rounded-xl border transition-all text-sm font-bold",
+                                        isDatePickerOpen ? "bg-primary/5 border-primary ring-2 ring-primary/20" : "bg-card/50 border-border/50 hover:border-primary/50",
+                                        dueDates.length > 0 ? "text-primary" : "text-muted-foreground"
+                                    )}
+                                >
+                                    <CalendarIcon className={cn("w-4 h-4", dueDates.length > 0 ? "text-primary" : "text-muted-foreground")} />
+                                    {dueDates.length > 0 ? `${dueDates.length} days selected` : "Select Dates"}
+                                    <div className="ml-auto bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[10px]">
+                                        {dueDates.length}
+                                    </div>
+                                </button>
+
+                                {isDatePickerOpen && (
+                                    <div className="absolute top-[calc(100%+8px)] right-0 w-[340px] z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                        <MultiDatePicker
+                                            selectedDates={dueDates}
+                                            onChange={setDueDates}
+                                            onDone={() => setIsDatePickerOpen(false)}
+                                            className="w-full shadow-2xl border-primary/20 bg-card backdrop-blur-xl"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="relative">
+                                <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <Input
+                                    type="date"
+                                    value={note && !isClone ? tempDate : (dueDates[0] || '')}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (note && !isClone) {
+                                            setTempDate(val);
+                                            setDueDates(val ? [val] : []);
                                         } else {
                                             setDueDates(val ? [val] : []);
                                         }
-                                        // Reset the input value temporarily to allow selecting the same date again if needed in multi mode
-                                        if (isMultiDateMode) e.target.value = '';
-                                    }
-                                }}
-                                className={`pl-12 h-12 bg-card/50 rounded-xl ${submitted && dueDates.length === 0 ? 'border-rose-500 focus:ring-rose-500/20' : 'border-border/50'} ${isMultiDateMode && dueDates.length > 0 ? 'text-transparent [&::-webkit-datetime-edit]:text-transparent selection:bg-transparent' : ''}`}
-                            />
-                            {/* Overlay text when multiple dates are selected in multi mode */}
-                            {!(note && !isClone) && isMultiDateMode && dueDates.length > 0 && (
-                                <div className="absolute left-12 top-1/2 -translate-y-1/2 pointer-events-none text-sm font-bold text-primary">
-                                    {dueDates.length} days selected
-                                </div>
-                            )}
-                        </div>
+                                    }}
+                                    className={`pl-12 h-12 bg-card/50 rounded-xl ${submitted && dueDates.length === 0 ? 'border-rose-500 focus:ring-rose-500/20' : 'border-border/50'}`}
+                                />
+                            </div>
+                        )}
                         {submitted && dueDates.length === 0 && (
                             <p className="text-xs text-rose-500 font-medium ml-1 mt-1 flex items-center gap-1">
                                 <AlertCircle className="w-3.5 h-3.5" />
-                                {note && !isClone ? 'Deadline is required' : 'Deadline is required'}
+                                Deadline is required
                             </p>
                         )}
                     </div>
                 </div>
 
-                {/* Selected Deadlines Chips - Full Width Horizontal Scroll */}
-                {!(note && !isClone) && isMultiDateMode && dueDates.length > 0 && (
+                {/* Selected Deadlines Chips - Only show in single mode or when not empty if we want extra visibility */}
+                {!(note && !isClone) && !isMultiDateMode && dueDates.length > 1 && (
                     <div className="space-y-2 bg-card/30 p-3 rounded-xl border border-border/50">
                         <div className="flex items-center justify-between px-1">
                             <label className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">

@@ -11,3 +11,4 @@ export { default as Toast } from './Toast';
 export { default as ErrorBoundary } from './ErrorBoundary';
 export { default as Skeleton, CardSkeleton, TableSkeleton, DashboardSkeleton } from './Skeleton';
 export { default as Pagination } from './Pagination';
+export { default as MultiDatePicker } from './MultiDatePicker';
