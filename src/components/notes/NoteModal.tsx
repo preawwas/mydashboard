@@ -253,7 +253,10 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setIsMultiDateMode(true)}
+                                        onClick={() => {
+                                            setIsMultiDateMode(true);
+                                            setIsDatePickerOpen(true);
+                                        }}
                                         className={`text-[10px] font-bold px-3 py-1 rounded-full transition-all ${isMultiDateMode ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                                     >
                                         Multi Days

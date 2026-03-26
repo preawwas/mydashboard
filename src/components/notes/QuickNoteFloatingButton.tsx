@@ -49,7 +49,7 @@ export default function QuickNoteFloatingButton() {
     };
 
     return (
-        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 z-[100] flex flex-col items-end">
+        <div className="fixed bottom-2 right-2 sm:bottom-3 sm:right-3 md:bottom-4 md:right-4 z-[100] flex flex-col items-end">
             {/* Note Modal */}
             {isModalOpen && (
                 <div 
@@ -88,13 +88,15 @@ export default function QuickNoteFloatingButton() {
             {/* Floating button */}
             <button 
                 onClick={() => setIsModalOpen(!isModalOpen)}
-                className="group flex items-center gap-3 bg-[#fbdbad] hover:bg-[#fcdca0] pl-5 pr-2 py-2 rounded-full shadow-[0_8px_24px_rgba(12,57,53,0.15)] transition-all duration-200 border-2 border-white/50"
+                className="group flex items-center bg-[#fbdbad] hover:bg-[#fcdca0] p-1.5 rounded-full shadow-[0_8px_24px_rgba(12,57,53,0.15)] transition-all duration-300 border-2 border-white/50"
             >
-                <span className="text-[10px] font-extrabold tracking-widest text-[#5c4a16] uppercase hidden sm:block">
-                    Quick Note
-                </span>
-                <div className="w-10 h-10 bg-[#0c3935] rounded-full flex items-center justify-center text-white shadow-sm transition-transform group-hover:scale-105">
+                <div className="w-10 h-10 bg-[#0c3935] rounded-full flex items-center justify-center shrink-0 text-white shadow-sm transition-transform duration-300 group-hover:scale-105">
                     <Plus className={`w-5 h-5 text-emerald-50 transition-transform duration-300 ${isModalOpen ? 'rotate-45' : ''}`} />
+                </div>
+                <div className="w-0 overflow-hidden opacity-0 group-hover:w-[72px] group-hover:opacity-100 transition-all duration-300 ease-out hidden sm:flex items-center">
+                    <span className="text-[10px] font-extrabold tracking-widest text-[#5c4a16] uppercase whitespace-nowrap pl-3 pr-2">
+                        Note
+                    </span>
                 </div>
             </button>
         </div>

@@ -81,7 +81,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         {
             key: 'market',
             header: 'MARKET',
-            className: 'hidden lg:table-cell',
+            className: 'whitespace-nowrap',
             render: (item: Investment) => (
                 <span className="text-[13px] font-semibold text-[#0D3B38]">{item.market || '—'}</span>
             ),
@@ -89,7 +89,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         {
             key: 'strategy',
             header: 'STRATEGY',
-            className: 'hidden xl:table-cell',
+            className: 'whitespace-nowrap',
             render: (item: Investment) => {
                 const style = getStrategyStyle(item.strategy_type);
                 return (
@@ -102,7 +102,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         {
             key: 'buy_price',
             header: 'BUY PRICE',
-            className: 'hidden sm:table-cell',
+            className: 'whitespace-nowrap',
             render: (item: Investment) => (
                 <div>
                     <p className="font-semibold text-[#0D3B38] text-[13px]">
@@ -115,7 +115,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         {
             key: 'total_cost',
             header: 'TOTAL COST',
-            className: 'hidden lg:table-cell',
+            className: 'whitespace-nowrap',
             render: (item: Investment) => {
                 const totalCost = item.buy_quantity * item.buy_price_per_unit;
                 return (
@@ -128,7 +128,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         {
             key: 'status',
             header: 'STATUS',
-            className: 'hidden sm:table-cell',
+            className: 'whitespace-nowrap',
             render: (item: Investment) => (
                 <div className="flex items-center gap-2">
                     <span className={`w-2.5 h-2.5 rounded-full ${item.status === 'OPEN' ? 'bg-[#10b981]' : 'bg-gray-400'}`} />
@@ -141,7 +141,7 @@ const InvestmentTable: React.FC<InvestmentTableProps> = ({
         {
             key: 'profit_loss',
             header: 'PROFIT/LOSS',
-            className: 'hidden md:table-cell',
+            className: 'whitespace-nowrap',
             render: (item: Investment) => {
                 if (item.status !== 'CLOSED') return <span className="text-gray-400 text-sm">—</span>;
 
