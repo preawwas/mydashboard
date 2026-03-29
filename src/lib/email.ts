@@ -52,7 +52,7 @@ function generateEmailTemplate(
         return `
             <tr>
                 <td style="padding: 12px; border-bottom: 1px solid #2E2C24;">
-                    <span style="color: #FAFAFA; font-weight: 500;">${item.itemName}${periodLabel}</span>
+                    <span style="color: #111827; font-weight: 500;">${item.itemName}${periodLabel}</span>
                 </td>
                 <td style="padding: 12px; border-bottom: 1px solid #2E2C24; text-align: right;">
                     <span style="color: #2E7D7F; font-weight: 600;">THB ${item.amount.toLocaleString()}</span>
@@ -175,14 +175,14 @@ function generateJourneyEmailTemplate(
         return `
             <tr>
                 <td style="padding: 16px; border-bottom: 1px solid #2E2C24;">
-                    <div style="color: #FAFAFA; font-weight: 600; font-size: 16px; margin-bottom: 4px;">${item.noteTitle}</div>
-                    <div style="color: #A1A1AA; font-size: 13px; line-height: 1.5;">${item.description || 'No description provided'}</div>
+                    <div style="color: #111827; font-weight: 600; font-size: 16px; margin-bottom: 4px;">${(item.noteTitle || '').trim() || 'Untitled Task'}</div>
+                    <div style="color: #6B7280; font-size: 13px; line-height: 1.5;">${item.description || 'No description provided'}</div>
                 </td>
                 <td style="padding: 16px; border-bottom: 1px solid #2E2C24; text-align: right; vertical-align: top;">
                     <div style="display: inline-block; padding: 4px 8px; border-radius: 4px; background-color: #3B82F61A; color: #60A5FA; font-size: 11px; font-weight: 600; margin-bottom: 4px;">
                         ${item.status}
                     </div>
-                    <div style="color: #A1A1AA; font-size: 12px;">Due: ${item.dueDate}</div>
+                    <div style="color: #6B7280; font-size: 12px;">Due: ${item.dueDate}</div>
                 </td>
             </tr>
         `;
@@ -284,6 +284,25 @@ function generateUnifiedEmailTemplate(
     const month = now.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
     
     const expenseTotal = data.expenses.reduce((sum, item) => sum + item.amount, 0);
+    const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+    // Compare dates as calendar days to avoid timezone drift in overdue calculations.
+    const toDayNumber = (dateStr: string): number | null => {
+        const normalized = dateStr.split('T')[0];
+        const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match) {
+            return null;
+        }
+
+        const year = Number(match[1]);
+        const month = Number(match[2]) - 1;
+        const dayOfMonth = Number(match[3]);
+
+        return Math.floor(Date.UTC(year, month, dayOfMonth) / DAY_IN_MS);
+    };
+
+    const bangkokToday = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' });
+    const todayDayNumber = toDayNumber(bangkokToday);
     
     const expensesHtml = data.expenses.length > 0 ? `
         <!-- Expenses Section -->
@@ -308,8 +327,8 @@ function generateUnifiedEmailTemplate(
                         ${data.expenses.map(item => `
                             <tr>
                                 <td style="padding: 12px; border-bottom: 1px solid #2E2C24;">
-                                    <div style="color: #FAFAFA; font-weight: 500; font-size: 14px;">${item.itemName}${item.type === 'INSTALLMENT' ? ` <span style="color: #71717A; font-size: 12px;">(${item.periodNumber}/${item.totalPeriods})</span>` : ''}</div>
-                                    <div style="color: #71717A; font-size: 11px;">Due: ${item.date}</div>
+                                    <div style="color: #111827; font-weight: 500; font-size: 14px;">${item.itemName}${item.type === 'INSTALLMENT' ? ` <span style="color: #6B7280; font-size: 12px;">(${item.periodNumber}/${item.totalPeriods})</span>` : ''}</div>
+                                    <div style="color: #6B7280; font-size: 11px;">Due: ${item.date}</div>
                                 </td>
                                 <td style="padding: 12px; border-bottom: 1px solid #2E2C24; text-align: right;">
                                     <span style="color: #2E7D7F; font-weight: 600;">THB ${item.amount.toLocaleString()}</span>
@@ -340,18 +359,32 @@ function generateUnifiedEmailTemplate(
                 <table style="width: 100%; border-collapse: collapse;">
                     <tbody>
                         ${data.journey.map(item => {
-                            const isToday = item.dueDate === new Date().toISOString().split('T')[0];
-                            const dueLabel = isToday ? 'Today' : item.dueDate;
-                            const labelColor = isToday ? '#60A5FA' : '#EF4444'; // Red for overdue
-                            const bgColor = isToday ? '#3B82F61A' : '#EF44441A';
+                            const dueDayNumber = toDayNumber(item.dueDate);
+                            const diffDays = (todayDayNumber !== null && dueDayNumber !== null)
+                                ? todayDayNumber - dueDayNumber
+                                : 0;
+
+                            const isToday = diffDays === 0;
+                            const isOverdue = diffDays > 0;
+
+                            const dueLabel = (todayDayNumber !== null && dueDayNumber !== null)
+                                ? (isToday
+                                    ? 'Today'
+                                    : isOverdue
+                                        ? `${diffDays} day${diffDays === 1 ? '' : 's'} overdue`
+                                        : item.dueDate)
+                                : item.dueDate;
+
+                            const labelColor = isToday ? '#60A5FA' : (isOverdue ? '#EF4444' : '#6B7280');
+                            const bgColor = isToday ? '#3B82F61A' : (isOverdue ? '#EF44441A' : '#6B72801A');
 
                             return `
                                 <tr>
                                     <td style="padding: 16px; border-bottom: 1px solid #2E2C24;">
-                                        <div style="color: #FAFAFA; font-weight: 600; font-size: 15px; margin-bottom: 8px;">${item.noteTitle}</div>
+                                        <div style="color: #111827; font-weight: 600; font-size: 15px; margin-bottom: 8px;">${(item.noteTitle || '').trim() || 'Untitled Task'}</div>
                                         <div>
                                             <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; background-color: ${bgColor}; color: ${labelColor}; font-size: 10px; font-weight: 700; text-transform: uppercase;">${item.status}</span>
-                                            <span style="color: ${isToday ? '#71717A' : '#EF4444'}; font-size: 11px; margin-left: 8px;">Due: ${dueLabel}</span>
+                                            <span style="color: ${isOverdue ? '#EF4444' : '#6B7280'}; font-size: 11px; margin-left: 8px;">Due: ${dueLabel}</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -379,7 +412,7 @@ function generateUnifiedEmailTemplate(
         <div style="background: linear-gradient(135deg, #1C1B16 0%, #0F0F0C 100%); border-radius: 20px; padding: 32px 24px; margin-bottom: 32px; border: 1px solid #2E2C24; text-align: center;">
             <div style="width: 60px; height: 64px; background-color: #FAFAFA; border-radius: 12px; overflow: hidden; margin: 0 auto 20px auto; border: 1px solid #2E2C24;">
                 <div style="background-color: #EF4444; color: #FAFAFA; font-size: 11px; font-weight: 900; padding: 4px 0; text-transform: uppercase; letter-spacing: 1px;">${month}</div>
-                <div style="color: #FFFFFF; font-size: 28px; font-weight: 800; padding-top: 6px;">${day}</div>
+                <div style="color: #111827; font-size: 28px; font-weight: 800; padding-top: 6px;">${day}</div>
             </div>
             <h1 style="color: #FAFAFA; margin: 0 0 8px 0; font-size: 28px; font-weight: 800; letter-spacing: -0.02em;">Daily Summary</h1>
             <p style="color: #A1A1AA; margin: 0; font-size: 15px; line-height: 1.5;">

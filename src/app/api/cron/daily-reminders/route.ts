@@ -125,12 +125,29 @@ export async function GET(request: NextRequest) {
             }
 
             const taskItems: JourneyReminderItem[] = (notes || [])
-                .map(note => ({
-                    noteTitle: note.title,
-                    description: note.content || '',
-                    dueDate: (note as any).reminders[0]?.due_date || today,
-                    status: note.status
-                }))
+                .map(note => {
+                    const rawReminders = (note as any).reminders;
+                    const reminders = Array.isArray(rawReminders)
+                        ? rawReminders
+                        : rawReminders
+                            ? [rawReminders]
+                            : [];
+                    const normalizedDueDates = reminders
+                        .map(r => (r?.due_date || '').split('T')[0])
+                        .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
+
+                    // Pick the oldest pending due date so overdue day count is accurate.
+                    const earliestDueDate = normalizedDueDates.length > 0
+                        ? normalizedDueDates.sort((a, b) => a.localeCompare(b))[0]
+                        : today;
+
+                    return {
+                        noteTitle: note.title,
+                        description: note.content || '',
+                        dueDate: earliestDueDate,
+                        status: note.status
+                    };
+                })
                 .sort((a, b) => a.dueDate.localeCompare(b.dueDate)); // Sort by due date (overdue first)
 
             if (taskItems.length > 0) {
