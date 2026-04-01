@@ -59,10 +59,20 @@ export default function MonthlyRemindersCard({
                     <div className="space-y-0 max-h-[220px] sm:max-h-[260px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
                         {pendingExpenses.map((exp, idx) => {
                             let progressText = "";
+                            let displayDueDate = exp.transaction_date;
+                            
                             if (exp.payment_type === 'INSTALLMENT' && exp.expense_installments) {
                                 const total = exp.expense_installments.length;
                                 const paid = exp.expense_installments.filter((i: any) => i.status === 'PAID').length;
                                 progressText = ` (${paid}/${total})`;
+                                
+                                // Find the next pending installment's due_date
+                                const nextPending = [...exp.expense_installments]
+                                    .sort((a: any, b: any) => (a.period_number || 0) - (b.period_number || 0))
+                                    .find((i: any) => i.status === 'PENDING');
+                                if (nextPending?.due_date) {
+                                    displayDueDate = nextPending.due_date;
+                                }
                             }
 
                             return (
@@ -76,7 +86,7 @@ export default function MonthlyRemindersCard({
                                             {exp.item_name}{progressText}
                                         </span>
                                         <span className="text-[11px] shrink-0 tracking-wide text-[#f59e0b] font-bold">
-                                            DUE {formatDate(exp.transaction_date)}
+                                            DUE {formatDate(displayDueDate)}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2 sm:gap-3 ml-2 sm:ml-4 shrink-0">

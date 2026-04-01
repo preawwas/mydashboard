@@ -66,7 +66,7 @@ export const POST = withAuth(async (request: NextRequest, user: AuthUser) => {
 
             for (let i = 1; i <= periods; i++) {
                 const dueDate = new Date(startDate);
-                dueDate.setMonth(dueDate.getMonth() + (i - 1));
+                dueDate.setMonth(dueDate.getMonth() + i);
 
                 installments.push({
                     user_id: user.id,

@@ -4,7 +4,8 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent, DashboardSkeleton } from '@/components/ui';
 import {
     TrendingUp, TrendingDown, Wallet, PiggyBank, Plus,
-    ArrowUpRight, ArrowDownRight, ExternalLink, Sparkles, BookOpen, Receipt, Utensils
+    ArrowUpRight, ArrowDownRight, ExternalLink, Sparkles, BookOpen, Receipt, Utensils,
+    Eye, EyeOff
 } from 'lucide-react';
 import {
     ResponsiveContainer, PieChart, Pie, Cell,
@@ -109,6 +110,11 @@ function PortfolioValueCard({ value, trend, trendLabel }: PortfolioValueCardProp
     const isPositive = trend >= 0;
     const { user } = useAuthStore();
     const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
+    const [showValue, setShowValue] = React.useState(false);
+    
+    const hiddenValue = value.replace(/[0-9]/g, 'X');
+    const trendString = `${isPositive ? '+' : '-'}${formatCurrency(Math.abs(trend))} (${trendLabel})`;
+    const hiddenTrendString = trendString.replace(/[0-9]/g, 'X');
     
     return (
         <div 
@@ -122,17 +128,26 @@ function PortfolioValueCard({ value, trend, trendLabel }: PortfolioValueCardProp
             />
             
             <div className="relative z-10 flex flex-col items-start gap-1">
-                <p className="text-[10px] tracking-widest font-semibold text-emerald-50/70 uppercase mb-2">
-                    Aggregate Portfolio Value
-                </p>
+                <div className="flex items-center gap-2 mb-2">
+                    <p className="text-[10px] tracking-widest font-semibold text-emerald-50/70 uppercase">
+                        Aggregate Portfolio Value
+                    </p>
+                    <button 
+                        onClick={() => setShowValue(!showValue)}
+                        className="text-emerald-50/70 hover:text-white transition-colors focus:outline-none"
+                        aria-label={showValue ? "Hide value" : "Show value"}
+                    >
+                        {showValue ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                </div>
                 <h2 className="text-[40px] lg:text-[46px] font-extrabold text-white tracking-tight drop-shadow-sm mb-4">
-                    {value}
+                    {showValue ? value : hiddenValue}
                 </h2>
                 
                 <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/10 text-white text-xs font-semibold rounded-full border border-white/15 backdrop-blur-md shadow-sm">
                     {isPositive ? <TrendingUp className="w-3 h-3 text-emerald-300" /> : <TrendingDown className="w-3 h-3 text-rose-300" />}
                     <span className="tracking-wide text-white">
-                        {isPositive ? '+' : '-'}{formatCurrency(Math.abs(trend))} ({trendLabel})
+                        {showValue ? trendString : hiddenTrendString}
                     </span>
                 </div>
             </div>
@@ -156,7 +171,8 @@ function PortfolioValueCard({ value, trend, trendLabel }: PortfolioValueCardProp
 function AssetAllocationCard({ allocation }: { allocation: any[] }) {
     // Hide text if there are more than 2 items to ensure everything fits the space nicely
     const showText = allocation.length <= 2;
-    const displayAssets = allocation.slice(0, 4);
+    const sortedAllocation = [...allocation].sort((a, b) => b.percentage - a.percentage);
+    const displayAssets = sortedAllocation.slice(0, 4);
 
     return (
         <div className="bg-white rounded-[30px] p-7 shadow-sm border border-border/40 h-full flex flex-col justify-between">
@@ -327,11 +343,13 @@ function TopSpendingNarrative({ categories }: { categories: any[] }) {
 
 function InvestmentSummaryTable({ allocation, totalValue }: { allocation: any[], totalValue: number }) {
     const defaultData = [
-        { name: 'Gold Bullion (XAU)', weight: 100, value: 142850, status: 'LOCKED' }
+        { name: 'Gold Bullion (XAU)', weight: 100, value: 142850 }
     ];
     const data = allocation?.length > 0 ? allocation.map(a => ({
-        name: a.category, weight: a.percentage.toFixed(1), value: a.value, status: 'LOCKED'
+        name: a.category, weight: a.percentage.toFixed(1), value: a.value
     })) : defaultData;
+    
+    const sortedData = [...data].sort((a, b) => b.value - a.value);
 
     return (
         <div className="bg-[#fcfdfc] rounded-[30px] p-8 shadow-sm border border-transparent h-full">
@@ -347,13 +365,12 @@ function InvestmentSummaryTable({ allocation, totalValue }: { allocation: any[],
                     <thead>
                         <tr className="border-b border-gray-100">
                             <th className="pb-4 text-[9px] font-bold tracking-widest text-[#a1a1aa] uppercase w-[40%]">Asset Identity</th>
-                            <th className="pb-4 text-[9px] font-bold tracking-widest text-[#a1a1aa] uppercase w-[20%]">Weight</th>
-                            <th className="pb-4 text-[9px] font-bold tracking-widest text-[#a1a1aa] uppercase w-[20%]">Current Value</th>
-                            <th className="pb-4 text-[9px] font-bold tracking-widest text-[#a1a1aa] uppercase w-[20%] text-right">Status</th>
+                            <th className="pb-4 text-[9px] font-bold tracking-widest text-[#a1a1aa] uppercase w-[30%]">Weight</th>
+                            <th className="pb-4 text-[9px] font-bold tracking-widest text-[#a1a1aa] uppercase w-[30%]">Current Value</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {data.slice(0, 3).map((item, idx) => (
+                        {sortedData.slice(0, 3).map((item, idx) => (
                             <tr key={idx} className="group">
                                 <td className="py-4 border-b border-gray-50 last:border-0">
                                     <div className="flex items-center gap-3">
@@ -365,11 +382,6 @@ function InvestmentSummaryTable({ allocation, totalValue }: { allocation: any[],
                                 </td>
                                 <td className="py-4 border-b border-gray-50 last:border-0 text-xs font-semibold text-[#71717a]">{item.weight}%</td>
                                 <td className="py-4 border-b border-gray-50 last:border-0 text-sm font-extrabold text-[#0D3B38]">{formatCurrency(item.value)}</td>
-                                <td className="py-4 border-b border-gray-50 last:border-0 text-right">
-                                    <span className={`inline-flex items-center px-2.5 py-1 rounded text-[9px] font-extrabold tracking-widest uppercase ${item.status === 'LOCKED' ? 'bg-[#ccfbf1]/60 text-[#0f766e]' : 'bg-[#e0e7ff] text-[#3730a3]'}`}>
-                                        {item.status}
-                                    </span>
-                                </td>
                             </tr>
                         ))}
                     </tbody>

@@ -14,7 +14,7 @@ export interface Expense {
     payment_type: 'FULL' | 'INSTALLMENT';
     categories?: { name: string };
     payment_channels?: { name: string };
-    expense_installments?: { status: string }[];
+    expense_installments?: { status: string; due_date?: string; period_number?: number }[];
 }
 
 export interface ExpenseFilters {

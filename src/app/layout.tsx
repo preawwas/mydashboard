@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { Libre_Bodoni, Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import ValentineTheme from "@/components/ValentineTheme";
@@ -17,9 +17,13 @@ const notoSansThai = Noto_Sans_Thai({
 });
 
 export const metadata: Metadata = {
-  title: "Pwsnboard - Personal Management",
-  description: "Personal Management System",
+  title: "The Fluffy-ty",
+  description: "The Fluffy-ty - Personal Management",
   manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 
 export const viewport = {

@@ -2,10 +2,17 @@
 
 import React from 'react';
 import { Investment } from '@/types';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { formatCurrency } from '@/lib/utils';
 
+const CATEGORY_COLORS: Record<string, string> = {
+    GOLD: '#344C4B',   // Teal
+    STOCK: '#E5765C',  // Coral
+    FUND: '#8CBEBF',   // Turquoise
+    CRYPTO: '#A8AB79', // Darker Spring for better visibility (was #DFE0C3)
+    OTHER: '#6b7280'
+};
 interface InvestmentOverviewProps {
     investments: Investment[];
     summaryData: any;
@@ -64,8 +71,12 @@ export default function InvestmentOverview({ investments, summaryData, allocatio
                                 {formatCurrency(Math.floor(summaryData?.totalValue || 0)).replace('.00', '')}
                             </h2>
                             <div className="flex items-center gap-1.5 mb-2">
-                                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#2b7a71]" strokeWidth={3} />
-                                <span className="text-sm sm:text-base font-extrabold text-[#2b7a71]">
+                                {(summaryData?.profitLossPercentage || 0) >= 0 ? (
+                                    <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#2b7a71]" strokeWidth={3} />
+                                ) : (
+                                    <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-[#ef4444]" strokeWidth={3} />
+                                )}
+                                <span className={`text-sm sm:text-base font-extrabold ${(summaryData?.profitLossPercentage || 0) >= 0 ? 'text-[#2b7a71]' : 'text-[#ef4444]'}`}>
                                     {summaryData?.profitLossPercentage > 0 ? '+' : ''}{(summaryData?.profitLossPercentage || 0).toFixed(1)}%
                                 </span>
                             </div>
@@ -106,16 +117,9 @@ export default function InvestmentOverview({ investments, summaryData, allocatio
                                         dataKey="percentage"
                                         stroke="none"
                                     >
-                                        {allocationData.map((entry, index) => {
-                                            const categoryColorMap: Record<string, string> = {
-                                                GOLD: '#163e55',   // dark blue/teal
-                                                STOCK: '#85664c',  // brown/bronze
-                                                FUND: '#3b82f6',
-                                                CRYPTO: '#10b981',
-                                                OTHER: '#6b7280'
-                                            };
-                                            return <Cell key={`cell-${index}`} fill={categoryColorMap[entry.category?.toUpperCase() || 'OTHER'] || '#6b7280'} />;
-                                        })}
+                                        {allocationData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[entry.category?.toUpperCase() || 'OTHER'] || '#6b7280'} />
+                                        ))}
                                     </Pie>
                                 </PieChart>
                             </ResponsiveContainer>
@@ -126,7 +130,10 @@ export default function InvestmentOverview({ investments, summaryData, allocatio
                                     const topAsset = [...allocationData].sort((a, b) => b.percentage - a.percentage)[0];
                                     return topAsset ? (
                                         <>
-                                            <span className="text-[22px] sm:text-[24px] font-extrabold text-[#163e55] leading-none mb-1 tracking-tight">
+                                            <span 
+                                                className="text-[22px] sm:text-[24px] font-extrabold leading-none mb-1 tracking-tight"
+                                                style={{ color: CATEGORY_COLORS[topAsset.category?.toUpperCase() || 'OTHER'] || '#344C4B' }}
+                                            >
                                                 {(topAsset.percentage || 0).toFixed(1)}%
                                             </span>
                                             <span className="text-[8px] font-extrabold tracking-widest text-[#4b5563] uppercase">
@@ -147,20 +154,13 @@ export default function InvestmentOverview({ investments, summaryData, allocatio
                     {allocationData && allocationData.length > 0 && (
                         <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 mt-4 pt-1">
                             {[...allocationData].sort((a, b) => b.percentage - a.percentage).slice(0, 4).map((asset, idx) => {
-                                const categoryColorMap: Record<string, string> = {
-                                    GOLD: '#163e55',
-                                    STOCK: '#85664c',
-                                    FUND: '#3b82f6',
-                                    CRYPTO: '#10b981',
-                                    OTHER: '#6b7280'
-                                };
-                                const color = categoryColorMap[asset.category?.toUpperCase() || 'OTHER'] || '#6b7280';
+                                const color = CATEGORY_COLORS[asset.category?.toUpperCase() || 'OTHER'] || '#6b7280';
                                 
                                 return (
                                     <div key={idx} className="flex items-center gap-2.5">
                                         <div className="w-[9px] h-[9px] rounded-full shrink-0" style={{ backgroundColor: color }} />
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] font-extrabold text-[#163e55] leading-[1.2] uppercase tracking-wide">{asset.category}</span>
+                                            <span className="text-[10px] font-extrabold leading-[1.2] uppercase tracking-wide" style={{ color }}>{asset.category}</span>
                                             <span className="text-[10px] font-extrabold text-[#4b5563] leading-[1.2]">({asset.percentage.toFixed(2)}%)</span>
                                         </div>
                                     </div>
@@ -179,10 +179,10 @@ export default function InvestmentOverview({ investments, summaryData, allocatio
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr>
-                                    <th className="pb-4 text-[9px] font-extrabold tracking-widest text-[#a1a1aa] uppercase pl-2">Asset Name</th>
-                                    <th className="pb-4 text-[9px] font-extrabold tracking-widest text-[#a1a1aa] uppercase text-right">Qty</th>
-                                    <th className="pb-4 text-[9px] font-extrabold tracking-widest text-[#a1a1aa] uppercase text-center">Category</th>
-                                    <th className="pb-4 text-[9px] font-extrabold tracking-widest text-[#a1a1aa] uppercase text-right pr-2">Date</th>
+                                    <th className="pb-4 text-[9px] font-bold tracking-widest text-[#a1a1aa] uppercase pl-2">Asset Name</th>
+                                    <th className="pb-4 text-[9px] font-bold tracking-widest text-[#a1a1aa] uppercase text-right">Qty</th>
+                                    <th className="pb-4 text-[9px] font-bold tracking-widest text-[#a1a1aa] uppercase text-center">Category</th>
+                                    <th className="pb-4 text-[9px] font-bold tracking-widest text-[#a1a1aa] uppercase text-right pr-2">Date</th>
                                 </tr>
                             </thead>
                             <tbody>

@@ -31,11 +31,24 @@ interface ExtendedNote extends DbNote {
 // Column order: New first, then In Progress
 const STATUS_COLUMNS = ['New', 'In Progress', 'Urgent', 'Done'];
 const statusStyles: Record<string, { bg: string; text: string; border: string; dot: string; countBg: string; pillBg: string; ring: string }> = {
-    'New': { bg: 'bg-[#FFF8D6]/10', text: 'text-[#6B4E0F]', border: 'border-[#6B4E0F]/15 border-t-[#6B4E0F]/30', dot: 'bg-[#6B4E0F]', countBg: 'bg-white ring-1 ring-[#6B4E0F]/20', pillBg: 'bg-[#FFF8D6]/30', ring: 'ring-[#6B4E0F]/20' },
-    'In Progress': { bg: 'bg-indigo-500/5', text: 'text-indigo-700', border: 'border-indigo-500/15 border-t-indigo-500/30', dot: 'bg-indigo-600', countBg: 'bg-white ring-1 ring-indigo-500/20', pillBg: 'bg-indigo-500/10', ring: 'ring-indigo-500/20' },
-    'Urgent': { bg: 'bg-rose-500/5', text: 'text-rose-700', border: 'border-rose-500/15 border-t-rose-500/30', dot: 'bg-rose-600', countBg: 'bg-white ring-1 ring-rose-500/20', pillBg: 'bg-rose-500/10', ring: 'ring-rose-500/20' },
-    'Done': { bg: 'bg-emerald-500/5', text: 'text-emerald-700', border: 'border-emerald-500/15 border-t-emerald-500/30', dot: 'bg-emerald-600', countBg: 'bg-white ring-1 ring-emerald-500/20', pillBg: 'bg-emerald-500/10', ring: 'ring-emerald-500/20' },
+    'New':         { bg: 'bg-[#f0f9f8]', text: 'text-[#0D3B38]', border: 'border-[#0D3B38]/15 border-t-[#0D3B38]/40', dot: 'bg-[#f59e0b]',   countBg: 'bg-white ring-1 ring-[#0D3B38]/20', pillBg: 'bg-[#0D3B38]/8',  ring: 'ring-[#0D3B38]/20' },
+    'In Progress': { bg: 'bg-[#f0f9f8]', text: 'text-[#0D3B38]', border: 'border-[#0D3B38]/15 border-t-[#0D3B38]/40', dot: 'bg-[#2b7a71]',   countBg: 'bg-white ring-1 ring-[#0D3B38]/20', pillBg: 'bg-[#0D3B38]/8',  ring: 'ring-[#0D3B38]/20' },
+    'Urgent':      { bg: 'bg-[#f0f9f8]', text: 'text-[#0D3B38]', border: 'border-[#0D3B38]/15 border-t-[#0D3B38]/40', dot: 'bg-rose-500',    countBg: 'bg-white ring-1 ring-[#0D3B38]/20', pillBg: 'bg-[#0D3B38]/8',  ring: 'ring-[#0D3B38]/20' },
+    'Done':        { bg: 'bg-[#f0f9f8]', text: 'text-[#0D3B38]', border: 'border-[#0D3B38]/15 border-t-[#0D3B38]/40', dot: 'bg-[#0D3B38]',   countBg: 'bg-white ring-1 ring-[#0D3B38]/20', pillBg: 'bg-[#0D3B38]/8',  ring: 'ring-[#0D3B38]/20' },
 };
+
+// Palette assigned to categories (round-robin by sort order)
+const CATEGORY_PALETTE = [
+    { base: '#12275c', bg: '#e8ecf5', text: '#12275c', border: '#12275c40', countBg: '#12275c20' },
+    { base: '#7a9bb5', bg: '#dce8f0', text: '#2d5a7a', border: '#abc5d440', countBg: '#abc5d430' },
+    { base: '#5a8a6e', bg: '#daeee4', text: '#2e6147', border: '#bcd5c740', countBg: '#bcd5c730' },
+    { base: '#6b7e4a', bg: '#e5ecda', text: '#4a5930', border: '#8b9d6b40', countBg: '#8b9d6b30' },
+    { base: '#d47a00', bg: '#fff0d9', text: '#9a5500', border: '#ffa64640', countBg: '#ffa64630' },
+    { base: '#b06060', bg: '#fce8e8', text: '#8a3c3c', border: '#f1a8a840', countBg: '#f1a8a830' },
+    { base: '#7a4e78', bg: '#eedde9', text: '#5c2e5a', border: '#9e6c8c40', countBg: '#9e6c8c30' },
+];
+
+const getCategoryColor = (index: number) => CATEGORY_PALETTE[index % CATEGORY_PALETTE.length];
 
 function getDaysRemainingText(dueDate: string, status?: string, updatedAt?: string): { text: string; isOverdue: boolean; isDueToday?: boolean } {
     const now = new Date();
@@ -610,10 +623,11 @@ const NoteDashboard: React.FC = () => {
 
             {/* Category Tabs - Draggable */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {orderedCategories.map(cat => {
+                {orderedCategories.map((cat, catIdx) => {
                     const count = getCategoryCount(cat.note_category_id);
                     const isSelected = selectedCategoryIds.includes(cat.note_category_id);
                     const isDragOverCat = dragOverCatId === cat.note_category_id;
+                    const catColor = getCategoryColor(catIdx);
                     return (
                         <button
                             key={cat.note_category_id}
@@ -624,16 +638,22 @@ const NoteDashboard: React.FC = () => {
                             onDrop={(e) => handleCatDrop(e, cat.note_category_id)}
                             onClick={() => toggleCategorySelection(cat.note_category_id)}
                             className={cn(
-                                'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap border cursor-grab active:cursor-grabbing',
-                                isSelected
-                                    ? 'bg-primary/10 text-primary border-primary/20 shadow-sm'
-                                    : 'bg-card/50 text-muted-foreground border-border/50 hover:border-primary/20 hover:text-foreground',
-                                isDragOverCat && 'ring-2 ring-primary/30 scale-105'
+                                'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap border-2 cursor-grab active:cursor-grabbing shadow-sm',
+                                isDragOverCat && 'ring-2 ring-offset-1 scale-105'
                             )}
+                            style={{
+                                backgroundColor: isSelected ? catColor.bg : `${catColor.bg}80`,
+                                borderColor: isSelected ? catColor.bg : `${catColor.bg}80`,
+                                color: catColor.text,
+                                boxShadow: isSelected ? `0 2px 8px ${catColor.base}30` : undefined,
+                            }}
                         >
                             <span className="text-base">{cat.icon || '\u{1F4DD}'}</span>
                             <span>{cat.name}</span>
-                            <span className={cn('ml-1 px-2 py-0.5 rounded-full text-[10px] font-black', isSelected ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground')}>
+                            <span
+                                className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-black"
+                                style={{ backgroundColor: catColor.countBg, color: catColor.text }}
+                            >
                                 {count}
                             </span>
                         </button>
@@ -716,6 +736,9 @@ const NoteDashboard: React.FC = () => {
                                         {columnNotes.map(note => {
                                             const reminderData = Array.isArray(note.reminders) ? note.reminders[0] : note.reminders;
                                             const deadline = reminderData ? getDaysRemainingText(reminderData.due_date, note.status, note.updated_at) : null;
+                                            // Find category color for this note
+                                            const noteCatIdx = orderedCategories.findIndex(c => c.note_category_id === note.note_category_id);
+                                            const noteColor = noteCatIdx >= 0 ? getCategoryColor(noteCatIdx) : null;
                                             return (
                                                 <React.Fragment key={note.note_id}>
                                                     {/* Drop indicator */}
@@ -729,9 +752,13 @@ const NoteDashboard: React.FC = () => {
                                                         onDragOver={(e) => handleCardDragOver(e, note.note_id, status)}
                                                         onClick={() => handleOpenEdit(note)}
                                                         className={cn(
-                                                            "group bg-card border border-border/50 rounded-xl p-4 cursor-grab active:cursor-grabbing hover:border-primary/30 shadow-[0_2px_8px_-3px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.1)] transition-all duration-300",
+                                                            "group border rounded-xl p-4 cursor-grab active:cursor-grabbing shadow-[0_2px_8px_-3px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.12)] transition-all duration-300",
                                                             draggedNote?.note_id === note.note_id && "opacity-40 scale-95"
                                                         )}
+                                                        style={noteColor ? {
+                                                            backgroundColor: noteColor.bg,
+                                                            borderColor: noteColor.bg,
+                                                        } : { backgroundColor: 'var(--card)', borderColor: 'var(--card)' }}
                                                     >
                                                         <div className="flex items-start gap-2.5">
                                                             <GripVertical className="w-3.5 h-3.5 text-muted-foreground/30 mt-0.5 shrink-0 group-hover:text-muted-foreground transition-colors" />

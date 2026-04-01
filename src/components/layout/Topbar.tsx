@@ -64,6 +64,13 @@ const Topbar: React.FC = () => {
 
                 </div>
 
+                {/* Center — Motivational Quote */}
+                <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center pointer-events-none select-none">
+                    <p className="text-[10px] lg:text-xs xl:text-sm font-medium text-muted-foreground/70 italic tracking-wide text-center whitespace-nowrap">
+                        Don&apos;t wait for the perfect map; just start walking and create your own.
+                    </p>
+                </div>
+
                 {/* Right Section */}
                 <div className="flex items-center gap-3">
 
