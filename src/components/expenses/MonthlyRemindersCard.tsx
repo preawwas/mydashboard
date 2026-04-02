@@ -64,7 +64,8 @@ export default function MonthlyRemindersCard({
                             if (exp.payment_type === 'INSTALLMENT' && exp.expense_installments) {
                                 const total = exp.expense_installments.length;
                                 const paid = exp.expense_installments.filter((i: any) => i.status === 'PAID').length;
-                                progressText = ` (${paid}/${total})`;
+                                const remaining = total - paid;
+                                progressText = ` (${remaining}/${total})`;
                                 
                                 // Find the next pending installment's due_date
                                 const nextPending = [...exp.expense_installments]

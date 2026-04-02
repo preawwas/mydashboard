@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import {
@@ -242,14 +242,14 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                 setFormData({
                     itemName: exp.item_name,
                     amount: exp.amount_total.toString(),
-                    paymentChannelId: exp.payment_channel_id.toString(),
-                    paymentType: exp.payment_type,
+                    paymentChannelId: exp.payment_channel_id?.toString() || '',
+                    paymentType: (exp.expense_installments && exp.expense_installments.length > 0) ? 'INSTALLMENT' : (exp.payment_type?.toUpperCase() || 'FULL'),
                     installmentPeriods: exp.expense_installments?.length.toString() || '',
-                    necessity: exp.necessity,
+                    necessity: exp.necessity || 'NEED',
                     note: exp.note || '',
-                    status: exp.status,
-                    transactionDate: exp.transaction_date.split('T')[0],
-                    categoryId: exp.category_id.toString(),
+                    status: exp.status || 'PAID',
+                    transactionDate: exp.transaction_date ? exp.transaction_date.split('T')[0] : new Date().toLocaleDateString('sv-SE'),
+                    categoryId: exp.category_id?.toString() || '',
                     duration: '1'
                 });
                 if (exp.expense_installments) {

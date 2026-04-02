@@ -110,7 +110,7 @@ function PortfolioValueCard({ value, trend, trendLabel }: PortfolioValueCardProp
     const isPositive = trend >= 0;
     const { user } = useAuthStore();
     const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
-    const [showValue, setShowValue] = React.useState(false);
+    const [showValue, setShowValue] = React.useState(true);
     
     const hiddenValue = value.replace(/[0-9]/g, 'X');
     const trendString = `${isPositive ? '+' : '-'}${formatCurrency(Math.abs(trend))} (${trendLabel})`;
@@ -137,7 +137,7 @@ function PortfolioValueCard({ value, trend, trendLabel }: PortfolioValueCardProp
                         className="text-emerald-50/70 hover:text-white transition-colors focus:outline-none"
                         aria-label={showValue ? "Hide value" : "Show value"}
                     >
-                        {showValue ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        {showValue ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                     </button>
                 </div>
                 <h2 className="text-[40px] lg:text-[46px] font-extrabold text-white tracking-tight drop-shadow-sm mb-4">

@@ -32,7 +32,7 @@ interface ExtendedNote extends DbNote {
 const STATUS_COLUMNS = ['New', 'In Progress', 'Urgent', 'Done'];
 const statusStyles: Record<string, { bg: string; text: string; border: string; dot: string; countBg: string; pillBg: string; ring: string }> = {
     'New':         { bg: 'bg-[#f0f9f8]', text: 'text-[#0D3B38]', border: 'border-[#0D3B38]/15 border-t-[#0D3B38]/40', dot: 'bg-[#f59e0b]',   countBg: 'bg-white ring-1 ring-[#0D3B38]/20', pillBg: 'bg-[#0D3B38]/8',  ring: 'ring-[#0D3B38]/20' },
-    'In Progress': { bg: 'bg-[#f0f9f8]', text: 'text-[#0D3B38]', border: 'border-[#0D3B38]/15 border-t-[#0D3B38]/40', dot: 'bg-[#2b7a71]',   countBg: 'bg-white ring-1 ring-[#0D3B38]/20', pillBg: 'bg-[#0D3B38]/8',  ring: 'ring-[#0D3B38]/20' },
+    'In Progress': { bg: 'bg-[#f0f9f8]', text: 'text-[#0D3B38]', border: 'border-[#0D3B38]/15 border-t-[#0D3B38]/40', dot: 'bg-[#3B82F6]',   countBg: 'bg-white ring-1 ring-[#0D3B38]/20', pillBg: 'bg-[#0D3B38]/8',  ring: 'ring-[#0D3B38]/20' },
     'Urgent':      { bg: 'bg-[#f0f9f8]', text: 'text-[#0D3B38]', border: 'border-[#0D3B38]/15 border-t-[#0D3B38]/40', dot: 'bg-rose-500',    countBg: 'bg-white ring-1 ring-[#0D3B38]/20', pillBg: 'bg-[#0D3B38]/8',  ring: 'ring-[#0D3B38]/20' },
     'Done':        { bg: 'bg-[#f0f9f8]', text: 'text-[#0D3B38]', border: 'border-[#0D3B38]/15 border-t-[#0D3B38]/40', dot: 'bg-[#0D3B38]',   countBg: 'bg-white ring-1 ring-[#0D3B38]/20', pillBg: 'bg-[#0D3B38]/8',  ring: 'ring-[#0D3B38]/20' },
 };

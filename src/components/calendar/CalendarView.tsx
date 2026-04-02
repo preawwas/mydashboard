@@ -25,6 +25,15 @@ const ITEMS_PER_PAGE = 5;
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const STATUS_OPTIONS = ['All', 'New', 'In Progress', 'Urgent', 'Done'];
 
+// Status colors matching Journey page's status dots
+const STATUS_COLORS: Record<string, { dot: string; bg: string; text: string; base: string }> = {
+    'New':         { dot: 'bg-[#f59e0b]', bg: '#fef3c7', text: '#92400e', base: '#f59e0b' },
+    'In Progress': { dot: 'bg-[#3B82F6]', bg: '#DBEAFE', text: '#1E3A5F', base: '#3B82F6' },
+    'Urgent':      { dot: 'bg-rose-500',  bg: '#ffe4e6', text: '#9f1239', base: '#e11d48' },
+    'Done':        { dot: 'bg-[#0D3B38]', bg: '#d1e7e5', text: '#0D3B38', base: '#0D3B38' },
+};
+const getStatusColor = (status: string) => STATUS_COLORS[status] || { dot: 'bg-gray-400', bg: '#f1f5f9', text: '#475569', base: '#718096' };
+
 // Same palette as Journey page
 const CATEGORY_PALETTE = [
     { base: '#12275c', bg: '#e8ecf5', text: '#12275c' },
@@ -74,20 +83,6 @@ const CalendarView: React.FC = () => {
             .then(j => { if (j.success) setCategories(j.data || []); })
             .catch(() => {});
     }, []);
-
-    // Map category id -> palette index (stable by sort order)
-    const categoryColorMap = useMemo(() => {
-        const map = new Map<string, number>();
-        categories.forEach((cat, idx) => map.set(cat.note_category_id, idx));
-        return map;
-    }, [categories]);
-
-    const getNoteColor = (note: ExtendedNote) => {
-        if (note.note_category_id && categoryColorMap.has(note.note_category_id)) {
-            return getCategoryColor(categoryColorMap.get(note.note_category_id)!);
-        }
-        return { base: '#718096', bg: '#f1f5f9', text: '#475569' };
-    };
 
     // Sync loading state with global LoadingOverlay
     useEffect(() => {
@@ -190,6 +185,7 @@ const CalendarView: React.FC = () => {
         setDraggedNote(null);
     };
 
+
     // Mark note as done
     const handleMarkDone = async (note: ExtendedNote, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -207,9 +203,9 @@ const CalendarView: React.FC = () => {
         const d = new Date(date); d.setDate(d.getDate() - d.getDay()); return d;
     };
 
-    // Note chip — colored by category (same as Journey)
+    // Note chip — colored by status (matching Journey status dots)
     const renderNoteChip = (note: ExtendedNote) => {
-        const colors = getNoteColor(note);
+        const statusColor = getStatusColor(note.status || 'New');
         const isDone = note.status === 'Done';
         return (
             <div
@@ -220,9 +216,9 @@ const CalendarView: React.FC = () => {
                 onClick={(e) => { e.stopPropagation(); handleEditNote(note); }}
                 className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-extrabold truncate cursor-grab active:cursor-grabbing transition-all hover:scale-[1.03] shadow-[0_2px_8px_-3px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.1)]"
                 style={{
-                    backgroundColor: colors.bg,
-                    borderColor: colors.bg,
-                    color: colors.text,
+                    backgroundColor: statusColor.bg,
+                    borderColor: statusColor.bg,
+                    color: statusColor.text,
                 }}
                 title={note.title}
             >
@@ -384,26 +380,26 @@ const CalendarView: React.FC = () => {
                 </div>
                 <div className="space-y-3">
                     {dayNotes.length > 0 ? dayNotes.map((note: ExtendedNote) => {
-                        const noteColors = getNoteColor(note);
+                        const statusColor = getStatusColor(note.status || 'New');
                         return (
                         <div
                             key={note.note_id}
                             draggable onDragStart={(e) => handleDragStart(e, note)} onDragEnd={handleDragEnd}
                             onClick={(e) => { e.stopPropagation(); handleEditNote(note); }}
                             className="flex items-center gap-4 p-4 rounded-xl cursor-pointer shadow-[0_2px_8px_-3px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.1)] transition-all border"
-                            style={{ backgroundColor: noteColors.bg, borderColor: noteColors.bg, color: noteColors.text }}
+                            style={{ backgroundColor: statusColor.bg, borderColor: statusColor.bg, color: statusColor.text }}
                         >
                             <button onClick={(e) => handleMarkDone(note, e)} className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0", note.status === 'Done' ? "bg-teal-400 border-teal-400" : "border-current/40 hover:border-teal-300")}>
                                 {note.status === 'Done' && <Check className="w-3.5 h-3.5 text-white" />}
                             </button>
-                            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0" style={{ backgroundColor: `${noteColors.base}20` }}>
+                            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0" style={{ backgroundColor: `${statusColor.base}20` }}>
                                 {note.note_categories?.icon || '📝'}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h3 title={note.title} className={cn("text-sm font-bold truncate", note.status === 'Done' && "opacity-50")} style={{ color: noteColors.text }}>{note.title}</h3>
-                                <p className="text-xs line-clamp-1 mt-0.5 opacity-70" style={{ color: noteColors.text }}>{note.content?.replace(/<[^>]*>/g, '').trim().substring(0, 60) || 'No content'}</p>
+                                <h3 title={note.title} className={cn("text-sm font-bold truncate", note.status === 'Done' && "opacity-50")} style={{ color: statusColor.text }}>{note.title}</h3>
+                                <p className="text-xs line-clamp-1 mt-0.5 opacity-70" style={{ color: statusColor.text }}>{note.content?.replace(/<[^>]*>/g, '').trim().substring(0, 60) || 'No content'}</p>
                             </div>
-                            <Badge className="text-[10px] font-bold uppercase shrink-0" style={{ backgroundColor: `${noteColors.base}20`, color: noteColors.text }}>{note.status}</Badge>
+                            <Badge className="text-[10px] font-bold uppercase shrink-0" style={{ backgroundColor: `${statusColor.base}20`, color: statusColor.text }}>{note.status}</Badge>
                         </div>
                         );
                     }) : (
@@ -633,26 +629,31 @@ const CalendarView: React.FC = () => {
                         <CardContent className="p-4">
                             <div className="space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar pr-1">
                                 {visibleDeadlines.length > 0 ? visibleDeadlines.map(note => {
-                                    const sideColors = getNoteColor(note);
+                                    const statusColor = getStatusColor(note.status || 'New');
                                     return (
                                     <div
                                         key={note.note_id}
                                         onClick={() => handleEditNote(note)}
                                         className="group p-3 rounded-xl cursor-pointer shadow-[0_2px_8px_-3px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.1)] transition-all border"
-                                        style={{ backgroundColor: sideColors.bg, borderColor: sideColors.bg }}
+                                        style={{ backgroundColor: statusColor.bg, borderColor: statusColor.bg }}
                                     >
                                         <div className="flex items-center justify-between mb-2">
-                                            <Badge className="text-[10px] font-black uppercase py-0.5" style={{ backgroundColor: `${sideColors.base}25`, color: sideColors.text }}>
-                                                {note.status}
-                                            </Badge>
-                                            <span className="text-[10px] font-bold" style={{ color: sideColors.text, opacity: 0.7 }}>
+                                            <div className="flex items-center gap-1.5">
+                                                <div className="flex h-2.5 w-2.5 items-center justify-center">
+                                                    <div className={cn("w-2.5 h-2.5 rounded-full shadow-[0_0_4px_rgba(0,0,0,0.1)]", statusColor.dot)} />
+                                                </div>
+                                                <Badge className="text-[10px] font-black uppercase py-0.5" style={{ backgroundColor: `${statusColor.base}25`, color: statusColor.text }}>
+                                                    {note.status}
+                                                </Badge>
+                                            </div>
+                                            <span className="text-[10px] font-bold" style={{ color: statusColor.text, opacity: 0.7 }}>
                                                 {new Date(note.reminders!.due_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                             </span>
                                         </div>
-                                        <h3 title={note.title} className={cn("font-bold text-sm truncate", note.status === 'Done' && "opacity-50")} style={{ color: sideColors.text }}>{note.title}</h3>
+                                        <h3 title={note.title} className={cn("font-bold text-sm truncate", note.status === 'Done' && "opacity-50")} style={{ color: statusColor.text }}>{note.title}</h3>
                                         <div className="flex items-center gap-1.5 mt-2">
-                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: sideColors.base }} />
-                                            <span className="text-[10px] font-bold" style={{ color: sideColors.text, opacity: 0.7 }}>{note.note_categories?.name || 'Uncategorized'}</span>
+                                            <span className="text-xs shrink-0">{note.note_categories?.icon || '•'}</span>
+                                            <span className="text-[10px] font-bold" style={{ color: statusColor.text, opacity: 0.7 }}>{note.note_categories?.name || 'Uncategorized'}</span>
                                         </div>
                                     </div>
                                     );
