@@ -58,14 +58,14 @@ export default function MonthlyRemindersCard({
                 <div className="flex-1 flex flex-col justify-between lg:border-l lg:border-white/10 lg:pl-8">
                     <div className="space-y-0 max-h-[220px] sm:max-h-[260px] overflow-y-auto pr-1 sm:pr-2 custom-scrollbar">
                         {pendingExpenses.map((exp, idx) => {
-                            let progressText = "";
+                            let installmentProgress = "";
                             let displayDueDate = exp.transaction_date;
                             
                             if (exp.payment_type === 'INSTALLMENT' && exp.expense_installments) {
                                 const total = exp.expense_installments.length;
                                 const paid = exp.expense_installments.filter((i: any) => i.status === 'PAID').length;
                                 const remaining = total - paid;
-                                progressText = ` (${remaining}/${total})`;
+                                installmentProgress = `(${remaining}/${total})`;
                                 
                                 // Find the next pending installment's due_date
                                 const nextPending = [...exp.expense_installments]
@@ -84,8 +84,13 @@ export default function MonthlyRemindersCard({
                                     <div className="flex items-center gap-3 min-w-0">
                                         <div className="w-2.5 h-2.5 rounded-full shrink-0 bg-[#f59e0b]" />
                                         <span className="text-sm font-bold text-white truncate">
-                                            {exp.item_name}{progressText}
+                                            {exp.item_name}
                                         </span>
+                                        {installmentProgress && (
+                                            <span className="text-[11px] shrink-0 tracking-wide text-white/70 font-bold">
+                                                {installmentProgress}
+                                            </span>
+                                        )}
                                         <span className="text-[11px] shrink-0 tracking-wide text-[#f59e0b] font-bold">
                                             DUE {formatDate(displayDueDate)}
                                         </span>

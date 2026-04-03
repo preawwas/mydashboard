@@ -110,7 +110,7 @@ function PortfolioValueCard({ value, trend, trendLabel }: PortfolioValueCardProp
     const isPositive = trend >= 0;
     const { user } = useAuthStore();
     const userInitial = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
-    const [showValue, setShowValue] = React.useState(true);
+    const [showValue, setShowValue] = React.useState(false);
     
     const hiddenValue = value.replace(/[0-9]/g, 'X');
     const trendString = `${isPositive ? '+' : '-'}${formatCurrency(Math.abs(trend))} (${trendLabel})`;

@@ -62,21 +62,40 @@ const CalendarView: React.FC = () => {
     const [showDeadlines, setShowDeadlines] = useState(false);
     const [showMonthPicker, setShowMonthPicker] = useState(false);
     const [statusFilter, setStatusFilter] = useState('All');
+    const [categoryFilter, setCategoryFilter] = useState('All');
     const [showOverdue, setShowOverdue] = useState(false);
     const monthPickerRef = useRef<HTMLDivElement>(null);
 
-    const fetchNotes = async () => {
+    const categoryOptions = useMemo(() => {
+        return [
+            { value: 'All', label: 'All Categories' },
+            ...categories.map((category) => ({
+                value: category.note_category_id,
+                label: category.name,
+            })),
+        ];
+    }, [categories]);
+
+    const fetchNotes = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await apiClient.fetch('/api/notes?filter=all');
+            const params = new URLSearchParams({ filter: 'all' });
+            if (categoryFilter !== 'All') {
+                params.set('category_ids', categoryFilter);
+            }
+
+            const res = await apiClient.fetch(`/api/notes?${params.toString()}`);
             const json = await res.json();
             if (json.success) setNotes(json.data || []);
         } catch (error) { console.error('Error fetching notes:', error); }
         finally { setLoading(false); }
-    };
+    }, [categoryFilter]);
 
     useEffect(() => {
         fetchNotes();
+    }, [fetchNotes]);
+
+    useEffect(() => {
         // Fetch categories for color mapping
         apiClient.fetch('/api/note-categories')
             .then(r => r.json())
@@ -112,6 +131,7 @@ const CalendarView: React.FC = () => {
         const map = new Map<string, ExtendedNote[]>();
         notes.forEach(n => {
             if (statusFilter !== 'All' && n.status !== statusFilter) return;
+            if (categoryFilter !== 'All' && n.note_category_id !== categoryFilter) return;
             if (n.reminders?.due_date) {
                 const dateStr = n.reminders.due_date.substring(0, 10);
                 if (!map.has(dateStr)) map.set(dateStr, []);
@@ -119,7 +139,7 @@ const CalendarView: React.FC = () => {
             }
         });
         return map;
-    }, [notes, statusFilter]);
+    }, [notes, statusFilter, categoryFilter]);
 
     const getNotesForDate = useCallback((dateStr: string) => {
         return notesByDate.get(dateStr) || [];
@@ -428,6 +448,7 @@ const CalendarView: React.FC = () => {
                 }
 
                 if (statusFilter !== 'All' && n.status !== statusFilter) return false;
+                if (categoryFilter !== 'All' && n.note_category_id !== categoryFilter) return false;
                 return true;
             })
             .sort((a, b) => {
@@ -439,7 +460,7 @@ const CalendarView: React.FC = () => {
                     return new Date(a.reminders!.due_date).getTime() - new Date(b.reminders!.due_date).getTime();
                 }
             });
-    }, [notes, statusFilter, showOverdue]);
+    }, [notes, statusFilter, categoryFilter, showOverdue]);
 
     const visibleDeadlines = upcomingDeadlines.slice(0, deadlineCount);
     const hasMoreDeadlines = deadlineCount < upcomingDeadlines.length;
@@ -524,7 +545,20 @@ const CalendarView: React.FC = () => {
                             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center' }}
                         >
                             {STATUS_OPTIONS.map(s => (
-                                <option key={s} value={s}>{s === 'All' ? '🔍 All Status' : s}</option>
+                                <option key={s} value={s}>{s === 'All' ? 'All Status' : s}</option>
+                            ))}
+                        </select>
+
+                        {/* Category Filter */}
+                        <select
+                            value={categoryFilter}
+                            aria-label="Filter by category"
+                            onChange={(e) => setCategoryFilter(e.target.value)}
+                            className="h-8 sm:h-9 px-3 sm:px-4 rounded-full bg-card/60 border border-border/40 text-xs sm:text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer pr-7"
+                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center' }}
+                        >
+                            {categoryOptions.map((category) => (
+                                <option key={category.value} value={category.value}>{category.value === 'All' ? 'All Categories' : category.label}</option>
                             ))}
                         </select>
 

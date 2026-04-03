@@ -31,10 +31,10 @@ interface ExtendedNote extends DbNote {
 // Column order: New first, then In Progress
 const STATUS_COLUMNS = ['New', 'In Progress', 'Urgent', 'Done'];
 const statusStyles: Record<string, { bg: string; text: string; border: string; dot: string; countBg: string; pillBg: string; ring: string }> = {
-    'New':         { bg: 'bg-[#f0f9f8]', text: 'text-[#0D3B38]', border: 'border-[#0D3B38]/15 border-t-[#0D3B38]/40', dot: 'bg-[#f59e0b]',   countBg: 'bg-white ring-1 ring-[#0D3B38]/20', pillBg: 'bg-[#0D3B38]/8',  ring: 'ring-[#0D3B38]/20' },
-    'In Progress': { bg: 'bg-[#f0f9f8]', text: 'text-[#0D3B38]', border: 'border-[#0D3B38]/15 border-t-[#0D3B38]/40', dot: 'bg-[#3B82F6]',   countBg: 'bg-white ring-1 ring-[#0D3B38]/20', pillBg: 'bg-[#0D3B38]/8',  ring: 'ring-[#0D3B38]/20' },
-    'Urgent':      { bg: 'bg-[#f0f9f8]', text: 'text-[#0D3B38]', border: 'border-[#0D3B38]/15 border-t-[#0D3B38]/40', dot: 'bg-rose-500',    countBg: 'bg-white ring-1 ring-[#0D3B38]/20', pillBg: 'bg-[#0D3B38]/8',  ring: 'ring-[#0D3B38]/20' },
-    'Done':        { bg: 'bg-[#f0f9f8]', text: 'text-[#0D3B38]', border: 'border-[#0D3B38]/15 border-t-[#0D3B38]/40', dot: 'bg-[#0D3B38]',   countBg: 'bg-white ring-1 ring-[#0D3B38]/20', pillBg: 'bg-[#0D3B38]/8',  ring: 'ring-[#0D3B38]/20' },
+    'New':         { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-[#f59e0b]',   countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35' },
+    'In Progress': { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-[#3B82F6]',   countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35' },
+    'Urgent':      { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-rose-500',    countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35' },
+    'Done':        { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-[#4b5563]',   countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35' },
 };
 
 // Palette assigned to categories (round-robin by sort order)
@@ -710,16 +710,15 @@ const NoteDashboard: React.FC = () => {
                                 <div
                                     key={status}
                                     className={cn(
-                                        "rounded-2xl border border-t-[3px] transition-all h-[calc(100vh-350px)] min-h-[400px] min-w-[280px] md:min-w-0 flex flex-col overflow-hidden shadow-sm hover:shadow bg-card/90",
-                                        style.border,
-                                        isDragOver ? cn("bg-primary/5 border-primary shadow-[inset_0_0_0_1px_rgba(var(--primary-rgb),0.5)]") : style.bg
+                                        "rounded-2xl border border-t-[3px] transition-all h-[calc(100vh-350px)] min-h-[400px] min-w-[280px] md:min-w-0 flex flex-col overflow-hidden shadow-sm hover:shadow bg-[#f6f8fb] border-[#d6dde6] border-t-[#a7b1bf]",
+                                        isDragOver ? cn("bg-primary/5 border-primary shadow-[inset_0_0_0_1px_rgba(var(--primary-rgb),0.5)]") : ''
                                     )}
                                     onDragOver={(e) => handleDragOver(e, status)}
                                     onDragLeave={handleDragLeave}
                                     onDrop={(e) => handleDrop(e, status)}
                                 >
                                     {/* Column Header */}
-                                    <div className={cn("px-5 py-3.5 flex items-center justify-between border-b border-border/40 shrink-0", style.border, style.pillBg)}>
+                                    <div className={cn("px-5 py-3.5 flex items-center justify-between border-b border-[#cdd5df] shrink-0 bg-[#ebeff4]")}>
                                         <div className="flex items-center gap-3">
                                             <div className="flex h-2.5 w-2.5 items-center justify-center">
                                                 <div className={cn("w-2.5 h-2.5 rounded-full shadow-[0_0_4px_rgba(0,0,0,0.1)]", style.dot)} />
