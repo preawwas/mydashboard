@@ -62,16 +62,16 @@ const Modal: React.FC<ModalProps> = ({
     if (!isOpen || !mounted) return null;
 
     const sizes = {
-        sm: 'max-w-md',
-        md: 'max-w-lg',
-        lg: 'max-w-2xl',
-        xl: 'max-w-4xl',
+        sm: 'max-w-md w-[calc(100vw-32px)] md:w-full',
+        md: 'max-w-lg w-[calc(100vw-32px)] md:w-full',
+        lg: 'max-w-2xl w-[calc(100vw-32px)] md:w-full',
+        xl: 'max-w-4xl w-[calc(100vw-32px)] md:w-full',
         full: 'max-w-full mx-4',
     };
 
     return createPortal(
         <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-hidden" 
+            className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 sm:md:p-6 overflow-hidden" 
             role="dialog" 
             aria-modal="true"
             aria-labelledby={title ? titleId : undefined}
@@ -88,9 +88,10 @@ const Modal: React.FC<ModalProps> = ({
             {/* Modal with scale and slide animation */}
             <div
                 className={cn(
-                    'relative w-full border border-border rounded-2xl shadow-2xl shadow-black/60 overflow-hidden flex flex-col',
+                    'relative w-full border border-border rounded-t-2xl md:rounded-2xl shadow-2xl shadow-black/60 overflow-hidden flex flex-col',
                     'animate-in zoom-in-95 fade-in duration-300',
-                    'motion-reduce:animate-none max-h-[90vh]',
+                    'motion-reduce:animate-none max-h-[90vh] md:max-h-[90vh]',
+                    'max-h-[95dvh]',
                     sizes[size],
                     className
                 )}
@@ -104,7 +105,7 @@ const Modal: React.FC<ModalProps> = ({
             >
                 {/* Header */}
                 {(title || showCloseButton) && (
-                    <div className="flex items-start justify-between p-4 sm:p-6 border-b border-border relative flex-shrink-0">
+                    <div className="flex items-start justify-between p-4 md:sm:p-6 border-b border-border relative flex-shrink-0">
                         {/* Subtle golden gradient line at bottom */}
                         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
                         <div className="pr-8">
@@ -128,7 +129,7 @@ const Modal: React.FC<ModalProps> = ({
                 )}
 
                 {/* Content - Scrollable area */}
-                <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1">{children}</div>
+                <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex-1">{children}</div>
             </div>
         </div>,
         document.body

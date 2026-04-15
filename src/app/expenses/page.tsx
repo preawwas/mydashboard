@@ -194,9 +194,9 @@ export default function ExpensesPage() {
 
     return (
         <DashboardLayout>
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                         <h1 className="text-xl sm:text-2xl font-bold text-foreground uppercase tracking-tight">Expenses</h1>
                         <p className="text-xs sm:text-sm text-muted-foreground">Track and manage your daily spending.</p>
@@ -226,7 +226,7 @@ export default function ExpensesPage() {
                         <div className="flex flex-col space-y-4">
                             <h2 className="text-lg sm:text-xl font-bold">Expense History</h2>
 
-                            <div className="bg-[#f8f8f9] rounded-[32px] p-4 sm:p-6 flex flex-col gap-5">
+                            <div className="bg-[#f8f8f9] rounded-[20px] md:rounded-[32px] p-3 md:p-4 sm:p-6 flex flex-col gap-4 md:gap-5">
                                 {/* Row 1: Search + Filter Button */}
                                 <div className="flex flex-col sm:flex-row gap-3">
                                     <div className="relative flex-1">
@@ -234,16 +234,16 @@ export default function ExpensesPage() {
                                         <Input
                                             placeholder="Search item..."
                                             aria-label="Search expenses"
-                                            className="h-[52px] rounded-full border-transparent hover:border-transparent focus:border-transparent focus:ring-2 focus:ring-[#0D3B38]/20 shadow-sm pl-[44px] pr-4 bg-white text-sm text-[#18181b] w-full"
+                                            className="h-[44px] md:h-[52px] rounded-full border-transparent hover:border-transparent focus:border-transparent focus:ring-2 focus:ring-[#0D3B38]/20 shadow-sm pl-[44px] pr-4 bg-white text-sm text-[#18181b] w-full"
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                         />
                                     </div>
-                                    <div className="flex gap-3">
+                                    <div className="flex gap-2 md:gap-3">
                                         <Button
                                             onClick={() => setShowExpenseFilters(!showExpenseFilters)}
                                             leftIcon={<Filter className={`w-4 h-4 sm:w-5 sm:h-5 ${showExpenseFilters ? 'text-[#0D3B38]' : 'text-white'}`} />}
-                                            className={`h-[52px] rounded-full px-6 sm:px-8 text-sm sm:text-base font-medium transition-colors border-0 ${
+                                            className={`h-[44px] md:h-[52px] rounded-full px-4 md:px-6 sm:px-8 text-sm sm:text-base font-medium transition-colors border-0 ${
                                                 showExpenseFilters
                                                     ? 'bg-white text-[#0D3B38] hover:bg-gray-50 shadow-sm'
                                                     : 'bg-[#062d2a] text-white hover:bg-[#0c3935] shadow-sm'
@@ -258,7 +258,7 @@ export default function ExpensesPage() {
                                             <Button
                                                 variant="ghost"
                                                 onClick={clearFilters}
-                                                className="h-[52px] rounded-full px-6 text-gray-500 hover:text-gray-900 bg-white shadow-sm border border-transparent"
+                                                className="h-[44px] md:h-[52px] rounded-full px-4 md:px-6 text-gray-500 hover:text-gray-900 bg-white shadow-sm border border-transparent"
                                             >
                                                 Clear
                                             </Button>
@@ -271,7 +271,7 @@ export default function ExpensesPage() {
                                     {/* Dropdowns */}
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <select
-                                            className="h-[48px] rounded-full border-transparent bg-white shadow-sm px-5 text-xs sm:text-sm font-bold text-[#374151] uppercase tracking-wide focus:ring-2 focus:ring-[#0D3B38]/20 focus:outline-none appearance-none cursor-pointer"
+                                            className="h-[44px] md:h-[48px] rounded-full border-transparent bg-white shadow-sm px-5 text-xs sm:text-sm font-bold text-[#374151] uppercase tracking-wide focus:ring-2 focus:ring-[#0D3B38]/20 focus:outline-none appearance-none cursor-pointer"
                                             value={filters.category}
                                             aria-label="Filter by category"
                                             onChange={(e) => setFilters({ category: e.target.value })}
@@ -282,7 +282,7 @@ export default function ExpensesPage() {
                                             ))}
                                         </select>
                                         <select
-                                            className="h-[48px] rounded-full border-transparent bg-white shadow-sm px-5 text-xs sm:text-sm font-bold text-[#374151] uppercase tracking-wide focus:ring-2 focus:ring-[#0D3B38]/20 focus:outline-none appearance-none cursor-pointer"
+                                            className="h-[44px] md:h-[48px] rounded-full border-transparent bg-white shadow-sm px-5 text-xs sm:text-sm font-bold text-[#374151] uppercase tracking-wide focus:ring-2 focus:ring-[#0D3B38]/20 focus:outline-none appearance-none cursor-pointer"
                                             value={filters.payment}
                                             aria-label="Filter by payment channel"
                                             onChange={(e) => setFilters({ payment: e.target.value })}
@@ -293,7 +293,7 @@ export default function ExpensesPage() {
                                             ))}
                                         </select>
                                         <select
-                                            className="h-[48px] rounded-full border-transparent bg-white shadow-sm px-5 text-xs sm:text-sm font-bold text-[#374151] uppercase tracking-wide focus:ring-2 focus:ring-[#0D3B38]/20 focus:outline-none appearance-none cursor-pointer"
+                                            className="h-[44px] md:h-[48px] rounded-full border-transparent bg-white shadow-sm px-5 text-xs sm:text-sm font-bold text-[#374151] uppercase tracking-wide focus:ring-2 focus:ring-[#0D3B38]/20 focus:outline-none appearance-none cursor-pointer"
                                             value={filters.status}
                                             aria-label="Filter by status"
                                             onChange={(e) => setFilters({ status: e.target.value })}
@@ -306,12 +306,12 @@ export default function ExpensesPage() {
 
                                     {/* Date Range + Amount Range */}
                                     <div className="flex flex-col md:flex-row items-stretch gap-3">
-                                        <div className="flex items-center gap-2 bg-white rounded-full shadow-sm px-4 h-[48px]">
+                                        <div className="flex items-center gap-2 bg-white rounded-full shadow-sm px-3 md:px-4 h-[44px] md:h-[48px] flex-1">
                                             <Calendar className="w-4 h-4 text-gray-400 shrink-0" />
                                             <Input
                                                 type="date"
                                                 aria-label="Start date"
-                                                className="h-9 py-1 text-xs bg-transparent border-none shadow-none focus:ring-0 px-1 w-[120px]"
+                                                className="h-9 py-1 text-xs bg-transparent border-none shadow-none focus:ring-0 px-1 w-full md:w-[120px]"
                                                 value={filters.startDate}
                                                 onChange={(e) => setFilters({ startDate: e.target.value })}
                                             />
@@ -319,19 +319,19 @@ export default function ExpensesPage() {
                                             <Input
                                                 type="date"
                                                 aria-label="End date"
-                                                className="h-9 py-1 text-xs bg-transparent border-none shadow-none focus:ring-0 px-1 w-[120px]"
+                                                className="h-9 py-1 text-xs bg-transparent border-none shadow-none focus:ring-0 px-1 w-full md:w-[120px]"
                                                 value={filters.endDate}
                                                 onChange={(e) => setFilters({ endDate: e.target.value })}
                                             />
                                         </div>
-                                        <div className="flex items-center gap-2 bg-white rounded-full shadow-sm px-4 h-[48px]">
+                                        <div className="flex items-center gap-2 bg-white rounded-full shadow-sm px-3 md:px-4 h-[44px] md:h-[48px] flex-1">
                                             <Filter className={cn("w-4 h-4 shrink-0", (filters.minAmount || filters.maxAmount) ? "text-[#0D3B38]" : "text-gray-400")} />
                                             <Input
                                                 type="number"
                                                 inputMode="decimal"
                                                 placeholder="MIN"
                                                 aria-label="Minimum amount"
-                                                className="h-9 py-1 text-xs bg-transparent border-none shadow-none focus:ring-0 px-1 w-[80px] uppercase font-bold placeholder:text-gray-300 placeholder:font-bold"
+                                                className="h-9 py-1 text-xs bg-transparent border-none shadow-none focus:ring-0 px-1 w-full md:w-[80px] uppercase font-bold placeholder:text-gray-300 placeholder:font-bold"
                                                 value={filters.minAmount}
                                                 onChange={(e) => setFilters({ minAmount: e.target.value })}
                                             />
@@ -341,7 +341,7 @@ export default function ExpensesPage() {
                                                 inputMode="decimal"
                                                 placeholder="MAX"
                                                 aria-label="Maximum amount"
-                                                className="h-9 py-1 text-xs bg-transparent border-none shadow-none focus:ring-0 px-1 w-[80px] uppercase font-bold placeholder:text-gray-300 placeholder:font-bold"
+                                                className="h-9 py-1 text-xs bg-transparent border-none shadow-none focus:ring-0 px-1 w-full md:w-[80px] uppercase font-bold placeholder:text-gray-300 placeholder:font-bold"
                                                 value={filters.maxAmount}
                                                 onChange={(e) => setFilters({ maxAmount: e.target.value })}
                                             />
@@ -396,18 +396,18 @@ export default function ExpensesPage() {
                             <p className="text-sm text-muted-foreground">฿{itemToDelete.amount_total.toLocaleString()}</p>
                         </div>
                     )}
-                    <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                    <div className="flex flex-col md:flex-row justify-end gap-3 pt-4 border-t border-border">
                         <Button
                             variant="outline"
                             onClick={() => setIsDeleteModalOpen(false)}
-                            className="bg-transparent border-border"
+                            className="bg-transparent border-border w-full md:w-auto"
                         >
                             Cancel
                         </Button>
                         <Button
                             onClick={handleDelete}
                             isLoading={deleting}
-                            className="bg-red-500 text-white hover:bg-red-600 border-none min-w-[80px]"
+                            className="bg-red-500 text-white hover:bg-red-600 border-none min-w-[80px] w-full md:w-auto"
                         >
                             Delete
                         </Button>

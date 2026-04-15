@@ -649,7 +649,7 @@ const NoteDashboard: React.FC = () => {
                             }}
                         >
                             <span className="text-base">{cat.icon || '\u{1F4DD}'}</span>
-                            <span>{cat.name}</span>
+                            <span className="hidden md:inline">{cat.name}</span>
                             <span
                                 className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-black"
                                 style={{ backgroundColor: catColor.countBg, color: catColor.text }}

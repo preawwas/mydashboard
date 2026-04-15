@@ -750,19 +750,19 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     )}
 
                     {/* Footer Actions */}
-                    <div className="flex gap-2 pt-3 border-t border-border">
+                    <div className="flex flex-col md:flex-row gap-2 pt-3 border-t border-border">
                         <Button
                             type="button"
                             variant="secondary"
                             onClick={onClose}
-                            className="flex-1 h-11"
+                            className="flex-1 h-11 w-full md:w-auto"
                         >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             isLoading={loading}
-                            className="flex-1 h-11 uppercase tracking-wider"
+                            className="flex-1 h-11 uppercase tracking-wider w-full md:w-auto"
                         >
                             {editId ? 'Save' : 'Add Expense'}
                         </Button>

@@ -137,18 +137,18 @@ export default function SettingsPage() {
 
     return (
         <DashboardLayout>
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-4xl mx-auto space-y-4 md:space-y-6">
                 {/* Header */}
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-                    <p className="text-muted-foreground">Manage your profile and account settings.</p>
+                    <h1 className="text-xl md:text-2xl font-bold text-foreground">Settings</h1>
+                    <p className="text-sm text-muted-foreground">Manage your profile and account settings.</p>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex border-b border-border">
+                <div className="flex border-b border-border overflow-x-auto scrollbar-hide -webkit-overflow-scrolling-touch">
                     <button
                         onClick={() => setActiveTab('profile')}
-                        className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'profile'
+                        className={`px-4 md:px-6 py-3 font-medium text-sm whitespace-nowrap transition-colors border-b-2 ${activeTab === 'profile'
                             ? 'border-primary text-primary'
                             : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
@@ -157,26 +157,26 @@ export default function SettingsPage() {
                     </button>
                     <button
                         onClick={() => setActiveTab('account')}
-                        className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'account'
+                        className={`px-4 md:px-6 py-3 font-medium text-sm whitespace-nowrap transition-colors border-b-2 ${activeTab === 'account'
                             ? 'border-primary text-primary'
                             : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
                     >
-                        Security & Notifications
+                        Security
                     </button>
                     <button
                         onClick={() => setActiveTab('preferences')}
-                        className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${activeTab === 'preferences'
+                        className={`px-4 md:px-6 py-3 font-medium text-sm whitespace-nowrap transition-colors border-b-2 ${activeTab === 'preferences'
                             ? 'border-primary text-primary'
                             : 'border-transparent text-muted-foreground hover:text-foreground'
                             }`}
                     >
-                        General Settings
+                        General
                     </button>
                 </div>
 
                 {activeTab === 'profile' ? (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {/* Profile Card */}
                         <Card variant="gradient">
                             <CardContent>
@@ -232,7 +232,7 @@ export default function SettingsPage() {
                                     />
 
                                     <div className="pt-4">
-                                        <Button type="submit" isLoading={isProfileLoading} leftIcon={<Save className="w-4 h-4" />}>
+                                        <Button type="submit" isLoading={isProfileLoading} leftIcon={<Save className="w-4 h-4" />} className="w-full md:w-auto">
                                             Save Changes
                                         </Button>
                                     </div>
@@ -241,7 +241,7 @@ export default function SettingsPage() {
                         </Card>
                     </div>
                 ) : activeTab === 'account' ? (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {/* Password Change */}
                         <Card>
                             <CardHeader>
@@ -296,7 +296,7 @@ export default function SettingsPage() {
                                         leftIcon={<Lock className="w-4 h-4" />}
                                     />
 
-                                    <Button type="submit" isLoading={isSettingsLoading}>
+                                    <Button type="submit" isLoading={isSettingsLoading} className="w-full md:w-auto">
                                         Change Password
                                     </Button>
                                 </form>

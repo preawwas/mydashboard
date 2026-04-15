@@ -47,22 +47,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             <Sidebar />
             <Topbar />
 
-            {/* Mobile Dropdown Overlay */}
+            {/* Tablet Dropdown Overlay (768-1023px) - hidden since desktop sidebar now shows from 768px */}
             {sidebarOpen && (
                 <div
-                    className="fixed inset-0 top-16 bg-black/40 z-30 lg:hidden backdrop-blur-sm"
+                    className="fixed inset-0 top-16 bg-black/40 z-30 hidden backdrop-blur-sm"
                     onClick={() => toggleSidebar()}
                 />
             )}
 
             <main
                 className={cn(
-                    'pt-16 min-h-screen transition-[padding] duration-300 ease-in-out',
-                    'pl-0 lg:pl-20',
-                    sidebarOpen && 'lg:pl-64'
+                    'pt-16 pb-20 md:pb-0 min-h-screen transition-[padding] duration-300 ease-in-out',
+                    'pl-0 md:pl-20',
+                    sidebarOpen && 'md:pl-64'
                 )}
             >
-                <div className="p-3 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
+                <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
                     <ErrorBoundary>
                         <div className="animate-page-enter">
                             {children}

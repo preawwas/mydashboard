@@ -350,8 +350,20 @@ const ShortNoteDashboard: React.FC = () => {
 
     return (
         <div className="flex flex-col lg:flex-row gap-6 min-h-screen p-6 bg-background">
-            {/* Sidebar Tags */}
-            <aside className="w-full lg:w-64 flex-shrink-0 space-y-6">
+            {/* Mobile: wrap grid tag chips - show all in rows */}
+            <div className="lg:hidden space-y-2">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-xs font-black uppercase tracking-wider text-muted-foreground">Tags</h2>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 rounded-lg text-muted-foreground" onClick={() => setIsManageTagsModalOpen(true)} aria-label="Manage Tags"><Settings className="w-3.5 h-3.5" /></Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                    <button onClick={() => { setSelectedTagId(null); setCurrentPage(1); setViewMode('grid'); }} className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all", !selectedTagId ? "bg-primary/15 text-primary border border-primary/30" : "bg-muted/30 text-muted-foreground hover:bg-muted/50")}><TagIcon className="w-3.5 h-3.5" /><span>All</span></button>
+                    {tags.map((tag) => { const parsed = parseTag(tag); const colorStyles = getColorStyles(parsed.colorClasses); return (<button key={tag.id} onClick={() => { setSelectedTagId(tag.id); setCurrentPage(1); setViewMode('grid'); }} className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border", selectedTagId !== tag.id && "bg-muted/30 border-transparent hover:bg-muted/50")} style={selectedTagId === tag.id ? { backgroundColor: colorStyles.backgroundColor, color: colorStyles.color, borderColor: colorStyles.borderColor } : undefined}><span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: colorStyles.backgroundColor }} /><span>{parsed.text}</span></button>); })}
+                    <button onClick={() => setIsTagModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-primary/70 hover:bg-primary/5 whitespace-nowrap border border-dashed border-primary/20"><Plus className="w-3.5 h-3.5" /><span>New</span></button>
+                </div>
+            </div>
+            {/* Desktop: sidebar tags */}
+            <aside className="hidden lg:block w-64 flex-shrink-0 space-y-6">
                 <div className="flex w-full items-center justify-between mb-2">
                     <h2 className="text-sm font-black uppercase tracking-wider text-muted-foreground whitespace-nowrap">Tags</h2>
                     <Button

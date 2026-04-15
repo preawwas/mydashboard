@@ -48,10 +48,11 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                         aria-describedby={error ? errorId : undefined}
                         className={cn(
                             'w-full px-4 py-2.5 border rounded-lg text-foreground placeholder-muted-foreground',
-                            'bg-background',
+                            'bg-background text-base',
                             'transition-all duration-200 ease-out',
                             'focus:outline-none focus:ring-2 focus:ring-[#2E7D7F] focus:border-transparent focus:shadow-[0_0_12px_rgba(22,163,74,0.15)]',
                             'disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed',
+                            'min-h-[44px] md:min-h-0',
                             error
                                 ? 'border-destructive focus:ring-destructive'
                                 : 'border-border hover:border-primary/50',

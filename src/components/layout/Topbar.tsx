@@ -42,21 +42,21 @@ const Topbar: React.FC = () => {
     return (
         <header
             className={cn(
-                'fixed top-0 right-0 z-30 h-16 border-b border-border shadow-sm',
+                'fixed top-0 right-0 z-30 h-14 md:h-16 border-b border-border shadow-sm',
                 'bg-white/90 backdrop-blur-md',
                 'transition-all duration-300',
                 'left-0 lg:left-20',
                 sidebarOpen && 'lg:left-64'
             )}
         >
-            <div className="flex items-center justify-between h-full px-6">
+            <div className="flex items-center justify-between h-full px-3 sm:px-6">
                 {/* Left Section */}
                 <div className="flex items-center gap-4">
                     <button
                         onClick={toggleSidebar}
                         aria-label="Open Menu"
                         aria-expanded={sidebarOpen}
-                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/10 rounded-lg transition-colors lg:hidden"
+                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/10 rounded-lg transition-colors hidden md:flex lg:hidden"
                     >
                         <Menu className="w-5 h-5" aria-hidden="true" />
                     </button>
@@ -64,15 +64,15 @@ const Topbar: React.FC = () => {
 
                 </div>
 
-                {/* Center — Motivational Quote */}
-                <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex items-center pointer-events-none select-none">
+                {/* Center — Motivational Quote (hidden on mobile) */}
+                <div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center pointer-events-none select-none">
                     <p className="text-[10px] lg:text-xs xl:text-sm font-medium text-muted-foreground/70 italic tracking-wide text-center whitespace-nowrap">
                         Don&apos;t wait for the perfect map; just start walking and create your own.
                     </p>
                 </div>
 
                 {/* Right Section */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
 
                     {/* Notifications */}
                     <div className="relative">
@@ -97,7 +97,7 @@ const Topbar: React.FC = () => {
                                     className="fixed inset-0 z-40"
                                     onClick={() => setShowNotifications(false)}
                                 />
-                                <div className="absolute right-0 mt-3 w-80 bg-popover border border-border rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                <div className="absolute right-0 mt-3 w-[calc(100vw-24px)] sm:w-80 max-w-[360px] bg-popover border border-border rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                                     <div className="p-4 border-b border-border bg-muted/5 flex items-center justify-between">
                                         <div>
                                             <h3 className="font-bold text-foreground">Monthly Reminders</h3>
@@ -147,13 +147,12 @@ const Topbar: React.FC = () => {
                     </div>
 
                     {/* User Profile */}
-                    <div className="flex items-center gap-3 pl-3 border-l border-border">
-                    <Link href="/settings" aria-label="Navigate to Settings" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                            <div className="text-right hidden sm:block">
+                    <div className="flex items-center gap-2 pl-2 sm:pl-3 sm:border-l border-border">
+                    <Link href="/settings" aria-label="Navigate to Settings" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity">
+                            <div className="text-right hidden md:block">
                                 <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
-                                <p className="text-xs text-muted-foreground">{user?.role || 'user'}</p>
                             </div>
-                            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-semibold shadow-lg shadow-primary/20">
+                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-semibold shadow-lg shadow-primary/20">
                                 {user?.name?.charAt(0).toUpperCase() || 'U'}
                             </div>
                         </Link>

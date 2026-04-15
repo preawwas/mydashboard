@@ -59,15 +59,15 @@ export default function InvestmentOverview({ investments, summaryData, allocatio
     const topAssetsByCategory = getTopAssetsPerCategory();
 
     return (
-        <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto pb-10">
+        <div className="flex flex-col gap-4 md:gap-6 w-full max-w-6xl mx-auto pb-10">
             {/* Top Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                 {/* Total Portfolio Value Card */}
-                <div className="lg:col-span-2 bg-white rounded-[24px] p-6 lg:p-8 shadow-sm border-[1px] border-[#0D3B38] flex flex-col justify-between min-h-[250px]">
+                <div className="lg:col-span-2 bg-white rounded-[16px] md:rounded-[24px] p-4 md:p-6 lg:p-8 shadow-sm border-[1px] border-[#0D3B38] flex flex-col justify-between min-h-[220px] md:min-h-[250px]">
                     <div>
                         <p className="text-[10px] font-extrabold tracking-widest text-[#a1a1aa] uppercase mb-4">Total Portfolio Value</p>
                         <div className="flex items-end gap-3 flex-wrap">
-                            <h2 className="text-[40px] sm:text-[48px] font-extrabold text-[#0D3B38] leading-none tracking-tight">
+                            <h2 className="text-[30px] sm:text-[40px] md:text-[48px] font-extrabold text-[#0D3B38] leading-none tracking-tight">
                                 {formatCurrency(Math.floor(summaryData?.totalValue || 0)).replace('.00', '')}
                             </h2>
                             <div className="flex items-center gap-1.5 mb-2">
@@ -83,7 +83,7 @@ export default function InvestmentOverview({ investments, summaryData, allocatio
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-3 sm:gap-6 mt-10">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-6 mt-6 md:mt-10">
                         <div className="bg-[#f4f4f5] rounded-xl flex flex-col items-center justify-center py-5">
                             <p className="text-[11px] font-medium text-[#71717a] uppercase mb-1">Assets</p>
                             <p className="text-[26px] font-extrabold text-[#18181b] leading-none">{summaryData?.totalAssets || 0}</p>
@@ -100,7 +100,7 @@ export default function InvestmentOverview({ investments, summaryData, allocatio
                 </div>
 
                 {/* Asset Allocation Card */}
-                <div className="bg-[#ecedf4] rounded-[24px] p-6 shadow-sm flex flex-col justify-between min-h-[250px] lg:col-span-1 border-[1px] border-transparent relative">
+                <div className="bg-[#ecedf4] rounded-[16px] md:rounded-[24px] p-4 md:p-6 shadow-sm flex flex-col justify-between min-h-[220px] md:min-h-[250px] lg:col-span-1 border-[1px] border-transparent relative">
                     <h3 className="text-[15px] font-extrabold text-[#111827] mb-2 text-center absolute top-6 left-0 right-0 z-10">Asset Allocation</h3>
                     
                     {allocationData && allocationData.length > 0 ? (
@@ -112,8 +112,8 @@ export default function InvestmentOverview({ investments, summaryData, allocatio
                                         data={allocationData}
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius={60}
-                                        outerRadius={75}
+                                        innerRadius={52}
+                                        outerRadius={68}
                                         dataKey="percentage"
                                         stroke="none"
                                     >
@@ -174,9 +174,9 @@ export default function InvestmentOverview({ investments, summaryData, allocatio
             {/* Bottom Row */}
             <div className="w-full">
                 {/* Transaction List */}
-                <div className="w-full bg-[#f9faf9] rounded-[32px] p-6 shadow-sm overflow-hidden flex flex-col">
+                <div className="w-full bg-[#f9faf9] rounded-[16px] md:rounded-[32px] p-4 md:p-6 shadow-sm overflow-hidden flex flex-col">
                     <div className="overflow-x-auto flex-1">
-                        <table className="w-full text-left border-collapse">
+                        <table className="w-full min-w-[520px] md:min-w-0 text-left border-collapse">
                             <thead>
                                 <tr>
                                     <th className="pb-4 text-[9px] font-bold tracking-widest text-[#a1a1aa] uppercase pl-2">Asset Name</th>

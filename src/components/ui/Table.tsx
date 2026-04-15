@@ -38,6 +38,20 @@ function Table<T>({
     onRowClick,
     pagination,
 }: TableProps<T>) {
+    const isActionColumn = (key: string) => {
+        const normalized = key.toLowerCase();
+        return (
+            normalized === 'action' ||
+            normalized === 'actions' ||
+            normalized.endsWith('action') ||
+            normalized.endsWith('actions') ||
+            normalized === 'edit' ||
+            normalized.endsWith('edit') ||
+            normalized === 'delete' ||
+            normalized.endsWith('delete')
+        );
+    };
+
     if (isLoading) {
         return (
             <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -71,16 +85,61 @@ function Table<T>({
     }
 
     return (
-        <div className="bg-[#f9faf9] rounded-[24px] overflow-hidden">
-            <div className="overflow-x-auto scrollbar-hide">
-                <table className="w-full">
+        <div className="bg-[#f9faf9] rounded-[16px] md:rounded-[24px] overflow-hidden">
+            <div className="md:hidden">
+                <div className="divide-y divide-gray-200/60">
+                    {data.map((item) => (
+                        <div
+                            key={keyExtractor(item)}
+                            className={cn(
+                                'px-4 py-4 bg-white/60',
+                                onRowClick && 'cursor-pointer'
+                            )}
+                            onClick={() => onRowClick?.(item)}
+                        >
+                            <div className="grid grid-cols-1 gap-2">
+                                {columns.map((column) => (
+                                    <div
+                                        key={column.key}
+                                        className={cn(
+                                            'flex gap-3',
+                                            isActionColumn(column.key) ? 'items-center justify-center' : 'items-start justify-between',
+                                            column.className
+                                        )}
+                                    >
+                                        {!isActionColumn(column.key) && (
+                                            <div className="text-[12px] font-semibold text-muted-foreground">
+                                                {column.header}
+                                            </div>
+                                        )}
+                                        <div
+                                            className={cn(
+                                                'text-[13px] font-semibold text-foreground',
+                                                isActionColumn(column.key) ? 'w-full flex items-center justify-center text-center' : 'text-right'
+                                            )}
+                                        >
+                                            {column.render
+                                                ? column.render(item)
+                                                : String((item as Record<string, unknown>)[column.key] ?? '')}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="hidden md:block overflow-x-auto scrollbar-hide -webkit-overflow-scrolling-touch">
+                <table className="w-full min-w-full">
                     <thead className="bg-[#BEBEBE] border-b border-gray-200/60">
                         <tr>
                             {columns.map((column) => (
                                 <th
                                     key={column.key}
                                     className={cn(
-                                        'px-6 py-4 text-left text-[14px] font-extrabold text-[#111111] capitalize tracking-normal',
+                                        'px-6 py-4 text-left text-[14px] font-extrabold text-[#111111] capitalize tracking-normal whitespace-nowrap',
+                                        isActionColumn(column.key) && 'text-center',
                                         column.className
                                     )}
                                 >
@@ -90,11 +149,12 @@ function Table<T>({
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                        {data.map((item) => (
+                        {data.map((item, rowIndex) => (
                             <tr
                                 key={keyExtractor(item)}
                                 className={cn(
-                                    'hover:bg-white/60 transition-colors',
+                                    rowIndex % 2 === 0 ? 'bg-white/40' : 'bg-transparent',
+                                    'hover:bg-white/70 transition-colors',
                                     onRowClick && 'cursor-pointer'
                                 )}
                                 onClick={() => onRowClick?.(item)}
@@ -102,11 +162,21 @@ function Table<T>({
                                 {columns.map((column) => (
                                     <td
                                         key={column.key}
-                                        className={cn('px-6 py-5 text-sm text-foreground', column.className)}
+                                        className={cn(
+                                            'px-6 py-5 text-sm text-foreground whitespace-nowrap',
+                                            isActionColumn(column.key) && 'text-center',
+                                            column.className
+                                        )}
                                     >
-                                        {column.render
-                                            ? column.render(item)
-                                            : String((item as Record<string, unknown>)[column.key] ?? '')}
+                                        <div
+                                            className={cn(
+                                                isActionColumn(column.key) && 'w-full flex items-center justify-center'
+                                            )}
+                                        >
+                                            {column.render
+                                                ? column.render(item)
+                                                : String((item as Record<string, unknown>)[column.key] ?? '')}
+                                        </div>
                                     </td>
                                 ))}
                             </tr>
@@ -117,30 +187,30 @@ function Table<T>({
 
             {/* Pagination */}
             {pagination && (
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between px-6 py-4 border-t border-border bg-muted/5">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center justify-center md:justify-between gap-2 px-3 md:px-6 py-2.5 md:py-4 border-t border-border bg-muted/5">
+                    <div className="hidden md:flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-muted-foreground shrink-0">
                         <label htmlFor="pagination-limit" className="sr-only">Items per page</label>
                         <span aria-hidden="true">Show</span>
                         <select
                             id="pagination-limit"
                             value={pagination.limit}
                             onChange={(e) => pagination.onLimitChange(Number(e.target.value))}
-                            className="px-2 py-1 bg-background border border-border rounded-md text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                            className="px-1.5 py-0.5 bg-background border border-border rounded-md text-xs md:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 min-h-[36px] md:min-h-0"
                             aria-label="Items per page"
                         >
                             <option value={10}>10</option>
                             <option value={20}>20</option>
                             <option value={50}>50</option>
                         </select>
-                        <span>entries of {pagination.total} total</span>
+                        <span className="hidden sm:inline">entries of {pagination.total} total</span>
+                        <span className="sm:hidden">/ {pagination.total}</span>
                     </div>
 
-                    <div className="w-full lg:w-auto overflow-x-auto scrollbar-hide">
+                    <div className="shrink-0">
                         <Pagination
                             page={pagination.page}
                             totalPages={pagination.totalPages || 1}
                             onPageChange={pagination.onPageChange}
-                            className="w-max"
                         />
                     </div>
                 </div>

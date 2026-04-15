@@ -49,12 +49,12 @@ export default function QuickNoteFloatingButton() {
     };
 
     return (
-        <div className="fixed bottom-2 right-2 sm:bottom-3 sm:right-3 md:bottom-4 md:right-4 z-[100] flex flex-col items-end">
+        <div className="fixed bottom-24 right-3 md:bottom-4 md:right-4 z-[100] flex flex-col items-end">
             {/* Note Modal */}
             {isModalOpen && (
                 <div 
                     ref={modalRef} 
-                    className="absolute right-0 bottom-[120%] w-64 h-64 bg-white rounded-3xl p-5 shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col border border-gray-100 origin-bottom-right animate-in fade-in zoom-in-95 duration-200 mb-2"
+                    className="absolute right-0 bottom-[120%] w-[calc(100vw-24px)] md:w-64 h-64 bg-white rounded-3xl p-5 shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col border border-gray-100 origin-bottom-right animate-in fade-in zoom-in-95 duration-200 mb-2"
                 >
                     <div className="flex items-center gap-2 mb-3">
                         <Sparkles className="w-4 h-4 text-[#8a6a2c]" />

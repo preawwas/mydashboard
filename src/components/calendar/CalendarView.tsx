@@ -156,6 +156,8 @@ const CalendarView: React.FC = () => {
         else d.setDate(d.getDate() + dir);
         setCurrentDate(d);
     };
+    const prevMonth = () => navigate(-1);
+    const nextMonth = () => navigate(1);
     const goToToday = () => { setCurrentDate(new Date()); setShowMonthPicker(false); };
     const goToMonth = (month: number) => {
         const d = new Date(currentDate); d.setMonth(month);
@@ -218,15 +220,31 @@ const CalendarView: React.FC = () => {
 
     const handleEditNote = (note: ExtendedNote) => { setSelectedNote(note); setDefaultDueDate(''); setIsModalOpen(true); };
     const handleCreateOnDate = (dateStr: string) => { setSelectedNote(null); setDefaultDueDate(dateStr); setIsModalOpen(true); };
+    const handleGoToDayView = (dateStr: string) => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        setCurrentDate(new Date(year, month - 1, day));
+        setViewMode('day');
+    };
 
     const getWeekStart = (date: Date) => {
         const d = new Date(date); d.setDate(d.getDate() - d.getDay()); return d;
     };
 
     // Note chip — colored by status (matching Journey status dots)
-    const renderNoteChip = (note: ExtendedNote) => {
+    const renderNoteChip = (note: ExtendedNote, iconOnly = false) => {
         const statusColor = getStatusColor(note.status || 'New');
         const isDone = note.status === 'Done';
+        if (iconOnly) {
+            return (
+                <div
+                    key={note.note_id}
+                    className="text-lg shrink-0"
+                    title={note.title}
+                >
+                    {note.note_categories?.icon || '•'}
+                </div>
+            );
+        }
         return (
             <div
                 key={note.note_id}
@@ -234,7 +252,7 @@ const CalendarView: React.FC = () => {
                 onDragStart={(e) => handleDragStart(e, note)}
                 onDragEnd={handleDragEnd}
                 onClick={(e) => { e.stopPropagation(); handleEditNote(note); }}
-                className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-extrabold truncate cursor-grab active:cursor-grabbing transition-all hover:scale-[1.03] shadow-[0_2px_8px_-3px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.1)]"
+                className="flex items-center gap-1 px-1.5 py-1 sm:gap-1.5 sm:px-2 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-extrabold truncate cursor-grab active:cursor-grabbing transition-all hover:scale-[1.03] shadow-[0_2px_8px_-3px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.1)]"
                 style={{
                     backgroundColor: statusColor.bg,
                     borderColor: statusColor.bg,
@@ -247,20 +265,20 @@ const CalendarView: React.FC = () => {
                     onClick={(e) => handleMarkDone(note, e)}
                     aria-label={`Mark "${note.title}" as ${isDone ? 'incomplete' : 'done'}`}
                     className={cn(
-                        "w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+                        "hidden lg:flex w-2 h-2 sm:w-4 sm:h-4 rounded-full border-2 items-center justify-center shrink-0 transition-all",
                         isDone ? "bg-teal-400 border-teal-400" : "border-current hover:border-teal-300"
                     )}
                 >
-                    {isDone && <Check className="w-2.5 h-2.5 text-white" />}
+                    {isDone && <Check className="w-1 h-1 sm:w-2.5 sm:h-2.5 text-white" />}
                 </button>
-                <span className="text-xs shrink-0">{note.note_categories?.icon || '•'}</span>
+                <span className="text-[10px] sm:text-xs shrink-0">{note.note_categories?.icon || '•'}</span>
                 <span className={cn("truncate", isDone && "opacity-60")}>{note.title}</span>
             </div>
         );
     };
 
     // Day cell
-    const renderDayCell = (dateStr: string, day: number, isCurrentMonth: boolean, hClass = 'h-[140px]') => {
+    const renderDayCell = (dateStr: string, day: number, isCurrentMonth: boolean, hClass = 'h-[120px] sm:h-[140px]', iconOnly = false) => {
         const dayNotes = getNotesForDate(dateStr);
         const isToday = dateStr === todayStr;
         const isDragOver = dragOverDate === dateStr;
@@ -276,7 +294,7 @@ const CalendarView: React.FC = () => {
                 onDragOver={(e) => handleDragOver(e, dateStr)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, dateStr)}
-                onClick={() => handleCreateOnDate(dateStr)}
+                onClick={() => handleGoToDayView(dateStr)}
                 style={{ cursor: 'pointer' }}
             >
                 <div className="flex justify-between items-start mb-2 shrink-0">
@@ -293,7 +311,7 @@ const CalendarView: React.FC = () => {
                     )}
                 </div>
                 <div className="flex-1 space-y-1.5 pb-1 overflow-y-auto custom-scrollbar pr-1">
-                    {dayNotes.map(renderNoteChip)}
+                    {dayNotes.map((note) => renderNoteChip(note, iconOnly))}
                 </div>
             </div>
         );
@@ -312,17 +330,17 @@ const CalendarView: React.FC = () => {
         const prevMonthDays = daysInMonth(prevYear, prevMonth);
         for (let i = 0; i < startDay; i++) {
             const d = prevMonthDays - startDay + 1 + i;
-            cells.push(renderDayCell(formatDateStr(prevYear, prevMonth, d), d, false));
+            cells.push(renderDayCell(formatDateStr(prevYear, prevMonth, d), d, false, 'h-[120px] sm:h-[140px]', false));
         }
         for (let day = 1; day <= totalDays; day++) {
-            cells.push(renderDayCell(formatDateStr(year, month, day), day, true));
+            cells.push(renderDayCell(formatDateStr(year, month, day), day, true, 'h-[120px] sm:h-[140px]', false));
         }
         const remaining = 7 - (cells.length % 7);
         if (remaining < 7) {
             const nextMonth = month === 11 ? 0 : month + 1;
             const nextYear = month === 11 ? year + 1 : year;
             for (let i = 1; i <= remaining; i++) {
-                cells.push(renderDayCell(formatDateStr(nextYear, nextMonth, i), i, false));
+                cells.push(renderDayCell(formatDateStr(nextYear, nextMonth, i), i, false, 'h-[120px] sm:h-[140px]', false));
             }
         }
 
@@ -330,10 +348,11 @@ const CalendarView: React.FC = () => {
         for (let i = 0; i < cells.length; i += 7) {
             rows.push(<div key={i} className="grid grid-cols-7">{cells.slice(i, i + 7)}</div>);
         }
+
         return (
             <div className="border-2 border-border/60 rounded-2xl overflow-hidden bg-white shadow-xl">
                 <div className="grid grid-cols-7 bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15 border-b-2 border-border/50">
-                    {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                         <div key={day} className="text-center py-3.5 text-sm font-black text-foreground/80 uppercase tracking-widest">{day}</div>
                     ))}
                 </div>
@@ -345,6 +364,7 @@ const CalendarView: React.FC = () => {
     // WEEK VIEW
     const renderWeekView = () => {
         const start = getWeekStart(currentDate);
+
         const cells = [];
         for (let i = 0; i < 7; i++) {
             const d = new Date(start); d.setDate(d.getDate() + i);
@@ -363,21 +383,30 @@ const CalendarView: React.FC = () => {
                     onDragOver={(e) => handleDragOver(e, dateStr)}
                     onDragLeave={handleDragLeave}
                     onDrop={(e) => handleDrop(e, dateStr)}
-                    onClick={() => handleCreateOnDate(dateStr)}
+                    onClick={() => handleGoToDayView(dateStr)}
                     style={{ cursor: 'pointer' }}
                 >
                     <div className="text-center mb-3 shrink-0">
-                        <div className="text-xs font-bold text-muted-foreground uppercase">{d.toLocaleDateString('default', { weekday: 'long' })}</div>
                         <div className={cn("text-2xl font-black mx-auto w-10 h-10 flex items-center justify-center rounded-full mt-1", isToday ? "bg-primary text-primary-foreground" : "text-foreground")}>{d.getDate()}</div>
                     </div>
                     <div className="flex-1 space-y-2 pb-2 overflow-y-auto custom-scrollbar pr-1">
-                        {dayNotes.map(renderNoteChip)}
+                        {dayNotes.map((note) => renderNoteChip(note, false))}
                         {dayNotes.length === 0 && <p className="text-xs text-muted-foreground/40 text-center pt-4">No tasks</p>}
                     </div>
                 </div>
             );
         }
-        return (<div className="border-2 border-border/60 rounded-2xl overflow-hidden bg-white shadow-xl"><div className="grid grid-cols-7">{cells}</div></div>);
+
+        return (
+            <div className="border-2 border-border/60 rounded-2xl overflow-hidden bg-white shadow-xl">
+                <div className="grid grid-cols-7 bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15 border-b-2 border-border/50">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                        <div key={day} className="text-center py-3.5 text-sm font-black text-foreground/80 uppercase tracking-widest">{day}</div>
+                    ))}
+                </div>
+                <div className="grid grid-cols-7">{cells}</div>
+            </div>
+        );
     };
 
     // DAY VIEW
@@ -409,7 +438,11 @@ const CalendarView: React.FC = () => {
                             className="flex items-center gap-4 p-4 rounded-xl cursor-pointer shadow-[0_2px_8px_-3px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.1)] transition-all border"
                             style={{ backgroundColor: statusColor.bg, borderColor: statusColor.bg, color: statusColor.text }}
                         >
-                            <button onClick={(e) => handleMarkDone(note, e)} className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0", note.status === 'Done' ? "bg-teal-400 border-teal-400" : "border-current/40 hover:border-teal-300")}>
+                            <button 
+                                onClick={(e) => handleMarkDone(note, e)} 
+                                aria-label={`Mark "${note.title}" as ${note.status === 'Done' ? 'incomplete' : 'done'}`}
+                                className={cn("hidden lg:flex w-6 h-6 rounded-full border-2 items-center justify-center shrink-0", note.status === 'Done' ? "bg-teal-400 border-teal-400" : "border-current/40 hover:border-teal-300")}
+                            >
                                 {note.status === 'Done' && <Check className="w-3.5 h-3.5 text-white" />}
                             </button>
                             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0" style={{ backgroundColor: `${statusColor.base}20` }}>
@@ -476,26 +509,35 @@ const CalendarView: React.FC = () => {
     return (
         <div className="flex flex-col lg:flex-row gap-6">
             <div className="flex-1 min-w-0">
-                {/* Header: < March 2026 > with month picker */}
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                    <div className="flex items-center gap-1 relative">
-                        <Button variant="ghost" aria-label="Previous month" onClick={() => navigate(-1)} className="h-9 w-9 p-0 rounded-xl hover:bg-primary/10">
-                            <ChevronLeft className="w-5 h-5" />
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+                {/* 1. Navigation Cluster */}
+                <div className="flex items-center justify-between sm:justify-start gap-2">
+                    <div className="flex items-center gap-1.5 bg-background border border-border/50 p-1 rounded-full shadow-sm">
+                        <Button 
+                            variant="secondary" 
+                            size="sm" 
+                            onClick={prevMonth}
+                            className="h-8 w-8 p-0 rounded-full border-none shadow-none hover:bg-primary/10 hover:text-primary transition-colors"
+                        >
+                            <ChevronLeft className="h-4 w-4" />
                         </Button>
-
-                        {/* Month title — clickable to open picker */}
+                        
                         <div className="relative" ref={monthPickerRef}>
-                            <button
+                            <Button 
+                                variant="secondary"
+                                size="sm"
                                 onClick={() => setShowMonthPicker(!showMonthPicker)}
-                                aria-label="Select month and year"
-                                className="px-3 py-1.5 rounded-xl text-lg sm:text-2xl font-black text-foreground hover:bg-primary/10 hover:text-primary transition-all duration-200"
+                                className={cn(
+                                    "h-8 px-4 rounded-full border-none shadow-none text-sm font-black transition-all",
+                                    showMonthPicker ? "bg-primary text-primary-foreground" : "hover:bg-primary/10 hover:text-primary"
+                                )}
                             >
                                 {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
-                            </button>
+                            </Button>
 
                             {/* Month picker dropdown */}
                             {showMonthPicker && (
-                                <div className="absolute top-full left-0 mt-2 bg-card border border-border/50 rounded-2xl shadow-2xl z-50 p-4 w-[280px] animate-in fade-in zoom-in-95 duration-200">
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-card border border-border/50 rounded-2xl shadow-2xl z-50 p-4 w-[280px] animate-in fade-in zoom-in-95 duration-200">
                                     {/* Year nav */}
                                     <div className="flex items-center justify-between mb-3">
                                         <button onClick={() => changeYear(-1)} className="p-1 rounded-lg hover:bg-muted/30"><ChevronLeft className="w-4 h-4" /></button>
@@ -530,72 +572,103 @@ const CalendarView: React.FC = () => {
                             )}
                         </div>
 
-                        <Button variant="ghost" aria-label="Next month" onClick={() => navigate(1)} className="h-9 w-9 p-0 rounded-xl hover:bg-primary/10">
-                            <ChevronRight className="w-5 h-5" />
+                        <Button 
+                            variant="secondary" 
+                            size="sm" 
+                            onClick={nextMonth}
+                            className="h-8 w-8 p-0 rounded-full border-none shadow-none hover:bg-primary/10 hover:text-primary transition-colors"
+                        >
+                            <ChevronRight className="h-4 w-4" />
                         </Button>
                     </div>
 
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        {/* Status Filter */}
-                        <select
-                            value={statusFilter}
-                            aria-label="Filter by status"
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="h-8 sm:h-9 px-3 sm:px-4 rounded-full bg-card/60 border border-border/40 text-xs sm:text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer pr-7"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center' }}
-                        >
-                            {STATUS_OPTIONS.map(s => (
-                                <option key={s} value={s}>{s === 'All' ? 'All Status' : s}</option>
-                            ))}
-                        </select>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={goToToday}
+                        className="h-8 px-3 rounded-full text-xs font-bold hover:bg-primary/5 active:scale-95 transition-all text-muted-foreground hover:text-primary"
+                    >
+                        Today
+                    </Button>
+                </div>
 
-                        {/* Category Filter */}
-                        <select
-                            value={categoryFilter}
-                            aria-label="Filter by category"
-                            onChange={(e) => setCategoryFilter(e.target.value)}
-                            className="h-8 sm:h-9 px-3 sm:px-4 rounded-full bg-card/60 border border-border/40 text-xs sm:text-sm font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none cursor-pointer pr-7"
-                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center' }}
-                        >
-                            {categoryOptions.map((category) => (
-                                <option key={category.value} value={category.value}>{category.value === 'All' ? 'All Categories' : category.label}</option>
-                            ))}
-                        </select>
+                {/* 2. Filters & View Controls Group */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                    {/* Filters Cluster */}
+                    <div className="flex items-center gap-2">
+                        <div className="relative flex-1 sm:flex-initial">
+                            <select 
+                                className="w-full sm:w-[130px] h-9 px-3 pr-8 rounded-full bg-background border border-border/50 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none transition-all cursor-pointer hover:border-primary/30 shadow-sm"
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                            >
+                                {STATUS_OPTIONS.map(s => (
+                                    <option key={s} value={s}>{s === 'All' ? 'All Status' : s}</option>
+                                ))}
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                                <ChevronRight className="w-3 h-3 rotate-90" />
+                            </div>
+                        </div>
 
-                        {/* View Mode */}
-                        <div className="flex items-center bg-card/60 border border-border/40 rounded-full p-0.5 sm:p-1">
+                        <div className="relative flex-1 sm:flex-initial">
+                            <select 
+                                className="w-full sm:w-[140px] h-9 px-3 pr-8 rounded-full bg-background border border-border/50 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary/20 appearance-none transition-all cursor-pointer hover:border-primary/30 shadow-sm"
+                                value={categoryFilter}
+                                onChange={(e) => setCategoryFilter(e.target.value)}
+                            >
+                                {categoryOptions.map((category) => (
+                                    <option key={category.value} value={category.value}>{category.value === 'All' ? 'All Categories' : category.label}</option>
+                                ))}
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                                <ChevronRight className="w-3 h-3 rotate-90" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* View Switcher Cluster */}
+                    <div className="flex items-center justify-between sm:justify-start gap-1 p-1 bg-muted/30 border border-border/50 rounded-full shadow-inner">
+                        <div className="flex items-center gap-1">
                             {(['month', 'week', 'day'] as ViewMode[]).map(mode => (
-                                <Button key={mode} variant="ghost" onClick={() => setViewMode(mode)}
-                                    className={cn("h-7 sm:h-8 px-3 sm:px-5 rounded-full font-bold text-[10px] sm:text-xs capitalize", viewMode === mode ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+                                <button
+                                    key={mode}
+                                    onClick={() => setViewMode(mode)}
+                                    className={cn(
+                                        "px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all",
+                                        viewMode === mode 
+                                            ? "bg-primary text-primary-foreground shadow-sm scale-105" 
+                                            : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                                    )}
+                                >
                                     {mode}
-                                </Button>
+                                </button>
                             ))}
                         </div>
 
-                        {/* Deadlines toggle button */}
+                        <div className="w-[1px] h-4 bg-border/60 mx-1 hidden sm:block" />
+
                         <Button
-                            variant="outline"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setShowDeadlines(!showDeadlines)}
                             className={cn(
-                                "h-8 sm:h-9 px-3 sm:px-4 rounded-full border-border/40 font-bold text-xs gap-1.5",
-                                showDeadlines ? "bg-primary/10 text-primary border-primary/30" : "bg-card/60"
+                                "h-7 px-2 rounded-full border-none transition-all",
+                                showDeadlines ? "bg-accent/10 text-accent" : "text-muted-foreground hover:text-accent hover:bg-accent/5"
                             )}
                         >
-                            {showDeadlines ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
-                            <span className="hidden sm:inline">Deadlines</span>
-                            {upcomingDeadlines.length > 0 && (
-                                <span className="bg-primary/20 text-primary text-[10px] font-black px-1.5 py-0.5 rounded-full">{upcomingDeadlines.length}</span>
-                            )}
+                            {showDeadlines ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
                         </Button>
                     </div>
                 </div>
+             </div>
 
                 {/* Calendar Content */}
                 {loading ? (
                     <div className="border border-border/40 rounded-2xl overflow-hidden bg-card/30 backdrop-blur-sm shadow-lg">
                         {/* Day header skeleton */}
                         <div className="grid grid-cols-7 bg-muted/30 border-b border-border/40">
-                            {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
+                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                                 <div key={day} className="text-center py-3">
                                     <div className="h-3 w-8 mx-auto rounded-md bg-muted/40 animate-pulse" />
                                 </div>

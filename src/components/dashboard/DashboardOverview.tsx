@@ -43,14 +43,14 @@ export default function DashboardOverview() {
     });
 
     return (
-        <div className="space-y-6 max-w-[1400px] mx-auto pb-10">
+        <div className="space-y-4 md:space-y-6 max-w-[1400px] mx-auto pb-10">
             {/* Header Section */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 md:mb-6">
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-[28px] font-extrabold text-[#0D3B38] tracking-tight">Dashboard</h1>
+                    <h1 className="text-xl md:text-[28px] font-extrabold text-[#0D3B38] tracking-tight">Dashboard</h1>
                     <p className="text-xs text-muted-foreground font-medium">{today}</p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <Link 
                         href="/investments"
                         className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#0D3B38] text-[#0D3B38] text-[13px] font-bold rounded-xl shadow-sm hover:bg-[#0D3B38] hover:text-white transition-all"
@@ -67,7 +67,7 @@ export default function DashboardOverview() {
             </div>
 
             {/* Row 1: Portfolio & Asset Allocation */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                 <div className="lg:col-span-2">
                     <PortfolioValueCard
                         value={formatCurrency(investmentStats?.totalValue || 0)}
@@ -81,11 +81,11 @@ export default function DashboardOverview() {
             </div>
 
             {/* Row 2: Seasonal Fluctuations & Top Spending */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 h-[340px]">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+                <div className="lg:col-span-2 h-[260px] md:h-[340px]">
                     <SeasonalFluctuations monthlyData={expenseData.monthlyData} totalFiltered={expenseData.totalExpenses} />
                 </div>
-                <div className="col-span-1 h-[340px]">
+                <div className="col-span-1 h-[260px] md:h-[340px]">
                     <TopSpendingNarrative categories={expenseData.categories} />
                 </div>
             </div>
@@ -118,7 +118,7 @@ function PortfolioValueCard({ value, trend, trendLabel }: PortfolioValueCardProp
     
     return (
         <div 
-            className="relative overflow-hidden rounded-[30px] bg-[#0b4d46] p-7 shadow-xl flex flex-col justify-between h-full min-h-[220px]"
+            className="relative overflow-hidden rounded-[16px] md:rounded-[30px] bg-[#0b4d46] p-5 md:p-7 shadow-xl flex flex-col justify-between h-full min-h-[180px] md:min-h-[220px]"
             role="region"
             aria-label={`Portfolio Value: ${value}`}
         >
@@ -140,7 +140,7 @@ function PortfolioValueCard({ value, trend, trendLabel }: PortfolioValueCardProp
                         {showValue ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                     </button>
                 </div>
-                <h2 className="text-[40px] lg:text-[46px] font-extrabold text-white tracking-tight drop-shadow-sm mb-4">
+                <h2 className="text-[28px] md:text-[40px] lg:text-[46px] font-extrabold text-white tracking-tight drop-shadow-sm mb-4">
                     {showValue ? value : hiddenValue}
                 </h2>
                 
@@ -175,7 +175,7 @@ function AssetAllocationCard({ allocation }: { allocation: any[] }) {
     const displayAssets = sortedAllocation.slice(0, 4);
 
     return (
-        <div className="bg-white rounded-[30px] p-7 shadow-sm border border-border/40 h-full flex flex-col justify-between">
+        <div className="bg-white rounded-[16px] md:rounded-[30px] p-5 md:p-7 shadow-sm border border-border/40 h-full flex flex-col justify-between">
             <div>
                 <div className="flex items-center justify-between mb-8">
                     <h3 className="text-[10px] font-bold tracking-widest text-[#a1a1aa] uppercase">Asset Allocation</h3>
@@ -240,7 +240,7 @@ function SeasonalFluctuations({ monthlyData, totalFiltered }: { monthlyData: any
     };
     
     return (
-        <div className="bg-[#f9faf9] rounded-[30px] p-7 shadow-sm border border-transparent h-full relative flex flex-col">
+        <div className="bg-[#f9faf9] rounded-[16px] md:rounded-[30px] p-5 md:p-7 shadow-sm border border-transparent h-full min-h-0 relative flex flex-col">
             <div className="flex justify-between items-start mb-2 z-10 w-full">
                 <h3 className="text-base font-extrabold text-[#0D3B38]">Expenses (YTD)</h3>
                 <div className="flex items-center gap-2 mt-1">
@@ -249,7 +249,7 @@ function SeasonalFluctuations({ monthlyData, totalFiltered }: { monthlyData: any
                 </div>
             </div>
             
-            <div className="flex-1 w-full relative -ml-4 mt-6">
+            <div className="flex-1 min-h-[160px] min-w-0 w-full relative -ml-4 mt-6">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                         <defs>
@@ -288,7 +288,7 @@ function SeasonalFluctuations({ monthlyData, totalFiltered }: { monthlyData: any
             </div>
 
             {/* Overlay Summary Card */}
-            <div className="absolute right-7 bottom-12 bg-white/95 backdrop-blur-sm rounded-[24px] p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] w-[220px] border border-gray-100 hidden sm:block z-10">
+            <div className="absolute right-5 md:right-7 bottom-12 bg-white/95 backdrop-blur-sm rounded-[16px] md:rounded-[24px] p-4 md:p-6 shadow-[0_12px_40px_rgba(0,0,0,0.06)] w-[180px] md:w-[220px] border border-gray-100 hidden md:block z-10">
                 <p className="text-[9px] font-bold tracking-widest text-[#a1a1aa] uppercase mb-1.5">Total Period</p>
                 <p className="text-[26px] font-extrabold text-[#0D3B38] mb-3">{formatCurrency(totalFiltered || 0)}</p>
                 <p className="text-[10px] text-gray-400 font-medium leading-relaxed border-t border-gray-100 pt-4">
@@ -308,18 +308,18 @@ function TopSpendingNarrative({ categories }: { categories: any[] }) {
     })) : [];
 
     return (
-        <div className="h-full flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="text-base font-extrabold text-[#0D3B38]">Top Spending</h3>
-                <Link href="/expenses" className="text-[11px] font-bold tracking-widest text-[#a1a1aa] uppercase hover:text-[#0D3B38] transition-colors flex items-center gap-1">
+        <div className="h-full min-h-0 flex flex-col">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 md:mb-6">
+                <h3 className="text-base font-extrabold text-[#0D3B38] leading-tight">Top Spending</h3>
+                <Link href="/expenses" className="text-[11px] font-bold tracking-widest text-[#a1a1aa] uppercase hover:text-[#0D3B38] transition-colors inline-flex items-center gap-1 self-start sm:self-auto">
                     View All <ArrowUpRight className="w-3 h-3" />
                 </Link>
             </div>
-            <div className="space-y-4 flex-1">
+            <div className="space-y-3 md:space-y-4 flex-1 min-h-0 overflow-y-auto pr-1 md:pr-0 custom-scrollbar">
                 {displayData.length > 0 ? displayData.map((item, idx) => (
-                    <div key={idx} className="bg-white rounded-[24px] p-5 flex items-center gap-4 shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-gray-100 transition-transform hover:-translate-y-1">
+                    <div key={idx} className="bg-white rounded-[20px] md:rounded-[24px] p-3 md:p-5 flex items-center gap-3 md:gap-4 shadow-[0_2px_12px_rgba(0,0,0,0.02)] border border-gray-100 transition-transform hover:-translate-y-1 min-w-0">
                         <div 
-                            className="w-12 h-12 rounded-full flex items-center justify-center shrink-0" 
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center shrink-0" 
                             style={{ backgroundColor: `${item.color}15`, color: item.color }}
                         >
                             {item.icon}
@@ -352,15 +352,15 @@ function InvestmentSummaryTable({ allocation, totalValue }: { allocation: any[],
     const sortedData = [...data].sort((a, b) => b.value - a.value);
 
     return (
-        <div className="bg-[#fcfdfc] rounded-[30px] p-8 shadow-sm border border-transparent h-full">
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="text-base font-extrabold text-[#0D3B38]">Investment Portfolio Summary</h3>
-                <Link href="/investments" className="text-[11px] font-bold tracking-widest text-[#a1a1aa] uppercase hover:text-[#0D3B38] transition-colors flex items-center gap-1">
+        <div className="bg-[#fcfdfc] rounded-[16px] md:rounded-[30px] p-5 md:p-8 shadow-sm border border-transparent h-full">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+                <h3 className="text-base font-extrabold text-[#0D3B38] leading-tight">Investment Portfolio Summary</h3>
+                <Link href="/investments" className="text-[11px] font-bold tracking-widest text-[#a1a1aa] uppercase hover:text-[#0D3B38] transition-colors inline-flex items-center gap-1 self-start sm:self-auto">
                     View All <ArrowUpRight className="w-3 h-3" />
                 </Link>
             </div>
             
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -webkit-overflow-scrolling-touch">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="border-b border-gray-100">

@@ -67,7 +67,7 @@ export default function ExpenseDashboard() {
     const totalStats = categories.reduce((sum, c) => sum + c.amount, 0);
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
             <div>
                 <div className="flex items-center gap-2">
@@ -83,7 +83,7 @@ export default function ExpenseDashboard() {
                     <h3 className="text-base sm:text-lg font-semibold text-foreground">Top Layers</h3>
                     <span className="text-sm">🏆</span>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-3 sm:md:gap-4">
                     {categories.slice(0, 5).map((cat, index) => (
                         <div
                             key={index}
@@ -103,7 +103,7 @@ export default function ExpenseDashboard() {
             </div>
 
             {/* Charts Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 md:gap-6">
                 {/* Monthly Expenses Chart */}
                 <Card className="card-hover">
                     <CardHeader>
@@ -114,7 +114,7 @@ export default function ExpenseDashboard() {
                         <p className="text-xl sm:text-2xl font-black text-primary">฿{totalStats.toLocaleString()} 💰</p>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-[250px] sm:h-[300px] w-full">
+                        <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <defs>
@@ -165,7 +165,7 @@ export default function ExpenseDashboard() {
                         <p className="text-sm sm:text-base font-medium text-muted-foreground">Top Spending Breakdown</p>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-[250px] sm:h-[300px] w-full">
+                        <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart layout="vertical" data={categories.slice(0, 5)} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />

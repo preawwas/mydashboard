@@ -25,7 +25,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <p className="text-sm text-muted-foreground">Record sell transactions to calculate actual profit/loss.</p>
                 <Button
                     type="button"
@@ -33,6 +33,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                     size="sm"
                     onClick={onAdd}
                     leftIcon={<Plus className="w-4 h-4" />}
+                    className="w-full sm:w-auto"
                 >
                     Add Sell Record
                 </Button>
@@ -43,7 +44,7 @@ const SellHistoryList: React.FC<SellHistoryListProps> = ({
                     {sellHistory.map((sell, index) => (
                         <div
                             key={sell._id}
-                            className="p-4 rounded-xl bg-card border border-border space-y-3 relative group"
+                            className="p-3 md:p-4 rounded-xl bg-card border border-border space-y-3 relative group"
                         >
                             <div className="absolute top-2 right-2">
                                 <button

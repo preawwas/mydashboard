@@ -189,7 +189,7 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
         >
             <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 {/* Tabs */}
-                <div className="flex border-b border-border -mt-2 overflow-x-auto scrollbar-hide" role="tablist">
+                <div className="flex border-b border-border -mt-2 overflow-x-auto scrollbar-hide -webkit-overflow-scrolling-touch" role="tablist">
                     <button
                         type="button"
                         role="tab"
@@ -278,11 +278,11 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-end gap-2 sm:gap-3 pt-4 border-t border-border flex-shrink-0">
-                    <Button type="button" variant="secondary" onClick={onClose} className="px-4 sm:px-6">
+                <div className="flex flex-col md:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t border-border flex-shrink-0">
+                    <Button type="button" variant="secondary" onClick={onClose} className="px-4 sm:px-6 w-full md:w-auto">
                         Cancel
                     </Button>
-                    <Button type="submit" isLoading={isLoading} className="px-4 sm:px-6">
+                    <Button type="submit" isLoading={isLoading} className="px-4 sm:px-6 w-full md:w-auto">
                         Save
                     </Button>
                 </div>
