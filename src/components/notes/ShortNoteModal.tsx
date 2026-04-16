@@ -83,9 +83,10 @@ const ShortNoteModal: React.FC<ShortNoteModalProps> = ({ isOpen, onClose, note, 
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={note ? 'Edit Note' : 'Create Note'}>
-            <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Title */}
-                <div className="space-y-2">
+            <form onSubmit={handleSubmit} className="flex flex-col h-full">
+                <div className="space-y-5 flex-1 overflow-y-auto">
+                    {/* Title */}
+                    <div className="space-y-2">
                     <label className="text-sm font-bold text-muted-foreground ml-1">Title</label>
                     <Input
                         placeholder="Enter title..."
@@ -128,8 +129,8 @@ const ShortNoteModal: React.FC<ShortNoteModalProps> = ({ isOpen, onClose, note, 
                     </div>
                 </div>
 
-                {/* Content - Rich Text Editor */}
-                <div className="space-y-2">
+                    {/* Content - Rich Text Editor */}
+                    <div className="space-y-2">
                     <label className="text-sm font-bold text-muted-foreground ml-1">Content</label>
                     <DynamicRichTextEditor
                         key={editorKey}
@@ -138,19 +139,22 @@ const ShortNoteModal: React.FC<ShortNoteModalProps> = ({ isOpen, onClose, note, 
                         placeholder="Write your note here..."
                     />
                 </div>
+                </div>
 
-                {/* Actions */}
-                <div className="pt-4 flex items-center justify-end gap-3">
-                    <Button type="button" variant="outline" onClick={onClose} className="rounded-xl px-6 h-12 border-border/50">
-                        Cancel
-                    </Button>
-                    <Button
-                        type="submit"
-                        disabled={loading}
-                        className="rounded-xl px-8 h-12 bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20"
-                    >
-                        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (note ? 'Edit Note' : 'Create Note')}
-                    </Button>
+                {/* Actions - sticky footer inside the modal's scroll container */}
+                <div className="sticky bottom-0 bg-background/80 backdrop-blur-sm border-t border-border p-4 flex-shrink-0">
+                    <div className="flex items-center justify-end gap-3">
+                        <Button type="button" variant="outline" onClick={onClose} className="rounded-xl px-6 h-12 border-border/50">
+                            Cancel
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="rounded-xl px-8 h-12 bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20"
+                        >
+                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (note ? 'Edit Note' : 'Create Note')}
+                        </Button>
+                    </div>
                 </div>
             </form>
         </Modal>
