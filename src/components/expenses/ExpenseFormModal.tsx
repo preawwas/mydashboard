@@ -80,7 +80,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
         paymentChannelId: '',
         paymentType: 'FULL',
         installmentPeriods: '',
-        necessity: 'NEED',
+        necessity: 'WANT',
         note: '',
         status: 'PAID'
     });
@@ -100,7 +100,7 @@ export default function ExpenseFormModal({ isOpen, onClose, onSuccess, editId }:
                     paymentChannelId: '',
                     paymentType: 'FULL',
                     installmentPeriods: '',
-                    necessity: 'NEED',
+                    necessity: 'WANT',
                     note: '',
                     status: 'PAID'
                 });

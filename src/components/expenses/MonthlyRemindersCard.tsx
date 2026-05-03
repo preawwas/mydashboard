@@ -65,16 +65,22 @@ export default function MonthlyRemindersCard({
                             
                             if (exp.payment_type === 'INSTALLMENT' && exp.expense_installments) {
                                 const total = exp.expense_installments.length;
-                                const paid = exp.expense_installments.filter((i: any) => i.status === 'PAID').length;
-                                const remaining = total - paid;
-                                installmentProgress = `(${remaining}/${total})`;
                                 
-                                // Find the next pending installment's due_date
-                                const nextPending = [...exp.expense_installments]
-                                    .sort((a: any, b: any) => (a.period_number || 0) - (b.period_number || 0))
-                                    .find((i: any) => i.status === 'PENDING');
-                                if (nextPending?.due_date) {
-                                    displayDueDate = nextPending.due_date;
+                                // Find the next pending installment
+                                const sortedInstallments = [...exp.expense_installments]
+                                    .sort((a: any, b: any) => (a.period_number || 0) - (b.period_number || 0));
+                                
+                                const nextPending = sortedInstallments.find((i: any) => i.status === 'PENDING');
+                                
+                                if (nextPending) {
+                                    // Show current installment number / total (e.g., (4/5))
+                                    installmentProgress = `(${nextPending.period_number || 0}/${total})`;
+                                    if (nextPending.due_date) {
+                                        displayDueDate = nextPending.due_date;
+                                    }
+                                } else {
+                                    // If no pending, it means all installments are paid
+                                    installmentProgress = `(${total}/${total})`;
                                 }
                             }
 
