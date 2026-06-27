@@ -18,6 +18,7 @@ const Sidebar: React.FC = () => {
         if (tab.requiresExpense && !featureFlags.expense) return false;
         if (tab.requiresJourney && !featureFlags.journey) return false;
         if (tab.requiresQuickNotes && !featureFlags.quickNotes) return false;
+        if (tab.requiresVocabulary && !featureFlags.vocabulary) return false;
         return true;
     });
 

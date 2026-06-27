@@ -1,17 +1,23 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardHeader, CardTitle, CardContent, Button, Input } from '@/components/ui';
-import { User, Mail, Save, Camera, Lock, Bell, Shield, Eye, EyeOff, Settings, PieChart, CreditCard, ToggleLeft, ToggleRight, Heart, Plus, Trash2, Image as ImageIcon, Smile, LayoutDashboard, Map, StickyNote, LayoutGrid } from 'lucide-react';
+import { User, Mail, Save, Camera, Lock, Bell, Shield, Eye, EyeOff, Settings, PieChart, CreditCard, ToggleLeft, ToggleRight, Heart, Plus, Trash2, Image as ImageIcon, Smile, LayoutDashboard, Map, StickyNote, LayoutGrid, BookOpen, Upload } from 'lucide-react';
 import { useAuthStore, useSettingsStore } from '@/lib/store';
 import { APP_MODE_LABELS, FEATURE_CONFIG, type FeatureKey } from '@/lib/feature-modes';
 import { cn } from '@/lib/utils';
 import { EmojiPicker } from '@/components/EmojiPicker';
+import { VocabularyImportPanel } from '@/components/vocabulary';
+import { useVocabulary } from '@/hooks';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 export default function SettingsPage() {
+    const searchParams = useSearchParams();
+    const featureFlags = useFeatureFlags();
     const { user, setUser } = useAuthStore();
-    const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'preferences'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'preferences' | 'vocabulary'>('profile');
     const {
         activeMode,
         personalFeatures,
@@ -26,6 +32,7 @@ export default function SettingsPage() {
         expense: CreditCard,
         journey: Map,
         quickNotes: StickyNote,
+        vocabulary: BookOpen,
     };
 
     const [newItem, setNewItem] = useState({ type: 'emoji' as 'emoji' | 'image', value: '' });
@@ -60,6 +67,27 @@ export default function SettingsPage() {
         push: false,
         priceAlert: true,
     });
+
+    const {
+        categories,
+        recentEntries,
+        saving,
+        fetchRecentEntries,
+        createEntry,
+        importRows,
+    } = useVocabulary();
+
+    useEffect(() => {
+        if (searchParams.get('tab') === 'vocabulary') {
+            setActiveTab('vocabulary');
+        }
+    }, [searchParams]);
+
+    useEffect(() => {
+        if (activeTab === 'vocabulary') {
+            void fetchRecentEntries();
+        }
+    }, [activeTab, fetchRecentEntries]);
 
     // Handlers
     const handleProfileSubmit = async (e: React.FormEvent) => {
@@ -187,6 +215,17 @@ export default function SettingsPage() {
                     >
                         General
                     </button>
+                    {featureFlags.vocabulary && (
+                        <button
+                            onClick={() => setActiveTab('vocabulary')}
+                            className={`px-4 md:px-6 py-3 font-medium text-sm whitespace-nowrap transition-colors border-b-2 ${activeTab === 'vocabulary'
+                                ? 'border-primary text-primary'
+                                : 'border-transparent text-muted-foreground hover:text-foreground'
+                                }`}
+                        >
+                            Vocabulary Import
+                        </button>
+                    )}
                 </div>
 
                 {activeTab === 'profile' ? (
@@ -392,6 +431,29 @@ export default function SettingsPage() {
                                 </div>
                             </CardContent>
                         </Card>
+                    </div>
+                ) : activeTab === 'vocabulary' ? (
+                    <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div>
+                            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                                <Upload className="w-5 h-5 text-primary" />
+                                Vocabulary Import
+                            </h2>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                Add words manually or upload a CSV batch.
+                            </p>
+                        </div>
+                        <VocabularyImportPanel
+                            categories={categories}
+                            recentEntries={recentEntries}
+                            saving={saving}
+                            onCreate={async (form) => {
+                                await createEntry(form);
+                            }}
+                            onImportFile={async (rows) => {
+                                await importRows(rows);
+                            }}
+                        />
                     </div>
                 ) : (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

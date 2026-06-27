@@ -1,6 +1,6 @@
 export type AppFeatureMode = 'all' | 'personal';
 
-export type FeatureKey = 'dashboard' | 'investment' | 'expense' | 'journey' | 'quickNotes';
+export type FeatureKey = 'dashboard' | 'investment' | 'expense' | 'journey' | 'quickNotes' | 'vocabulary';
 
 export interface FeatureFlags {
     dashboard: boolean;
@@ -8,6 +8,7 @@ export interface FeatureFlags {
     expense: boolean;
     journey: boolean;
     quickNotes: boolean;
+    vocabulary: boolean;
 }
 
 export const ALL_FEATURES: FeatureFlags = {
@@ -16,6 +17,7 @@ export const ALL_FEATURES: FeatureFlags = {
     expense: true,
     journey: true,
     quickNotes: true,
+    vocabulary: true,
 };
 
 export const DEFAULT_PERSONAL_FEATURES: FeatureFlags = {
@@ -24,6 +26,7 @@ export const DEFAULT_PERSONAL_FEATURES: FeatureFlags = {
     expense: false,
     journey: true,
     quickNotes: true,
+    vocabulary: true,
 };
 
 export const APP_MODE_LABELS: Record<AppFeatureMode, { title: string; description: string }> = {
@@ -48,6 +51,7 @@ export const FEATURE_CONFIG: {
     { key: 'expense', label: 'Expense', description: 'Track and manage your daily spending', href: '/expenses' },
     { key: 'journey', label: 'Journey', description: 'Kanban board and calendar for notes', href: '/notes' },
     { key: 'quickNotes', label: 'Quick Notes', description: 'Short notes and floating quick note button', href: '/notes/short-note' },
+    { key: 'vocabulary', label: 'Vocabulary', description: 'Import, review, and track vocabulary learning', href: '/vocabulary/review' },
 ];
 
 export function resolveFeatureFlags(
@@ -79,6 +83,7 @@ export function isRouteAllowed(pathname: string, flags: FeatureFlags): boolean {
         pathname === '/calendar'
     )) return true;
     if (flags.quickNotes && (pathname === '/notes/short-note' || pathname.startsWith('/notes/short-note/'))) return true;
+    if (flags.vocabulary && (pathname === '/vocabulary' || pathname.startsWith('/vocabulary/'))) return true;
 
     return false;
 }

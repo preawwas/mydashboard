@@ -171,3 +171,64 @@ export interface FloatingItemConfig {
     type: FloatingItemType;
     value: string; // Emoji character or Image URL
 }
+
+// Vocabulary Types
+export interface VocabularyCategory {
+    category_id: string;
+    user_id: string;
+    name: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface VocabularyTranslation {
+    id: string;
+    vocabulary_id: string;
+    language_code: string;
+    word: string;
+    pronunciation: string | null;
+    meaning: string;
+    remarks: string | null;
+}
+
+export interface VocabularyReview {
+    review_count: number;
+    next_review_date: string | null;
+    last_reviewed_at: string | null;
+}
+
+export interface VocabularyEntry {
+    id: string;
+    user_id: string;
+    category_id: string | null;
+    is_favorite: boolean;
+    import_batch_id: string | null;
+    created_at: string;
+    updated_at: string;
+    vocabulary_categories: Pick<VocabularyCategory, 'category_id' | 'name'> | null;
+    vocabulary_translations: VocabularyTranslation | VocabularyTranslation[] | null;
+    vocabulary_reviews: VocabularyReview | VocabularyReview[] | null;
+}
+
+export interface VocabularySummaryMetrics {
+    totalWords: number;
+    mastered: number;
+    pendingReview: number;
+}
+
+export interface VocabularyCategorySummaryRow {
+    category_id: string;
+    category_name: string;
+    total: number;
+    mastered: number;
+    progress_percent: number;
+}
+
+export interface VocabularyFormData {
+    categoryName: string;
+    languageCode: string;
+    word: string;
+    pronunciation: string;
+    meaning: string;
+    remarks: string;
+}

@@ -19,6 +19,7 @@ export interface NavTab {
     requiresExpense?: boolean;
     requiresJourney?: boolean;
     requiresQuickNotes?: boolean;
+    requiresVocabulary?: boolean;
 }
 
 export const TAB_THEMES: Record<string, TabTheme> = {
@@ -61,6 +62,14 @@ export const TAB_THEMES: Record<string, TabTheme> = {
         hover: '#f5f0e3',
         activeText: '#563526',
         surfaceTint: '#FBF9F4',
+    },
+    vocabulary: {
+        bg: '#B9B4D8',
+        fg: '#563526',
+        border: '#A39EC9',
+        hover: '#AEA9CF',
+        activeText: '#563526',
+        surfaceTint: '#E8E6F4',
     },
 };
 
@@ -108,6 +117,15 @@ export const NAV_TABS: NavTab[] = [
         isActive: (pathname) =>
             pathname === '/notes/short-note' || pathname.startsWith('/notes/short-note/'),
         requiresQuickNotes: true,
+    },
+    {
+        id: 'vocabulary',
+        label: 'Vocab',
+        ariaLabel: 'Vocabulary',
+        href: '/vocabulary/review',
+        isActive: (pathname) =>
+            pathname === '/vocabulary' || pathname.startsWith('/vocabulary/'),
+        requiresVocabulary: true,
     },
 ];
 

@@ -183,7 +183,11 @@ function migratePersistedSettings(persisted: unknown): PersistedSettingsState {
     if (s.personalFeatures) {
         return {
             activeMode: s.activeMode ?? 'all',
-            personalFeatures: s.personalFeatures,
+            personalFeatures: {
+                ...DEFAULT_PERSONAL_FEATURES,
+                ...s.personalFeatures,
+                vocabulary: s.personalFeatures.vocabulary ?? true,
+            },
             valentineEnabled: s.valentineEnabled ?? true,
             valentineItems: s.valentineItems ?? [],
         };
@@ -205,6 +209,7 @@ function migratePersistedSettings(persisted: unknown): PersistedSettingsState {
                 expense: s.enableExpense !== false,
                 journey: s.enableJourney !== false,
                 quickNotes: s.enableQuickNotes !== false,
+                vocabulary: true,
             }
             : DEFAULT_PERSONAL_FEATURES,
         valentineEnabled: s.valentineEnabled ?? true,
