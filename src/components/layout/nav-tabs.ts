@@ -14,8 +14,11 @@ export interface NavTab {
     ariaLabel: string;
     href: string;
     isActive: (pathname: string) => boolean;
+    requiresDashboard?: boolean;
     requiresInvestment?: boolean;
     requiresExpense?: boolean;
+    requiresJourney?: boolean;
+    requiresQuickNotes?: boolean;
 }
 
 export const TAB_THEMES: Record<string, TabTheme> = {
@@ -68,6 +71,7 @@ export const NAV_TABS: NavTab[] = [
         ariaLabel: 'Dashboard',
         href: '/dashboard',
         isActive: (pathname) => pathname === '/dashboard',
+        requiresDashboard: true,
     },
     {
         id: 'investment',
@@ -94,6 +98,7 @@ export const NAV_TABS: NavTab[] = [
             pathname === '/notes' ||
             pathname === '/notes/calendar' ||
             pathname.startsWith('/notes/calendar/'),
+        requiresJourney: true,
     },
     {
         id: 'quick-notes',
@@ -102,6 +107,7 @@ export const NAV_TABS: NavTab[] = [
         href: '/notes/short-note',
         isActive: (pathname) =>
             pathname === '/notes/short-note' || pathname.startsWith('/notes/short-note/'),
+        requiresQuickNotes: true,
     },
 ];
 

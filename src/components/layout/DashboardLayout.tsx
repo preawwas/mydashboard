@@ -6,9 +6,11 @@ import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { useAuthStore } from '@/lib/store';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import QuickNoteFloatingButton from '@/components/notes/QuickNoteFloatingButton';
 import { Loading, Toast } from '@/components/ui';
 import { getNavSurfaceTint } from './nav-tabs';
+import { useFeatureModeGuard } from './useFeatureModeGuard';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -18,8 +20,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const router = useRouter();
     const pathname = usePathname();
     const { user, token, isLoading, setLoading, isHydrated } = useAuthStore();
+    const featureFlags = useFeatureFlags();
     const [mounted, setMounted] = useState(false);
     const surfaceTint = getNavSurfaceTint(pathname);
+
+    useFeatureModeGuard();
 
     useEffect(() => {
         setMounted(true);
@@ -59,7 +64,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </div>
             </main>
             <Toast />
-            <QuickNoteFloatingButton />
+            {featureFlags.quickNotes && <QuickNoteFloatingButton />}
         </div>
     );
 };

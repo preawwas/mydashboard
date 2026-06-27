@@ -29,10 +29,11 @@ interface NoteModalProps {
     note?: any;
     onSave: (note: any) => void;
     defaultDueDate?: string;
+    defaultStatus?: 'New' | 'In Progress' | 'Urgent' | 'Done';
     isClone?: boolean;
 }
 
-const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, defaultDueDate, isClone }) => {
+const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, defaultDueDate, defaultStatus, isClone }) => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [noteCategoryId, setNoteCategoryId] = useState('');
@@ -85,14 +86,14 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                 setTitle('');
                 setContent('');
                 setNoteCategoryId('');
-                setStatus('New');
+                setStatus(defaultStatus || 'New');
                 setIsFavorite(false);
                 setDueDates([initialDeadline]);
                 setTempDate(initialDeadline);
                 setIsMultiDateMode(false);
             }
         }
-    }, [isOpen, note, defaultDueDate, isClone]);
+    }, [isOpen, note, defaultDueDate, defaultStatus, isClone]);
 
     const fetchCategories = async () => {
         try {

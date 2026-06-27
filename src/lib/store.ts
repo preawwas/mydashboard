@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AuthUser, Investment, InvestmentFilters, PaginatedResponse, FloatingItemConfig } from '@/types';
+import type { AppFeatureMode, FeatureFlags, FeatureKey } from './feature-modes';
+import { DEFAULT_PERSONAL_FEATURES } from './feature-modes';
 
 // Auth Store
 interface AuthState {
@@ -154,33 +156,91 @@ export const useToastStore = create<ToastState>((set) => ({
 
 // Settings Store
 interface SettingsState {
-    enableInvestment: boolean;
-    enableExpense: boolean;
+    activeMode: AppFeatureMode;
+    personalFeatures: FeatureFlags;
     valentineEnabled: boolean;
     valentineItems: FloatingItemConfig[];
-    toggleInvestment: () => void;
-    toggleExpense: () => void;
+    setActiveMode: (mode: AppFeatureMode) => void;
+    setPersonalFeature: (key: FeatureKey, enabled: boolean) => void;
+    togglePersonalFeature: (key: FeatureKey) => void;
     setValentineEnabled: (enabled: boolean) => void;
     setValentineItems: (items: FloatingItemConfig[]) => void;
+}
+
+type PersistedSettingsState = Pick<SettingsState, 'activeMode' | 'personalFeatures' | 'valentineEnabled' | 'valentineItems'>;
+
+type LegacyPersistedSettings = Partial<PersistedSettingsState> & {
+    enableDashboard?: boolean;
+    enableInvestment?: boolean;
+    enableExpense?: boolean;
+    enableJourney?: boolean;
+    enableQuickNotes?: boolean;
+};
+
+function migratePersistedSettings(persisted: unknown): PersistedSettingsState {
+    const s = (persisted ?? {}) as LegacyPersistedSettings;
+
+    if (s.personalFeatures) {
+        return {
+            activeMode: s.activeMode ?? 'all',
+            personalFeatures: s.personalFeatures,
+            valentineEnabled: s.valentineEnabled ?? true,
+            valentineItems: s.valentineItems ?? [],
+        };
+    }
+
+    const hasLegacyFlags =
+        s.enableDashboard !== undefined ||
+        s.enableInvestment !== undefined ||
+        s.enableExpense !== undefined ||
+        s.enableJourney !== undefined ||
+        s.enableQuickNotes !== undefined;
+
+    return {
+        activeMode: 'all',
+        personalFeatures: hasLegacyFlags
+            ? {
+                dashboard: s.enableDashboard !== false,
+                investment: s.enableInvestment !== false,
+                expense: s.enableExpense !== false,
+                journey: s.enableJourney !== false,
+                quickNotes: s.enableQuickNotes !== false,
+            }
+            : DEFAULT_PERSONAL_FEATURES,
+        valentineEnabled: s.valentineEnabled ?? true,
+        valentineItems: s.valentineItems ?? [],
+    };
 }
 
 export const useSettingsStore = create<SettingsState>()(
     persist(
         (set) => ({
-            enableInvestment: true,
-            enableExpense: true,
+            activeMode: 'all',
+            personalFeatures: DEFAULT_PERSONAL_FEATURES,
             valentineEnabled: true,
             valentineItems: [],
-            toggleInvestment: () => set((state) => ({ enableInvestment: !state.enableInvestment })),
-            toggleExpense: () => set((state) => ({ enableExpense: !state.enableExpense })),
+            setActiveMode: (activeMode) => set({ activeMode }),
+            setPersonalFeature: (key, enabled) =>
+                set((state) => ({
+                    personalFeatures: { ...state.personalFeatures, [key]: enabled },
+                })),
+            togglePersonalFeature: (key) =>
+                set((state) => ({
+                    personalFeatures: {
+                        ...state.personalFeatures,
+                        [key]: !state.personalFeatures[key],
+                    },
+                })),
             setValentineEnabled: (valentineEnabled) => set({ valentineEnabled }),
             setValentineItems: (valentineItems) => set({ valentineItems }),
         }),
         {
             name: 'settings-storage',
+            version: 1,
+            migrate: (persisted) => migratePersistedSettings(persisted),
             partialize: (state) => ({
-                enableInvestment: state.enableInvestment,
-                enableExpense: state.enableExpense,
+                activeMode: state.activeMode,
+                personalFeatures: state.personalFeatures,
                 valentineEnabled: state.valentineEnabled,
                 valentineItems: state.valentineItems,
             }),

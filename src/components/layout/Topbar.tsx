@@ -3,16 +3,20 @@
 import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
-import { Bell, CalendarDays, LogOut } from 'lucide-react';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
+import { Bell, CalendarDays, LogOut, Settings } from 'lucide-react';
 import { cn, getMonthlyPendingAmount } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
 import fluffyWordmarkImage from './image.png';
+import ModeSwitcher from './ModeSwitcher';
 
 const Topbar: React.FC = () => {
     const router = useRouter();
+    const pathname = usePathname();
     const { token, user, logout } = useAuthStore();
+    const featureFlags = useFeatureFlags();
     const secretClickCount = useRef(0);
     const secretClickTimer = useRef<NodeJS.Timeout | null>(null);
     const [pendingCount, setPendingCount] = useState(0);
@@ -85,13 +89,17 @@ const Topbar: React.FC = () => {
 
                 {/* Right Section */}
                 <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-                    <Link
-                        href="/notes/calendar"
-                        aria-label="Calendar"
-                        className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted/10 hover:text-primary"
-                    >
-                        <CalendarDays className="h-5 w-5" aria-hidden="true" />
-                    </Link>
+                    <ModeSwitcher />
+
+                    {featureFlags.journey && (
+                        <Link
+                            href="/notes/calendar"
+                            aria-label="Calendar"
+                            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted/10 hover:text-primary"
+                        >
+                            <CalendarDays className="h-5 w-5" aria-hidden="true" />
+                        </Link>
+                    )}
 
                     <div className="relative">
                         <button
@@ -160,6 +168,18 @@ const Topbar: React.FC = () => {
                             </>
                         )}
                     </div>
+
+                    <Link
+                        href="/settings"
+                        aria-label="Settings"
+                        aria-current={pathname === '/settings' ? 'page' : undefined}
+                        className={cn(
+                            'rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted/10 hover:text-primary',
+                            pathname === '/settings' && 'bg-muted/10 text-primary'
+                        )}
+                    >
+                        <Settings className="h-5 w-5" aria-hidden="true" />
+                    </Link>
 
                     <div className="flex items-center gap-1.5 border-l border-border pl-1.5 sm:gap-2 sm:pl-2">
                         <button

@@ -16,6 +16,7 @@ import {
 } from 'date-fns';
 import { Button, Input, Modal } from '@/components/ui';
 import NoteModal from './NoteModal';
+import NoteCategoryIcon from './NoteCategoryIcon';
 import { DbNote, DbNoteCategory, DbReminder } from '@/lib/supabase-types';
 import { apiClient } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
@@ -63,56 +64,57 @@ const CATEGORY_PALETTE = [
 const getCategoryColor = (index: number) => CATEGORY_PALETTE[index % CATEGORY_PALETTE.length];
 
 const STATUS_CARD_THEMES: Record<string, { bg: string; accent: string; border: string }> = {
-    'New': { bg: '#F7F5F1', accent: '#f59e0b', border: '#E8E4DE' },
-    'In Progress': { bg: '#D5E3E8', accent: '#3B82F6', border: '#C5D8E0' },
-    'Urgent': { bg: '#E0DCD1', accent: '#e11d48', border: '#D0CCC0' },
-    'Done': { bg: '#E4E3BC', accent: '#98AD57', border: '#D4D3A8' },
+    'New': { bg: '#EBE4D6', accent: '#f59e0b', border: '#D9CEBD' },
+    'In Progress': { bg: '#BFD2DC', accent: '#3B82F6', border: '#A3BBC6' },
+    'Urgent': { bg: '#CFC8B8', accent: '#e11d48', border: '#B8AFA0' },
+    'Done': { bg: '#D8D7A8', accent: '#98AD57', border: '#C4C38E' },
 };
 
 interface StatusSummaryCardProps {
     count: number;
+    label: string;
     bg: string;
     accentColor: string;
     borderColor: string;
     ariaLabel: string;
     icon: React.ComponentType<{ className?: string; style?: React.CSSProperties; strokeWidth?: number }>;
     className?: string;
+    onClick?: () => void;
 }
 
 const StatusSummaryCard: React.FC<StatusSummaryCardProps> = ({
     count,
+    label,
     bg,
     accentColor,
     borderColor,
     ariaLabel,
     icon: Icon,
     className,
+    onClick,
 }) => (
-    <div
-        role="status"
+    <button
+        type="button"
+        onClick={onClick}
         aria-label={`${ariaLabel}: ${count}`}
         className={cn(
-            'relative overflow-hidden rounded-2xl border p-3.5 sm:p-4 shadow-[0_4px_16px_-4px_rgba(18,39,92,0.06)] min-h-[88px] flex-1 min-w-[108px] basis-0',
+            'rounded-2xl border p-3.5 sm:p-4 shadow-[0_4px_16px_-4px_rgba(18,39,92,0.08)] min-h-[88px] flex-1 min-w-[108px] basis-0 text-left transition-all hover:brightness-[0.97] active:scale-[0.99]',
             className
         )}
         style={{ backgroundColor: bg, borderColor }}
     >
-        <div className="relative z-10 flex flex-col items-start gap-2">
-            <Icon className="w-6 h-6 sm:w-7 sm:h-7 shrink-0" style={{ color: accentColor }} strokeWidth={2.5} />
-            <p className="text-3xl font-black leading-none tabular-nums" style={{ color: accentColor }}>
-                {count}
-            </p>
+        <div className="flex items-center justify-between gap-3 h-full">
+            <div className="flex flex-col justify-between self-stretch min-h-[56px]">
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#64748B]">
+                    {label}
+                </span>
+                <p className="text-3xl font-black leading-none tabular-nums text-black">
+                    {count}
+                </p>
+            </div>
+            <Icon className="w-7 h-7 sm:w-8 sm:h-8 shrink-0" style={{ color: accentColor }} strokeWidth={2} />
         </div>
-        <svg
-            className="absolute bottom-0 right-0 w-[88px] h-[56px] pointer-events-none"
-            viewBox="0 0 88 56"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-        >
-            <path d="M0 56 C 18 38, 34 48, 52 34 C 68 22, 78 30, 88 18 L 88 56 Z" fill={accentColor} opacity="0.18" />
-            <path d="M0 56 C 22 44, 40 52, 60 40 C 74 32, 82 38, 88 28 L 88 56 Z" fill={accentColor} opacity="0.32" />
-        </svg>
-    </div>
+    </button>
 );
 
 function getDaysRemainingText(dueDate: string, status?: string, updatedAt?: string): { text: string; isOverdue: boolean; isDueToday?: boolean } {
@@ -143,6 +145,7 @@ const NoteDashboard: React.FC = () => {
     const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCloneMode, setIsCloneMode] = useState(false);
+    const [defaultStatus, setDefaultStatus] = useState<'New' | 'In Progress' | 'Urgent' | 'Done'>('New');
     const [selectedNote, setSelectedNote] = useState<ExtendedNote | null>(null);
     const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
@@ -213,13 +216,13 @@ const NoteDashboard: React.FC = () => {
                         try {
                             const parsedVisible = JSON.parse(savedVisibleStr) as string[];
                             const validVisible = parsedVisible.filter(id => allIds.includes(id));
-                            // Only show what the user has explicitly set to be visible
                             setVisibleCategories(validVisible);
                         } catch {
-                            setVisibleCategories(allIds);
+                            setVisibleCategories([]);
                         }
                     } else {
-                        setVisibleCategories(allIds);
+                        // First visit: hide all categories until user enables them
+                        setVisibleCategories([]);
                     }
                 } else {
                     // Subsequent loads: preserve existing filter/order exactly as it is without auto-adding
@@ -452,7 +455,13 @@ const NoteDashboard: React.FC = () => {
         try { await apiClient.fetch(`/api/notes/${noteId}`, { method: 'DELETE' }); } catch { fetchTrashedNotes(); }
     };
 
-    const handleOpenCreate = () => { setSelectedNote(null); setIsCloneMode(false); setIsModalOpen(true); };
+    const handleOpenCreate = () => { setSelectedNote(null); setIsCloneMode(false); setDefaultStatus('New'); setIsModalOpen(true); };
+    const handleOpenCreateWithStatus = (status: 'New' | 'In Progress' | 'Urgent' | 'Done') => {
+        setSelectedNote(null);
+        setIsCloneMode(false);
+        setDefaultStatus(status);
+        setIsModalOpen(true);
+    };
     const handleOpenEdit = (note: ExtendedNote) => { setSelectedNote(note); setIsCloneMode(false); setIsModalOpen(true); };
     const handleClone = (note: ExtendedNote) => { setSelectedNote(note); setIsCloneMode(true); setIsModalOpen(true); };
     const handleSave = () => { fetchNotes(); };
@@ -546,7 +555,7 @@ const NoteDashboard: React.FC = () => {
                                                     )}
                                                     style={{ backgroundColor: isVisible ? `${cat.color_code}20` : '#e2e8f0' }}
                                                 >
-                                                    {cat.icon || '\u{1F4DD}'}
+                                                    <NoteCategoryIcon categoryName={cat.name} size={16} />
                                                 </div>
                                                 <span className={cn("flex-1 text-sm font-bold", isVisible ? "text-foreground" : "text-muted-foreground line-through")}>
                                                     {cat.name}
@@ -675,7 +684,84 @@ const NoteDashboard: React.FC = () => {
                                 Month
                             </button>
                         </div>
+
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowCategoryFilter(!showCategoryFilter)}
+                            className={cn(
+                                'h-10 px-4 rounded-xl border-border/50 bg-card/50 flex items-center gap-2 text-sm font-bold',
+                                showCategoryFilter && 'border-primary/30 text-primary bg-primary/5'
+                            )}
+                        >
+                            <Filter className="w-4 h-4" />
+                            Category Filter
+                        </Button>
                     </div>
+
+                    {/* Category Filter Panel */}
+                    {showCategoryFilter && (
+                        <div className="bg-card/50 border border-border/50 rounded-2xl p-4 space-y-2">
+                            <div className="flex items-center justify-between mb-3">
+                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Show / Hide & Reorder</p>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => { hasUserChangedSettings.current = true; setVisibleCategories(categoryOrder); }}
+                                        className="text-[10px] font-bold text-primary hover:underline"
+                                    >
+                                        Select All
+                                    </button>
+                                    <span className="text-border">|</span>
+                                    <button
+                                        onClick={() => { hasUserChangedSettings.current = true; setVisibleCategories([]); }}
+                                        className="text-[10px] font-bold text-rose-500 hover:underline"
+                                    >
+                                        Clear All
+                                    </button>
+                                </div>
+                            </div>
+                            {categoryOrder.map((id, idx) => {
+                                const cat = categories.find(c => c.note_category_id === id);
+                                if (!cat) return null;
+                                const isVisible = visibleCategories.includes(id);
+                                return (
+                                    <div key={id} className="flex items-center gap-3 py-1.5">
+                                        <label className="flex items-center gap-2 flex-1 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={isVisible}
+                                                onChange={() => toggleCategoryVisibility(id)}
+                                                className="w-4 h-4 rounded accent-primary"
+                                            />
+                                            <NoteCategoryIcon categoryName={cat.name} size={16} />
+                                            <span className={cn('text-sm font-medium', isVisible ? 'text-foreground' : 'text-muted-foreground line-through')}>
+                                                {cat.name}
+                                            </span>
+                                        </label>
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => moveCategoryUp(id)}
+                                                disabled={idx === 0}
+                                                aria-label={`Move ${cat.name} up`}
+                                                className="p-1 text-muted-foreground hover:text-primary disabled:opacity-20"
+                                            >
+                                                <ChevronUp className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => moveCategoryDown(id)}
+                                                disabled={idx === categoryOrder.length - 1}
+                                                aria-label={`Move ${cat.name} down`}
+                                                className="p-1 text-muted-foreground hover:text-primary disabled:opacity-20"
+                                            >
+                                                <ChevronDown className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
 
                 {/* Status summary cards — horizontal row, flexible width */}
@@ -687,11 +773,13 @@ const NoteDashboard: React.FC = () => {
                             <StatusSummaryCard
                                 key={status}
                                 ariaLabel={formatStatusLabel(status)}
+                                label={formatStatusLabel(status)}
                                 count={count}
                                 bg={theme.bg}
                                 accentColor={theme.accent}
                                 borderColor={theme.border}
                                 icon={Icon}
+                                onClick={() => handleOpenCreateWithStatus(status as 'New' | 'In Progress' | 'Urgent' | 'Done')}
                             />
                         );
                     })}
@@ -725,7 +813,7 @@ const NoteDashboard: React.FC = () => {
                                 boxShadow: isSelected ? `0 2px 8px ${catColor.base}30` : undefined,
                             }}
                         >
-                            <span className="text-base">{cat.icon || '\u{1F4DD}'}</span>
+                            <span className="flex items-center shrink-0"><NoteCategoryIcon categoryName={cat.name} size={16} /></span>
                             <span className="hidden md:inline">{cat.name}</span>
                             <span
                                 className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-black"
@@ -796,7 +884,12 @@ const NoteDashboard: React.FC = () => {
                                     onDrop={(e) => handleDrop(e, status)}
                                 >
                                     {/* Column Header */}
-                                    <div className={cn("px-5 py-3.5 flex items-center border-b border-[#cdd5df] shrink-0 bg-[#ebeff4]")}>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleOpenCreateWithStatus(status as 'New' | 'In Progress' | 'Urgent' | 'Done')}
+                                        className={cn("w-full px-5 py-3.5 flex items-center border-b border-[#cdd5df] shrink-0 bg-[#ebeff4] hover:bg-[#e2e8f0] transition-colors cursor-pointer text-left")}
+                                        aria-label={`Create note in ${formatStatusLabel(status)}`}
+                                    >
                                         <div className="flex items-center gap-2">
                                             {StatusIcon ? (
                                                 <StatusIcon className={cn("w-4 h-4 shrink-0", style.icon)} />
@@ -805,7 +898,7 @@ const NoteDashboard: React.FC = () => {
                                             )}
                                             <h2 className={cn("text-xs font-bold", style.text)}>{formatStatusLabel(status)}</h2>
                                         </div>
-                                    </div>
+                                    </button>
 
                                     {/* Cards */}
                                     <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
@@ -841,7 +934,7 @@ const NoteDashboard: React.FC = () => {
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex items-start justify-between gap-2">
                                                                     <div className="flex items-center gap-1.5 min-w-0">
-                                                                        <span className="text-xs shrink-0">{note.note_categories?.icon || '\u{1F4DD}'}</span>
+                                                                        <span className="shrink-0 flex items-center"><NoteCategoryIcon categoryName={note.note_categories?.name || ''} size={14} /></span>
                                                                         <h3 title={note.title} className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{note.title}</h3>
                                                                     </div>
                                                                     <div className="relative">
@@ -897,7 +990,7 @@ const NoteDashboard: React.FC = () => {
                 </div>
             )}
 
-            <NoteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} note={selectedNote} onSave={handleSave} isClone={isCloneMode} />
+            <NoteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} note={selectedNote} onSave={handleSave} isClone={isCloneMode} defaultStatus={defaultStatus} />
 
             {/* Trash Popup */}
             <Modal isOpen={showTrash} onClose={() => setShowTrash(false)} title="Trash">
@@ -909,7 +1002,7 @@ const NoteDashboard: React.FC = () => {
                         </div>
                     ) : trashedNotes.map(note => (
                         <div key={note.note_id} className="flex items-center gap-3 p-4 bg-card border border-border/50 rounded-xl">
-                            <span className="text-sm">{note.note_categories?.icon || '\u{1F4DD}'}</span>
+                            <span className="flex items-center shrink-0"><NoteCategoryIcon categoryName={note.note_categories?.name || ''} size={16} /></span>
                             <div className="flex-1 min-w-0">
                                 <h3 className="text-sm font-bold text-foreground line-clamp-1">{note.title}</h3>
                                 <p className="text-[10px] text-muted-foreground">{note.note_categories?.name || 'Uncategorized'}</p>

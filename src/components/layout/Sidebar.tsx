@@ -4,17 +4,20 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { useSettingsStore } from '@/lib/store';
+import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 import { NAV_TABS, TAB_THEMES, getNavSurfaceTint } from './nav-tabs';
 
 const Sidebar: React.FC = () => {
     const pathname = usePathname();
-    const { enableInvestment, enableExpense } = useSettingsStore();
+    const featureFlags = useFeatureFlags();
     const navSurfaceTint = getNavSurfaceTint(pathname);
 
     const visibleTabs = NAV_TABS.filter((tab) => {
-        if (tab.requiresInvestment && !enableInvestment) return false;
-        if (tab.requiresExpense && !enableExpense) return false;
+        if (tab.requiresDashboard && !featureFlags.dashboard) return false;
+        if (tab.requiresInvestment && !featureFlags.investment) return false;
+        if (tab.requiresExpense && !featureFlags.expense) return false;
+        if (tab.requiresJourney && !featureFlags.journey) return false;
+        if (tab.requiresQuickNotes && !featureFlags.quickNotes) return false;
         return true;
     });
 

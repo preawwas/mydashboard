@@ -3,16 +3,30 @@
 import React, { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardHeader, CardTitle, CardContent, Button, Input } from '@/components/ui';
-import { User, Mail, Save, Camera, Lock, Bell, Shield, Eye, EyeOff, Settings, PieChart, CreditCard, Languages, ToggleLeft, ToggleRight, Heart, Plus, Trash2, Image as ImageIcon, Smile } from 'lucide-react';
+import { User, Mail, Save, Camera, Lock, Bell, Shield, Eye, EyeOff, Settings, PieChart, CreditCard, ToggleLeft, ToggleRight, Heart, Plus, Trash2, Image as ImageIcon, Smile, LayoutDashboard, Map, StickyNote, LayoutGrid } from 'lucide-react';
 import { useAuthStore, useSettingsStore } from '@/lib/store';
+import { APP_MODE_LABELS, FEATURE_CONFIG, type FeatureKey } from '@/lib/feature-modes';
 import { cn } from '@/lib/utils';
 import { EmojiPicker } from '@/components/EmojiPicker';
 
 export default function SettingsPage() {
     const { user, setUser } = useAuthStore();
     const [activeTab, setActiveTab] = useState<'profile' | 'account' | 'preferences'>('profile');
-    const { enableInvestment, enableExpense, toggleInvestment, toggleExpense } = useSettingsStore();
+    const {
+        activeMode,
+        personalFeatures,
+        setActiveMode,
+        togglePersonalFeature,
+    } = useSettingsStore();
     const { valentineEnabled, valentineItems, setValentineEnabled, setValentineItems } = useSettingsStore();
+
+    const featureIcons: Record<FeatureKey, React.ComponentType<{ className?: string }>> = {
+        dashboard: LayoutDashboard,
+        investment: PieChart,
+        expense: CreditCard,
+        journey: Map,
+        quickNotes: StickyNote,
+    };
 
     const [newItem, setNewItem] = useState({ type: 'emoji' as 'emoji' | 'image', value: '' });
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -381,77 +395,98 @@ export default function SettingsPage() {
                     </div>
                 ) : (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        {/* Feature Toggles Card */}
+                        {/* Feature Mode Card */}
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
                                     <Settings className="w-5 h-5 text-primary" />
-                                    Feature Management
+                                    Feature Mode
                                 </CardTitle>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                    Enable or disable application features.
+                                    Choose which menus appear in the app. Switch modes anytime from the top bar.
                                 </p>
                             </CardHeader>
                             <CardContent className="space-y-6">
-
-                                {/* Investment Toggle */}
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-border">
-                                    <div className="flex items-center gap-4">
-                                        <div className={cn(
-                                            "p-3 rounded-lg transition-colors",
-                                            enableInvestment ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                                        )}>
-                                            <PieChart className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-bold text-foreground">Investment Module</h3>
-                                            <p className="text-xs text-muted-foreground">Track and manage your investments</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={toggleInvestment}
-                                        className={cn(
-                                            "transition-all duration-300",
-                                            enableInvestment ? "text-primary" : "text-muted-foreground"
-                                        )}
-                                    >
-                                        {enableInvestment ? (
-                                            <ToggleRight className="w-10 h-10" />
-                                        ) : (
-                                            <ToggleLeft className="w-10 h-10" />
-                                        )}
-                                    </button>
+                                <div className="flex flex-col sm:flex-row gap-2 p-1 bg-muted/30 border border-border/50 rounded-2xl">
+                                    {(['all', 'personal'] as const).map((mode) => {
+                                        const Icon = mode === 'all' ? LayoutGrid : User;
+                                        const isActive = activeMode === mode;
+                                        return (
+                                            <button
+                                                key={mode}
+                                                type="button"
+                                                onClick={() => setActiveMode(mode)}
+                                                className={cn(
+                                                    'flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 transition-all',
+                                                    isActive
+                                                        ? 'bg-primary text-primary-foreground shadow-sm'
+                                                        : 'text-muted-foreground hover:bg-background/70 hover:text-foreground'
+                                                )}
+                                            >
+                                                <Icon className="w-4 h-4" />
+                                                <div className="text-left">
+                                                    <p className="text-sm font-bold">{APP_MODE_LABELS[mode].title}</p>
+                                                    <p className={cn('text-[10px] font-medium', isActive ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
+                                                        {APP_MODE_LABELS[mode].description}
+                                                    </p>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
 
-                                {/* Expense Toggle */}
-                                <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-border">
-                                    <div className="flex items-center gap-4">
-                                        <div className={cn(
-                                            "p-3 rounded-lg transition-colors",
-                                            enableExpense ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                                        )}>
-                                            <CreditCard className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm font-bold text-foreground">Expense Module</h3>
-                                            <p className="text-xs text-muted-foreground">Track and manage your daily spending</p>
-                                        </div>
+                                {activeMode === 'all' && (
+                                    <div className="rounded-xl border border-border bg-primary/5 p-4">
+                                        <p className="text-sm font-bold text-foreground">All mode is active</p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            Dashboard, Investment, Expense, Journey, and Quick Notes are all visible.
+                                        </p>
                                     </div>
-                                    <button
-                                        onClick={toggleExpense}
-                                        className={cn(
-                                            "transition-all duration-300",
-                                            enableExpense ? "text-primary" : "text-muted-foreground"
-                                        )}
-                                    >
-                                        {enableExpense ? (
-                                            <ToggleRight className="w-10 h-10" />
-                                        ) : (
-                                            <ToggleLeft className="w-10 h-10" />
-                                        )}
-                                    </button>
-                                </div>
+                                )}
 
+                                <div className="space-y-3">
+                                    <div>
+                                        <p className="text-sm font-bold text-foreground">Personal mode menus</p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            Choose which features appear when you switch to Personal mode in the top bar.
+                                        </p>
+                                    </div>
+                                    {FEATURE_CONFIG.map((feature) => {
+                                            const Icon = featureIcons[feature.key];
+                                            const enabled = personalFeatures[feature.key];
+                                            return (
+                                                <div key={feature.key} className="flex items-center justify-between p-4 rounded-xl bg-card border border-border">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={cn(
+                                                            'p-3 rounded-lg transition-colors',
+                                                            enabled ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                                                        )}>
+                                                            <Icon className="w-6 h-6" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-sm font-bold text-foreground">{feature.label}</h3>
+                                                            <p className="text-xs text-muted-foreground">{feature.description}</p>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => togglePersonalFeature(feature.key)}
+                                                        className={cn(
+                                                            'transition-all duration-300',
+                                                            enabled ? 'text-primary' : 'text-muted-foreground'
+                                                        )}
+                                                        aria-label={`Toggle ${feature.label} in personal mode`}
+                                                    >
+                                                        {enabled ? (
+                                                            <ToggleRight className="w-10 h-10" />
+                                                        ) : (
+                                                            <ToggleLeft className="w-10 h-10" />
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                </div>
                             </CardContent>
                         </Card>
 
