@@ -170,6 +170,58 @@ export function getVocabularyTranslation<T extends { vocabulary_translations?: u
     };
 }
 
+export type VocabularyReviewState = {
+    review_count: number;
+    next_review_date: string | null;
+    last_reviewed_at: string | null;
+};
+
+export function computeVocabularyNextReviewDate(reviewCount: number): string | null {
+    if (reviewCount >= 5) return null;
+    if (reviewCount <= 0) return new Date().toISOString().slice(0, 10);
+
+    const offsets: Record<number, number> = {
+        1: 1,
+        2: 2,
+        3: 4,
+        4: 7,
+    };
+
+    const addDays = offsets[reviewCount];
+    if (!addDays) return null;
+
+    const date = new Date();
+    date.setDate(date.getDate() + addDays);
+    return date.toISOString().slice(0, 10);
+}
+
+export function buildVocabularyReviewState(reviewCount: number): VocabularyReviewState {
+    const normalizedCount = Math.min(Math.max(reviewCount, 0), 5);
+    return {
+        review_count: normalizedCount,
+        next_review_date: computeVocabularyNextReviewDate(normalizedCount),
+        last_reviewed_at: normalizedCount > 0 ? new Date().toISOString() : null,
+    };
+}
+
+export function applyVocabularyReviewStep(
+    current: VocabularyReviewState | null,
+    step: number
+): VocabularyReviewState | null {
+    const currentCount = current?.review_count ?? 0;
+
+    if (step <= currentCount) {
+        if (step < 1 || step > currentCount) return null;
+        return buildVocabularyReviewState(step - 1);
+    }
+
+    if (step === currentCount + 1 && currentCount < 5) {
+        return buildVocabularyReviewState(currentCount + 1);
+    }
+
+    return null;
+}
+
 export function getVocabularyReview<T extends { vocabulary_reviews?: unknown }>(
     entry: T
 ): {

@@ -3,16 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import {
     Button,
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
     Input,
     Modal,
     Select,
     Table,
 } from '@/components/ui';
-import { Edit, Heart, Trash2, Filter } from 'lucide-react';
+import { Edit, Heart, Trash2 } from 'lucide-react';
 import {
     formatNextReviewLabel,
     getVocabularyReview,
@@ -25,6 +21,7 @@ import { useToastStore } from '@/lib/store';
 import { VocabularyCategory, VocabularyEntry, VocabularyFormData } from '@/types';
 import type { VocabularyFilter } from '@/hooks/useVocabulary';
 import VocabularyHoverWord from './VocabularyHoverWord';
+import VocabularyNotebookShell from './VocabularyNotebookShell';
 
 interface VocabularyReviewTableProps {
     entries: VocabularyEntry[];
@@ -327,88 +324,89 @@ export default function VocabularyReviewTable({
         },
     ];
 
+    const filterToolbar = (
+        <div className="flex flex-wrap gap-2">
+            {([
+                ['all', 'All'],
+                ['due_today', 'Due Today'],
+                ['mastered', 'Mastered'],
+            ] as const).map(([value, label]) => (
+                <Button
+                    key={value}
+                    type="button"
+                    variant={filter === value ? 'secondary' : 'outline'}
+                    className={filter === value ? 'text-[#563526] hover:opacity-90' : ''}
+                    style={
+                        filter === value
+                            ? { backgroundColor: T.primary, borderColor: T.primaryBorder }
+                            : undefined
+                    }
+                    onClick={() => onFilterChange(value)}
+                >
+                    {label}
+                </Button>
+            ))}
+            <Button
+                type="button"
+                variant={filter === 'favorite' ? 'secondary' : 'outline'}
+                className="hover:opacity-90"
+                style={
+                    filter === 'favorite'
+                        ? {
+                              backgroundColor: '#FFFFFF',
+                              borderColor: T.favoriteBorder,
+                              color: T.favorite,
+                          }
+                        : { color: T.favoriteMuted, borderColor: '#E5E7EB' }
+                }
+                onClick={() => onFilterChange('favorite')}
+                aria-label="Favorites"
+                title="Favorites"
+            >
+                <Heart className="h-4 w-4" />
+            </Button>
+            <Select
+                value={categoryId}
+                onChange={onCategoryChange}
+                options={[
+                    { value: '', label: 'All categories' },
+                    ...categories.map((category) => ({
+                        value: category.category_id,
+                        label: category.name,
+                    })),
+                ]}
+                className="min-w-[180px]"
+            />
+        </div>
+    );
+
     return (
         <>
-            <Card className="border-none shadow-sm bg-white/90">
-                <CardHeader className="space-y-4">
-                    <CardTitle className="flex items-center gap-2 text-[#563526]">
-                        <Filter className="h-5 w-5" style={{ color: T.accentStrong }} />
-                        Review Dashboard
-                    </CardTitle>
-                    <div className="flex flex-wrap gap-2">
-                        {([
-                            ['all', 'All'],
-                            ['due_today', 'Due Today'],
-                            ['mastered', 'Mastered'],
-                        ] as const).map(([value, label]) => (
-                            <Button
-                                key={value}
-                                type="button"
-                                variant={filter === value ? 'secondary' : 'outline'}
-                                className={filter === value ? 'text-[#563526] hover:opacity-90' : ''}
-                                style={
-                                    filter === value
-                                        ? { backgroundColor: T.primary, borderColor: T.primaryBorder }
-                                        : undefined
-                                }
-                                onClick={() => onFilterChange(value)}
-                            >
-                                {label}
-                            </Button>
-                        ))}
-                        <Button
-                            type="button"
-                            variant={filter === 'favorite' ? 'secondary' : 'outline'}
-                            className="hover:opacity-90"
-                            style={
-                                filter === 'favorite'
-                                    ? {
-                                        backgroundColor: '#FFFFFF',
-                                        borderColor: T.favoriteBorder,
-                                        color: T.favorite,
-                                    }
-                                    : { color: T.favoriteMuted, borderColor: '#E5E7EB' }
-                            }
-                            onClick={() => onFilterChange('favorite')}
-                            aria-label="Favorites"
-                            title="Favorites"
-                        >
-                            <Heart className="h-4 w-4" />
-                        </Button>
-                        <Select
-                            value={categoryId}
-                            onChange={onCategoryChange}
-                            options={[
-                                { value: '', label: 'All categories' },
-                                ...categories.map((category) => ({
-                                    value: category.category_id,
-                                    label: category.name,
-                                })),
-                            ]}
-                            className="min-w-[180px]"
-                        />
-                    </div>
-                </CardHeader>
-                <CardContent>
+            <VocabularyNotebookShell
+                title="Review Dashboard:"
+                subtitle="today's vocabulary review — click the speaker or word to listen, then tick each read round."
+                toolbar={filterToolbar}
+            >
+                <div className="overflow-x-auto rounded-xl border border-[#563526]/10 bg-white/55">
                     <Table
                         data={entries}
                         columns={columns.map((column) =>
                             column.key === 'no'
                                 ? {
-                                    ...column,
-                                    render: (item: VocabularyEntry) => {
-                                        const index = entries.findIndex((entry) => entry.id === item.id);
-                                        return index + 1;
-                                    },
-                                }
+                                      ...column,
+                                      render: (item: VocabularyEntry) => {
+                                          const index = entries.findIndex((entry) => entry.id === item.id);
+                                          return index + 1;
+                                      },
+                                  }
                                 : column
                         )}
                         keyExtractor={(item) => item.id}
                         isLoading={loading}
                         emptyMessage="No vocabulary found for this filter"
                     />
-                </CardContent>
-            </Card>
+                </div>
+            </VocabularyNotebookShell>
 
             <Modal
                 isOpen={!!editEntry}

@@ -1,0 +1,155 @@
+.scene {
+    position: relative;
+    isolation: isolate;
+    overflow: visible;
+    padding: 1.5rem 1rem 2rem;
+}
+
+.sceneBackdrop {
+    position: absolute;
+    inset: 0.75rem 0.25rem;
+    z-index: 0;
+    border-radius: 1.75rem;
+    background:
+        radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.55), transparent 34%),
+        radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.35), transparent 28%),
+        linear-gradient(135deg, #c8d8c0 0%, #dbe7df 38%, #cfd9d2 100%);
+}
+
+.stampFrame {
+    --stamp-brown: #6b4226;
+    --stamp-brown-light: #7a5034;
+    --stamp-border: 20px;
+    --stamp-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cdefs%3E%3Cmask id='m' maskUnits='userSpaceOnUse' x='0' y='0' width='100' height='100'%3E%3Crect width='100' height='100' fill='white'/%3E%3Cg fill='black'%3E%3Ccircle cx='8' cy='0' r='6'/%3E%3Ccircle cx='24' cy='0' r='6'/%3E%3Ccircle cx='40' cy='0' r='6'/%3E%3Ccircle cx='56' cy='0' r='6'/%3E%3Ccircle cx='72' cy='0' r='6'/%3E%3Ccircle cx='88' cy='0' r='6'/%3E%3Ccircle cx='8' cy='100' r='6'/%3E%3Ccircle cx='24' cy='100' r='6'/%3E%3Ccircle cx='40' cy='100' r='6'/%3E%3Ccircle cx='56' cy='100' r='6'/%3E%3Ccircle cx='72' cy='100' r='6'/%3E%3Ccircle cx='88' cy='100' r='6'/%3E%3Ccircle cx='0' cy='8' r='6'/%3E%3Ccircle cx='0' cy='24' r='6'/%3E%3Ccircle cx='0' cy='40' r='6'/%3E%3Ccircle cx='0' cy='56' r='6'/%3E%3Ccircle cx='0' cy='72' r='6'/%3E%3Ccircle cx='0' cy='88' r='6'/%3E%3Ccircle cx='100' cy='8' r='6'/%3E%3Ccircle cx='100' cy='24' r='6'/%3E%3Ccircle cx='100' cy='40' r='6'/%3E%3Ccircle cx='100' cy='56' r='6'/%3E%3Ccircle cx='100' cy='72' r='6'/%3E%3Ccircle cx='100' cy='88' r='6'/%3E%3C/g%3E%3C/mask%3E%3C/defs%3E%3Crect width='100' height='100' fill='white' mask='url(%23m)'/%3E%3C/svg%3E");
+    position: relative;
+    z-index: 1;
+    filter:
+        drop-shadow(0 20px 40px rgba(47, 39, 30, 0.14))
+        drop-shadow(0 6px 14px rgba(47, 39, 30, 0.08));
+}
+
+.stampEdge {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, var(--stamp-brown-light) 0%, var(--stamp-brown) 100%);
+    -webkit-mask-image: var(--stamp-mask);
+    mask-image: var(--stamp-mask);
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+}
+
+.notebook {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(220px, 0.95fr) minmax(0, 2.05fr);
+    min-height: 520px;
+    margin: var(--stamp-border);
+    overflow: hidden;
+    background: #fffdf8;
+    box-shadow: inset 0 0 0 1px rgba(86, 53, 38, 0.08);
+}
+
+.leftPage,
+.rightPage {
+    position: relative;
+    min-width: 0;
+    background-color: #fffdf8;
+    background-image:
+        linear-gradient(rgba(86, 53, 38, 0.035) 1px, transparent 1px),
+        radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.85), transparent 42%);
+    background-size: 100% 28px, auto;
+}
+
+.leftPage {
+    border-right: 1px solid rgba(86, 53, 38, 0.08);
+}
+
+.leftPage::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 2rem;
+    height: 100%;
+    background: linear-gradient(to left, rgba(47, 39, 30, 0.06), transparent);
+    pointer-events: none;
+}
+
+.rightPage::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1.25rem;
+    height: 100%;
+    background: linear-gradient(to right, rgba(47, 39, 30, 0.04), transparent);
+    pointer-events: none;
+}
+
+.leftContent {
+    position: relative;
+    z-index: 1;
+    min-height: 100%;
+    padding: 2rem 1.5rem 1.5rem;
+}
+
+.handTitle {
+    font-family: var(--font-caveat), cursive;
+    font-size: clamp(2rem, 3vw, 2.6rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: 0.02em;
+    color: #2f2720;
+    text-transform: uppercase;
+}
+
+.handUnderline {
+    width: min(100%, 11rem);
+    height: 2px;
+    margin-top: 0.35rem;
+    border-radius: 999px;
+    background: #2f2720;
+    transform: rotate(-0.6deg);
+}
+
+.handSubtitle {
+    margin-top: 1rem;
+    font-family: var(--font-caveat), cursive;
+    font-size: clamp(1.15rem, 2vw, 1.45rem);
+    line-height: 1.35;
+    color: rgba(47, 39, 30, 0.82);
+}
+
+.rightContent {
+    position: relative;
+    z-index: 1;
+    min-width: 0;
+    min-height: 100%;
+    padding: 1.25rem 1.1rem 1.35rem;
+}
+
+@media (max-width: 960px) {
+    .notebook {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+
+    .leftPage {
+        border-right: none;
+        border-bottom: 1px solid rgba(86, 53, 38, 0.08);
+    }
+
+    .leftPage::after,
+    .rightPage::before {
+        display: none;
+    }
+
+    .leftContent {
+        padding-bottom: 1.25rem;
+    }
+}

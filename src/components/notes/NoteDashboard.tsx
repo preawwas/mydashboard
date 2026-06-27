@@ -687,81 +687,17 @@ const NoteDashboard: React.FC = () => {
 
                         <Button
                             variant="outline"
-                            onClick={() => setShowCategoryFilter(!showCategoryFilter)}
+                            onClick={() => setShowCategoryFilter(true)}
                             className={cn(
                                 'h-10 px-4 rounded-xl border-border/50 bg-card/50 flex items-center gap-2 text-sm font-bold',
-                                showCategoryFilter && 'border-primary/30 text-primary bg-primary/5'
+                                (showCategoryFilter || visibleCategories.length < categoryOrder.length) &&
+                                    'border-primary/30 text-primary bg-primary/5'
                             )}
                         >
                             <Filter className="w-4 h-4" />
                             Category Filter
                         </Button>
                     </div>
-
-                    {/* Category Filter Panel */}
-                    {showCategoryFilter && (
-                        <div className="bg-card/50 border border-border/50 rounded-2xl p-4 space-y-2">
-                            <div className="flex items-center justify-between mb-3">
-                                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Show / Hide & Reorder</p>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => { hasUserChangedSettings.current = true; setVisibleCategories(categoryOrder); }}
-                                        className="text-[10px] font-bold text-primary hover:underline"
-                                    >
-                                        Select All
-                                    </button>
-                                    <span className="text-border">|</span>
-                                    <button
-                                        onClick={() => { hasUserChangedSettings.current = true; setVisibleCategories([]); }}
-                                        className="text-[10px] font-bold text-rose-500 hover:underline"
-                                    >
-                                        Clear All
-                                    </button>
-                                </div>
-                            </div>
-                            {categoryOrder.map((id, idx) => {
-                                const cat = categories.find(c => c.note_category_id === id);
-                                if (!cat) return null;
-                                const isVisible = visibleCategories.includes(id);
-                                return (
-                                    <div key={id} className="flex items-center gap-3 py-1.5">
-                                        <label className="flex items-center gap-2 flex-1 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={isVisible}
-                                                onChange={() => toggleCategoryVisibility(id)}
-                                                className="w-4 h-4 rounded accent-primary"
-                                            />
-                                            <NoteCategoryIcon categoryName={cat.name} size={16} />
-                                            <span className={cn('text-sm font-medium', isVisible ? 'text-foreground' : 'text-muted-foreground line-through')}>
-                                                {cat.name}
-                                            </span>
-                                        </label>
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                type="button"
-                                                onClick={() => moveCategoryUp(id)}
-                                                disabled={idx === 0}
-                                                aria-label={`Move ${cat.name} up`}
-                                                className="p-1 text-muted-foreground hover:text-primary disabled:opacity-20"
-                                            >
-                                                <ChevronUp className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => moveCategoryDown(id)}
-                                                disabled={idx === categoryOrder.length - 1}
-                                                aria-label={`Move ${cat.name} down`}
-                                                className="p-1 text-muted-foreground hover:text-primary disabled:opacity-20"
-                                            >
-                                                <ChevronDown className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
                 </div>
 
                 {/* Status summary cards — horizontal row, flexible width */}
@@ -991,6 +927,87 @@ const NoteDashboard: React.FC = () => {
             )}
 
             <NoteModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} note={selectedNote} onSave={handleSave} isClone={isCloneMode} defaultStatus={defaultStatus} />
+
+            <Modal
+                isOpen={showCategoryFilter}
+                onClose={() => setShowCategoryFilter(false)}
+                title="Show / Hide & Reorder"
+                size="md"
+                closeOnBackdropClick
+                closeOnEscape
+            >
+                <div className="space-y-2">
+                    <div className="flex items-center justify-end gap-2 mb-3">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                hasUserChangedSettings.current = true;
+                                setVisibleCategories(categoryOrder);
+                            }}
+                            className="text-[10px] font-bold text-primary hover:underline"
+                        >
+                            Select All
+                        </button>
+                        <span className="text-border">|</span>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                hasUserChangedSettings.current = true;
+                                setVisibleCategories([]);
+                            }}
+                            className="text-[10px] font-bold text-rose-500 hover:underline"
+                        >
+                            Clear All
+                        </button>
+                    </div>
+                    {categoryOrder.map((id, idx) => {
+                        const cat = categories.find((c) => c.note_category_id === id);
+                        if (!cat) return null;
+                        const isVisible = visibleCategories.includes(id);
+                        return (
+                            <div key={id} className="flex items-center gap-3 py-1.5">
+                                <label className="flex items-center gap-2 flex-1 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={isVisible}
+                                        onChange={() => toggleCategoryVisibility(id)}
+                                        className="w-4 h-4 rounded accent-primary"
+                                    />
+                                    <NoteCategoryIcon categoryName={cat.name} size={16} />
+                                    <span
+                                        className={cn(
+                                            'text-sm font-medium',
+                                            isVisible ? 'text-foreground' : 'text-muted-foreground line-through'
+                                        )}
+                                    >
+                                        {cat.name}
+                                    </span>
+                                </label>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => moveCategoryUp(id)}
+                                        disabled={idx === 0}
+                                        aria-label={`Move ${cat.name} up`}
+                                        className="p-1 text-muted-foreground hover:text-primary disabled:opacity-20"
+                                    >
+                                        <ChevronUp className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => moveCategoryDown(id)}
+                                        disabled={idx === categoryOrder.length - 1}
+                                        aria-label={`Move ${cat.name} down`}
+                                        className="p-1 text-muted-foreground hover:text-primary disabled:opacity-20"
+                                    >
+                                        <ChevronDown className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </Modal>
 
             {/* Trash Popup */}
             <Modal isOpen={showTrash} onClose={() => setShowTrash(false)} title="Trash">

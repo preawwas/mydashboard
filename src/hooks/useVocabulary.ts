@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { apiClient } from '@/lib/api-client';
+import { applyVocabularyReviewStep, getVocabularyReview } from '@/lib/vocabulary-helpers';
 import {
     ApiResponse,
     VocabularyCategory,
@@ -167,16 +168,51 @@ export function useVocabulary() {
     }, [updateEntry]);
 
     const toggleReview = useCallback(async (id: string, step: number) => {
-        const response = await apiClient.fetch(`/api/vocabulary/${id}/review`, {
-            method: 'POST',
-            body: JSON.stringify({ step }),
+        let previousEntry: VocabularyEntry | undefined;
+
+        setEntries((prev) => {
+            previousEntry = prev.find((item) => item.id === id);
+            return prev.map((item) => {
+                if (item.id !== id) return item;
+
+                const nextReview = applyVocabularyReviewStep(getVocabularyReview(item), step);
+                if (!nextReview) return item;
+
+                return {
+                    ...item,
+                    vocabulary_reviews: nextReview,
+                };
+            });
         });
-        const json: ApiResponse<VocabularyEntry> = await response.json();
-        if (!json.success || !json.data) {
-            throw new Error(json.error || 'Review update failed');
+
+        try {
+            const response = await apiClient.fetch(`/api/vocabulary/${id}/review`, {
+                method: 'POST',
+                body: JSON.stringify({ step }),
+            });
+            const json: ApiResponse<null> & {
+                review?: VocabularyEntry['vocabulary_reviews'];
+            } = await response.json();
+
+            if (!json.success || !json.review) {
+                throw new Error(json.error || 'Review update failed');
+            }
+
+            setEntries((prev) =>
+                prev.map((item) =>
+                    item.id === id ? { ...item, vocabulary_reviews: json.review! } : item
+                )
+            );
+
+            return json.review;
+        } catch (error) {
+            if (previousEntry) {
+                setEntries((prev) =>
+                    prev.map((item) => (item.id === id ? previousEntry! : item))
+                );
+            }
+            throw error;
         }
-        setEntries((prev) => prev.map((item) => (item.id === id ? json.data! : item)));
-        return json.data;
     }, []);
 
     useEffect(() => {

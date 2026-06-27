@@ -41,13 +41,7 @@ export default function VocabularyReviewPage() {
 
     return (
         <DashboardLayout>
-            <div className="space-y-2">
-                <div>
-                    <h1 className="text-2xl font-black text-[#563526]">Vocabulary Review</h1>
-                    <p className="text-sm text-muted-foreground">
-                        คลิกไอคอนลำโพง 🔊 หรือคำศัพท์เพื่อฟังเสียง (แนะนำ Chrome) — ไม่ต้องตั้งค่า macOS เพิ่ม
-                    </p>
-                </div>
+            <div className="space-y-4">
                 <VocabularySubNav />
                 <VocabularyReviewTable
                     entries={entries}

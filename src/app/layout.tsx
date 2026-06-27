@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Libre_Bodoni, Noto_Sans_Thai } from "next/font/google";
+import { Caveat, Libre_Bodoni, Noto_Sans_Thai } from "next/font/google";
 import "./globals.css";
 import ValentineTheme from "@/components/ValentineTheme";
 import { LoadingProvider } from "@/components/providers/LoadingProvider";
@@ -7,6 +7,13 @@ import { LoadingProvider } from "@/components/providers/LoadingProvider";
 const libreBodoni = Libre_Bodoni({
   subsets: ["latin"],
   variable: "--font-libre-bodoni",
+  display: "swap",
+});
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-caveat",
+  weight: ["500", "600", "700"],
   display: "swap",
 });
 
@@ -44,7 +51,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body
-        className={`${libreBodoni.variable} ${notoSansThai.variable} antialiased selection:bg-primary/20`}
+        className={`${libreBodoni.variable} ${caveat.variable} ${notoSansThai.variable} antialiased selection:bg-primary/20`}
       >
         <ValentineTheme />
         <LoadingProvider>
