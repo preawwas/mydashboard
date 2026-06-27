@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { EmojiPicker } from '@/components/EmojiPicker';
 import { VocabularyImportPanel } from '@/components/vocabulary';
 import { useVocabulary } from '@/hooks';
+import { useVocabularySpeechUnlock } from '@/hooks/useVocabularySpeechUnlock';
 import { useFeatureFlags } from '@/hooks/useFeatureFlags';
 
 export default function SettingsPage() {
@@ -88,6 +89,8 @@ export default function SettingsPage() {
             void fetchRecentEntries();
         }
     }, [activeTab, fetchRecentEntries]);
+
+    useVocabularySpeechUnlock();
 
     // Handlers
     const handleProfileSubmit = async (e: React.FormEvent) => {
