@@ -15,12 +15,25 @@ export type SpeakResult = {
     message?: string;
 };
 
+export type SpeakOptions = {
+    onError?: (message: string) => void;
+    onEnd?: () => void;
+};
+
 let voicesCache: SpeechSynthesisVoice[] = [];
 let speechUnlocked = false;
+let speechPrimed = false;
 let voicesListenerAttached = false;
+let speakGeneration = 0;
+let keepAliveInterval: number | null = null;
 
 function isBrowserSpeechSupported() {
     return typeof window !== 'undefined' && 'speechSynthesis' in window;
+}
+
+function isChromiumBrowser() {
+    if (typeof navigator === 'undefined') return false;
+    return /Chrome|Chromium|Edg|OPR/.test(navigator.userAgent);
 }
 
 function cacheVoices() {
@@ -31,24 +44,64 @@ function cacheVoices() {
     }
 }
 
+function startKeepAlive() {
+    if (!isChromiumBrowser()) return;
+
+    stopKeepAlive();
+    keepAliveInterval = window.setInterval(() => {
+        const synth = window.speechSynthesis;
+        if (!synth.speaking && !synth.pending) {
+            stopKeepAlive();
+            return;
+        }
+        synth.pause();
+        synth.resume();
+    }, 100);
+}
+
+function stopKeepAlive() {
+    if (keepAliveInterval !== null) {
+        window.clearInterval(keepAliveInterval);
+        keepAliveInterval = null;
+    }
+}
+
+function primeSpeechEngine() {
+    if (!isBrowserSpeechSupported() || speechPrimed) return;
+
+    speechPrimed = true;
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance('\u200B');
+    utterance.volume = 0.01;
+    utterance.rate = 10;
+    utterance.onend = () => {
+        synth.cancel();
+    };
+    synth.resume();
+    synth.speak(utterance);
+}
+
 export function warmUpSpeechSynthesis() {
     if (!isBrowserSpeechSupported()) return;
 
     cacheVoices();
+    window.speechSynthesis.getVoices();
 
     if (!voicesListenerAttached) {
         window.speechSynthesis.addEventListener('voiceschanged', cacheVoices);
         voicesListenerAttached = true;
     }
 
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.resume();
+    if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+    }
 }
 
 export function unlockSpeechSynthesis() {
     if (!isBrowserSpeechSupported()) return false;
     speechUnlocked = true;
     warmUpSpeechSynthesis();
+    primeSpeechEngine();
     return true;
 }
 
@@ -68,11 +121,46 @@ export function resolveSpeechLanguage(languageCode?: string | null): string {
 
 function getAvailableVoices(): SpeechSynthesisVoice[] {
     if (!isBrowserSpeechSupported()) return [];
-    return voicesCache.length > 0 ? voicesCache : window.speechSynthesis.getVoices();
+    const live = window.speechSynthesis.getVoices();
+    if (live.length > 0) {
+        voicesCache = live;
+    }
+    return voicesCache;
+}
+
+function waitForVoices(timeoutMs = 2500): Promise<SpeechSynthesisVoice[]> {
+    return new Promise((resolve) => {
+        cacheVoices();
+        const existing = getAvailableVoices();
+        if (existing.length > 0) {
+            resolve(existing);
+            return;
+        }
+
+        const synth = window.speechSynthesis;
+        const finish = () => {
+            synth.removeEventListener('voiceschanged', onVoicesChanged);
+            resolve(getAvailableVoices());
+        };
+
+        const timeout = window.setTimeout(finish, timeoutMs);
+        const onVoicesChanged = () => {
+            cacheVoices();
+            if (getAvailableVoices().length > 0) {
+                window.clearTimeout(timeout);
+                finish();
+            }
+        };
+
+        synth.addEventListener('voiceschanged', onVoicesChanged);
+        synth.getVoices();
+    });
 }
 
 function pickVoice(lang: string): SpeechSynthesisVoice | undefined {
     const voices = getAvailableVoices();
+    if (voices.length === 0) return undefined;
+
     const langPrefix = lang.split('-')[0].toLowerCase();
 
     return (
@@ -80,7 +168,9 @@ function pickVoice(lang: string): SpeechSynthesisVoice | undefined {
         voices.find((voice) => voice.lang.toLowerCase().startsWith(`${langPrefix}-`)) ||
         voices.find((voice) => voice.lang.toLowerCase().startsWith(langPrefix)) ||
         voices.find((voice) => voice.default) ||
-        voices.find((voice) => FALLBACK_LANG_CHAIN.some((code) => voice.lang.toLowerCase().startsWith(code.toLowerCase()))) ||
+        voices.find((voice) =>
+            FALLBACK_LANG_CHAIN.some((code) => voice.lang.toLowerCase().startsWith(code.toLowerCase()))
+        ) ||
         voices[0]
     );
 }
@@ -100,100 +190,119 @@ function resolveSpeakContent(
     word: string,
     languageCode?: string | null,
     pronunciation?: string | null
-): { text: string; lang: string; usedPronunciationFallback: boolean } {
+): { text: string; lang: string } {
     const targetLang = resolveSpeechLanguage(languageCode);
     const trimmedWord = word.trim();
     const trimmedPronunciation = pronunciation?.trim() || '';
 
     if (hasVoiceForLanguage(targetLang)) {
-        return { text: trimmedWord, lang: targetLang, usedPronunciationFallback: false };
+        return { text: trimmedWord, lang: targetLang };
     }
 
     if (trimmedPronunciation) {
-        return {
-            text: trimmedPronunciation,
-            lang: 'en-US',
-            usedPronunciationFallback: true,
-        };
+        return { text: trimmedPronunciation, lang: 'en-US' };
     }
 
-    return { text: trimmedWord, lang: targetLang, usedPronunciationFallback: false };
+    return { text: trimmedWord, lang: targetLang };
+}
+
+function isIgnorableSpeechError(error?: string) {
+    return error === 'interrupted' || error === 'canceled' || error === 'cancelled';
+}
+
+function doSpeak(text: string, lang: string, generation: number, options?: SpeakOptions) {
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+
+    const voice = pickVoice(lang);
+    if (voice) {
+        utterance.voice = voice;
+    }
+
+    utterance.onstart = () => {
+        startKeepAlive();
+    };
+
+    utterance.onend = () => {
+        stopKeepAlive();
+        if (generation === speakGeneration) {
+            options?.onEnd?.();
+        }
+    };
+
+    utterance.onerror = (event) => {
+        stopKeepAlive();
+        if (generation !== speakGeneration) return;
+        if (isIgnorableSpeechError(event.error)) return;
+        console.warn('Vocabulary speech error:', event.error, text);
+        options?.onError?.('อ่านเสียงไม่ได้ ลองคลิกปุ่มลำโพงอีกครั้ง');
+    };
+
+    synth.resume();
+    synth.speak(utterance);
+
+    if (isChromiumBrowser()) {
+        window.setTimeout(() => {
+            if (generation !== speakGeneration) return;
+            if (!synth.speaking && !synth.pending) {
+                synth.resume();
+                synth.speak(utterance);
+            }
+        }, 150);
+    }
+}
+
+function queueSpeak(text: string, lang: string, generation: number, options?: SpeakOptions) {
+    if (generation !== speakGeneration) return;
+
+    const synth = window.speechSynthesis;
+    if (synth.speaking || synth.pending) {
+        synth.cancel();
+        queueMicrotask(() => doSpeak(text, lang, generation, options));
+        return;
+    }
+
+    doSpeak(text, lang, generation, options);
 }
 
 export function speakVocabularyWord(
     word: string,
     languageCode?: string | null,
-    pronunciation?: string | null
-): Promise<SpeakResult> {
-    return new Promise((resolve) => {
-        if (!isBrowserSpeechSupported()) {
-            resolve({
-                ok: false,
-                message: 'เบราว์เซอร์นี้ไม่รองรับการอ่านเสียง ลองใช้ Chrome หรือ Edge',
-            });
-            return;
-        }
-
-        if (!word.trim()) {
-            resolve({ ok: false, message: 'ไม่มีคำให้อ่าน' });
-            return;
-        }
-
-        if (!speechUnlocked) {
-            unlockSpeechSynthesis();
-        }
-
-        cacheVoices();
-
-        const { text, lang, usedPronunciationFallback } = resolveSpeakContent(
-            word,
-            languageCode,
-            pronunciation
-        );
-        const voice = pickVoice(lang);
-
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.resume();
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = lang;
-        utterance.rate = 0.92;
-        if (voice) utterance.voice = voice;
-
-        let settled = false;
-        const finish = (result: SpeakResult) => {
-            if (settled) return;
-            settled = true;
-            resolve(result);
+    pronunciation?: string | null,
+    options?: SpeakOptions
+): SpeakResult {
+    if (!isBrowserSpeechSupported()) {
+        return {
+            ok: false,
+            message: 'เบราว์เซอร์นี้ไม่รองรับการอ่านเสียง',
         };
+    }
 
-        utterance.onstart = () => finish({ ok: true });
-        utterance.onerror = () => {
-            finish({
-                ok: false,
-                message: usedPronunciationFallback
-                    ? 'อ่านเสียงไม่ได้ ลองกรอกคำอ่านเป็นตัวอักษรโรมันหรือใช้คำภาษาอังกฤษทดสอบ'
-                    : 'อ่านเสียงไม่ได้ ลองคลิกปุ่มลำโพงอีกครั้ง หรือใช้ Chrome',
-            });
-        };
+    if (!word.trim()) {
+        return { ok: false, message: 'ไม่มีคำให้อ่าน' };
+    }
 
-        window.setTimeout(() => {
-            window.speechSynthesis.speak(utterance);
-        }, 50);
+    unlockSpeechSynthesis();
 
-        window.setTimeout(() => {
-            if (!settled && !window.speechSynthesis.speaking) {
-                finish({
-                    ok: false,
-                    message: 'ยังไม่มีเสียงสำหรับภาษานี้ ลองคลิกคำภาษาอังกฤษ หรือกรอกคำอ่าน (Pronunciation)',
-                });
-            }
-        }, 1200);
-    });
+    const generation = ++speakGeneration;
+    const { text, lang } = resolveSpeakContent(word, languageCode, pronunciation);
+
+    if (getAvailableVoices().length === 0) {
+        void waitForVoices().then(() => queueSpeak(text, lang, generation, options));
+        return { ok: true };
+    }
+
+    queueSpeak(text, lang, generation, options);
+    return { ok: true };
 }
 
 export function stopVocabularySpeech() {
     if (!isBrowserSpeechSupported()) return;
+    speakGeneration += 1;
+    stopKeepAlive();
     window.speechSynthesis.cancel();
 }
 
@@ -202,7 +311,7 @@ export function buildVocabularyHoverTitle(options: {
     pronunciation?: string | null;
     meaning?: string | null;
 }): string {
-    const parts = ['คลิกไอคอนลำโพงหรือคำศัพท์เพื่อฟังเสียง', options.word];
+    const parts = ['คลิกไอคอนลำโพงเพื่อฟังเสียง', options.word];
     if (options.pronunciation?.trim()) parts.push(`คำอ่าน: ${options.pronunciation.trim()}`);
     if (options.meaning?.trim()) parts.push(`ความหมาย: ${options.meaning.trim()}`);
     return parts.join('\n');

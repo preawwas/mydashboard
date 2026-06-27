@@ -5,7 +5,6 @@ import { Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
     buildVocabularyHoverTitle,
-    isSpeechUnlocked,
     speakVocabularyWord,
     unlockSpeechSynthesis,
 } from '@/lib/vocabulary-speech';
@@ -30,53 +29,41 @@ export default function VocabularyHoverWord({
     className,
 }: VocabularyHoverWordProps) {
     const { addToast } = useToastStore();
-    const hoverTimerRef = useRef<number | null>(null);
     const [isSpeaking, setIsSpeaking] = useState(false);
 
     if (!word) {
         return <span className={className}>-</span>;
     }
 
-    const clearHoverTimer = () => {
-        if (hoverTimerRef.current !== null) {
-            window.clearTimeout(hoverTimerRef.current);
-            hoverTimerRef.current = null;
-        }
-    };
-
-    const playWord = async () => {
+    const playWord = (showErrorToast: boolean) => {
         unlockSpeechSynthesis();
         setIsSpeaking(true);
 
-        const result = await speakVocabularyWord(word, languageCode, pronunciation);
-        setIsSpeaking(false);
+        const result = speakVocabularyWord(word, languageCode, pronunciation, {
+            onEnd: () => setIsSpeaking(false),
+            onError: showErrorToast
+                ? (message) => {
+                      setIsSpeaking(false);
+                      addToast(message, 'warning');
+                  }
+                : () => setIsSpeaking(false),
+        });
 
-        if (!result.ok && result.message) {
+        if (showErrorToast && !result.ok && result.message) {
+            setIsSpeaking(false);
             addToast(result.message, 'warning');
         }
     };
 
-    const handleMouseEnter = () => {
-        if (!isSpeechUnlocked()) return;
-
-        clearHoverTimer();
-        hoverTimerRef.current = window.setTimeout(() => {
-            void playWord();
-        }, 220);
-    };
-
-    const handleMouseLeave = () => {
-        clearHoverTimer();
+    const handleSpeakerClick = (event: React.MouseEvent) => {
+        event.stopPropagation();
+        event.preventDefault();
+        playWord(true);
     };
 
     const handleWordClick = (event: React.MouseEvent) => {
         event.stopPropagation();
-        void playWord();
-    };
-
-    const handleSpeakerClick = (event: React.MouseEvent) => {
-        event.stopPropagation();
-        void playWord();
+        playWord(true);
     };
 
     const tooltip = buildVocabularyHoverTitle({ word, pronunciation, meaning });
@@ -93,8 +80,6 @@ export default function VocabularyHoverWord({
                 style={{ textDecorationColor: `${T.favorite}88` }}
                 title={tooltip}
                 aria-label={`ฟังเสียงคำว่า ${word}`}
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
                 onClick={handleWordClick}
             >
                 {word}
@@ -114,7 +99,7 @@ export default function VocabularyHoverWord({
                 )}
                 style={{ color: T.favorite }}
                 aria-label={`ฟังเสียงคำว่า ${word}`}
-                title="ฟังเสียง"
+                title="คลิกเพื่อฟังเสียง"
             >
                 <Volume2 className="h-4 w-4" />
             </button>

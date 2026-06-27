@@ -13,7 +13,7 @@ setup('authenticate', async ({ page }) => {
     await page.locator('input[type="password"]').fill('123456');
 
     // Submit form
-    await page.getByRole('button', { name: 'เข้าสู่ระบบ' }).click();
+    await page.getByRole('button', { name: 'Login' }).click();
 
     // Wait for redirect to dashboard
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
