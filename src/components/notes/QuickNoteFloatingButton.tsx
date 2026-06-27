@@ -4,12 +4,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Plus } from 'lucide-react';
 import { apiClient } from '@/lib/api-client';
 import { useToastStore } from '@/lib/store';
+import { isCbfCommand, parseCbfExpenseCommand } from '@/lib/cbf-expense-parser';
 
 export default function QuickNoteFloatingButton() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [noteText, setNoteText] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
+    const { addToast } = useToastStore();
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -28,28 +30,54 @@ export default function QuickNoteFloatingButton() {
 
     const handleSave = async () => {
         if (!noteText.trim() || isSaving) return;
-        
+
         setIsSaving(true);
         try {
+            if (isCbfCommand(noteText)) {
+                const parsed = parseCbfExpenseCommand(noteText);
+                if ('error' in parsed) {
+                    addToast(parsed.error, 'warning');
+                    return;
+                }
+
+                const res = await apiClient.fetch('/api/expenses', {
+                    method: 'POST',
+                    body: JSON.stringify(parsed.payload),
+                });
+                const json = await res.json();
+
+                if (!json.success) {
+                    addToast(json.error || 'ไม่สามารถสร้างรายการ expense ได้', 'error');
+                    return;
+                }
+
+                addToast(`บันทึก expense: ${parsed.payload.itemName}`, 'success');
+                setNoteText('');
+                setIsModalOpen(false);
+                return;
+            }
+
             await apiClient.fetch('/api/short-notes', {
                 method: 'POST',
                 body: JSON.stringify({
-                    title: "Quick Note",
-                    content: noteText
-                })
+                    title: 'Quick Note',
+                    content: noteText,
+                }),
             });
-            
+
+            addToast('บันทึก Quick Note แล้ว', 'success');
             setNoteText('');
             setIsModalOpen(false);
         } catch (error) {
             console.error('Failed to save quick note', error);
+            addToast('เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
         } finally {
             setIsSaving(false);
         }
     };
 
     return (
-        <div className="fixed bottom-24 right-3 md:bottom-4 md:right-4 z-[100] flex flex-col items-end">
+        <div className="fixed bottom-4 right-3 md:right-4 z-[100] flex flex-col items-end">
             {/* Note Modal */}
             {isModalOpen && (
                 <div 
@@ -62,7 +90,7 @@ export default function QuickNoteFloatingButton() {
                     </div>
                     <textarea 
                         className="flex-1 w-full bg-gray-50 border border-gray-100 rounded-2xl p-3 text-xs text-[#0D3B38] resize-none focus:outline-none focus:ring-1 focus:ring-[#0D3B38] custom-scrollbar mb-3"
-                        placeholder="Type your note here..."
+                        placeholder={'Type your note here... or /CBF\nสินค้า ราคา รูปแบบการจ่าย จำนวนเดือน'}
                         value={noteText}
                         onChange={(e) => setNoteText(e.target.value)}
                         autoFocus

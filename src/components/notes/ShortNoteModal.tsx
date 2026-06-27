@@ -117,7 +117,7 @@ const ShortNoteModal: React.FC<ShortNoteModalProps> = ({ isOpen, onClose, note, 
                                     )}
                                 >
                                     <span className="inline-flex items-center gap-2">
-                                        <TagConeIcon circleColor={colorStyles.color} size={19} className="shrink-0" />
+                                        <TagConeIcon size={19} className="shrink-0" />
                                         <span>{parsed.text}</span>
                                     </span>
                                 </button>

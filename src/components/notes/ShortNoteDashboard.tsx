@@ -349,7 +349,7 @@ const ShortNoteDashboard: React.FC = () => {
     }, [selectedTagId, tags]);
 
     return (
-        <div className="flex flex-col lg:flex-row gap-6 min-h-screen p-6 bg-background">
+        <div className="flex flex-col lg:flex-row gap-6 min-h-screen p-6">
             {/* Mobile: wrap grid tag chips - show all in rows */}
             <div className="lg:hidden space-y-2">
                 <div className="flex items-center justify-between">
@@ -358,7 +358,7 @@ const ShortNoteDashboard: React.FC = () => {
                 </div>
                 <div className="flex flex-wrap gap-2">
                     <button onClick={() => { setSelectedTagId(null); setCurrentPage(1); setViewMode('grid'); }} className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all", !selectedTagId ? "bg-primary/15 text-primary border border-primary/30" : "bg-muted/30 text-muted-foreground hover:bg-muted/50")}><TagIcon className="w-3.5 h-3.5" /><span>All</span></button>
-                    {tags.map((tag) => { const parsed = parseTag(tag); const colorStyles = getColorStyles(parsed.colorClasses); return (<button key={tag.id} onClick={() => { setSelectedTagId(tag.id); setCurrentPage(1); setViewMode('grid'); }} className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border", selectedTagId !== tag.id && "bg-muted/30 border-transparent hover:bg-muted/50")} style={selectedTagId === tag.id ? { backgroundColor: colorStyles.backgroundColor, color: colorStyles.color, borderColor: colorStyles.borderColor } : undefined}><span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: colorStyles.backgroundColor }} /><span>{parsed.text}</span></button>); })}
+                    {tags.map((tag) => { const parsed = parseTag(tag); const colorStyles = getColorStyles(parsed.colorClasses); return (<button key={tag.id} onClick={() => { setSelectedTagId(tag.id); setCurrentPage(1); setViewMode('grid'); }} className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border", selectedTagId === tag.id && "ring-2 ring-primary/40 shadow-sm")} style={{ backgroundColor: colorStyles.backgroundColor, color: colorStyles.color, borderColor: colorStyles.borderColor }}><TagConeIcon size={16} className="shrink-0" /><span>{parsed.text}</span></button>); })}
                     <button onClick={() => setIsTagModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-primary/70 hover:bg-primary/5 whitespace-nowrap border border-dashed border-primary/20"><Plus className="w-3.5 h-3.5" /><span>New</span></button>
                 </div>
             </div>
@@ -405,16 +405,16 @@ const ShortNoteDashboard: React.FC = () => {
                                     onClick={() => { setSelectedTagId(tag.id); setCurrentPage(1); setViewMode('grid'); }}
                                     className={cn(
                                         "w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-bold transition-all border group cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/20",
-                                        selectedTagId !== tag.id && "bg-transparent border-transparent hover:bg-muted/30"
+                                        selectedTagId === tag.id && "ring-2 ring-primary/40 shadow-sm"
                                     )}
-                                    style={selectedTagId === tag.id ? {
+                                    style={{
                                         backgroundColor: colorStyles.backgroundColor,
                                         color: colorStyles.color,
                                         borderColor: colorStyles.borderColor
-                                    } : undefined}
+                                    }}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <TagConeIcon circleColor={colorStyles.color} size={24} className="shrink-0" />
+                                        <TagConeIcon size={24} className="shrink-0" />
                                         <span>{parsed.text}</span>
                                     </div>
                                     <div className="opacity-0 group-hover:opacity-30 transition-opacity">
@@ -449,7 +449,7 @@ const ShortNoteDashboard: React.FC = () => {
                         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <h1 className="text-2xl font-black text-foreground">
                                 {selectedTagId
-                                    ? `#${tags.find(t => t.id === selectedTagId) ? parseTag(tags.find(t => t.id === selectedTagId)!).text : 'Notes'}`
+                                    ? (tags.find(t => t.id === selectedTagId) ? parseTag(tags.find(t => t.id === selectedTagId)!).text : 'Notes')
                                     : 'All Notes'}
                             </h1>
                             <div className="flex items-center gap-2 flex-1 md:max-w-xl">

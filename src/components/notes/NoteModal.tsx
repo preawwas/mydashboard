@@ -8,8 +8,14 @@ import { Button, Input, Modal } from '@/components/ui';
 import { DbNote, DbNoteCategory } from '@/lib/supabase-types';
 import { apiClient } from '@/lib/api-client';
 import DynamicRichTextEditor from './DynamicRichTextEditor';
+import NoteCategoryIcon from './NoteCategoryIcon';
 import { MultiDatePicker } from '@/components/ui';
 import { cn } from '@/lib/utils';
+
+const getTodayDateStr = () => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+};
 
 // Desired category display order
 const CATEGORY_ORDER = [
@@ -75,17 +81,18 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                 setTempDate(isClone ? '' : initialDate);
                 setIsMultiDateMode(false);
             } else {
+                const initialDeadline = defaultDueDate || getTodayDateStr();
                 setTitle('');
                 setContent('');
                 setNoteCategoryId('');
                 setStatus('New');
                 setIsFavorite(false);
-                setDueDates(defaultDueDate ? [defaultDueDate] : []);
-                setTempDate('');
+                setDueDates([initialDeadline]);
+                setTempDate(initialDeadline);
                 setIsMultiDateMode(false);
             }
         }
-    }, [isOpen, note]);
+    }, [isOpen, note, defaultDueDate, isClone]);
 
     const fetchCategories = async () => {
         try {
@@ -188,8 +195,12 @@ const NoteModal: React.FC<NoteModalProps> = ({ isOpen, onClose, note, onSave, de
                             ))}
                         </select>
                         {/* Show icon of selected category */}
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base pointer-events-none">
-                            {selectedCategory?.icon || '📝'}
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
+                            {selectedCategory ? (
+                                <NoteCategoryIcon categoryName={selectedCategory.name} size={18} />
+                            ) : (
+                                <NoteCategoryIcon categoryName="Work" size={18} />
+                            )}
                         </span>
                         {/* Custom arrow */}
                         <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">

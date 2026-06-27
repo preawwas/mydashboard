@@ -162,7 +162,7 @@ const ShortNoteEditor: React.FC<ShortNoteEditorProps> = ({ note, onSave, onCance
                                     )}
                                 >
                                     <span className="inline-flex items-center gap-2">
-                                        <TagConeIcon circleColor={colorStyles.color} size={20} className="shrink-0" />
+                                        <TagConeIcon size={20} className="shrink-0" />
                                         <span>{parsed.text}</span>
                                     </span>
                                 </button>

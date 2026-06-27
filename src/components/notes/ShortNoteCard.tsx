@@ -173,7 +173,7 @@ const ShortNoteCard: React.FC<ShortNoteCardProps> = ({ note, onUpdate, onEdit })
                                     borderColor: '#000000'
                                 }}
                             >
-                                <TagConeIcon circleColor={colorStyles.color} size={18} className="shrink-0" />
+                                <TagConeIcon size={18} className="shrink-0" />
                                 {parsed.text}
                             </span>
                         );

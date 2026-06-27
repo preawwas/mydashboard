@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
-import { useAuthStore, useUIStore } from '@/lib/store';
-import { cn } from '@/lib/utils';
-import { Loading, Toast } from '@/components/ui';
+import { useAuthStore } from '@/lib/store';
 import QuickNoteFloatingButton from '@/components/notes/QuickNoteFloatingButton';
+import { Loading, Toast } from '@/components/ui';
+import { getNavSurfaceTint } from './nav-tabs';
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -16,17 +16,16 @@ interface DashboardLayoutProps {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     const router = useRouter();
+    const pathname = usePathname();
     const { user, token, isLoading, setLoading, isHydrated } = useAuthStore();
-    const { sidebarOpen, toggleSidebar } = useUIStore();
     const [mounted, setMounted] = useState(false);
+    const surfaceTint = getNavSurfaceTint(pathname);
 
     useEffect(() => {
         setMounted(true);
 
-        // Wait for hydration to complete
         if (!isHydrated) return;
 
-        // Check authentication via Zustand store (persisted state)
         if (!token || !user) {
             router.push('/login');
             return;
@@ -44,25 +43,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
     return (
         <div className="min-h-screen bg-transparent text-foreground">
-            <Sidebar />
             <Topbar />
-
-            {/* Tablet Dropdown Overlay (768-1023px) - hidden since desktop sidebar now shows from 768px */}
-            {sidebarOpen && (
-                <div
-                    className="fixed inset-0 top-16 bg-black/40 z-30 hidden backdrop-blur-sm"
-                    onClick={() => toggleSidebar()}
-                />
-            )}
+            <Sidebar />
 
             <main
-                className={cn(
-                    'pt-16 pb-20 md:pb-0 min-h-screen transition-[padding] duration-300 ease-in-out',
-                    'pl-0 md:pl-20',
-                    sidebarOpen && 'md:pl-64'
-                )}
+                className="min-h-screen pt-[7.25rem] md:pt-[7.75rem] transition-colors duration-300"
+                style={{ backgroundColor: surfaceTint }}
             >
-                <div className="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
+                <div className="mx-auto max-w-[1600px] p-4 sm:p-6 lg:p-8">
                     <ErrorBoundary>
                         <div className="animate-page-enter">
                             {children}
@@ -77,4 +65,3 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 };
 
 export default DashboardLayout;
-

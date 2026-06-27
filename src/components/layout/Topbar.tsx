@@ -1,32 +1,35 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { useAuthStore, useUIStore } from '@/lib/store';
-import { Bell, Menu } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/lib/store';
+import { Bell, CalendarDays, LogOut } from 'lucide-react';
 import { cn, getMonthlyPendingAmount } from '@/lib/utils';
 import { apiClient } from '@/lib/api-client';
+import fluffyWordmarkImage from './image.png';
 
 const Topbar: React.FC = () => {
-    const { token, user } = useAuthStore();
-    const { sidebarOpen, toggleSidebar } = useUIStore();
+    const router = useRouter();
+    const { token, user, logout } = useAuthStore();
+    const secretClickCount = useRef(0);
+    const secretClickTimer = useRef<NodeJS.Timeout | null>(null);
     const [pendingCount, setPendingCount] = useState(0);
     const [pendingTotal, setPendingTotal] = useState(0);
     const [showNotifications, setShowNotifications] = useState(false);
     const [pendingItems, setPendingItems] = useState<any[]>([]);
 
-
-
     React.useEffect(() => {
         if (!token || !user) return;
         const params = new URLSearchParams({
             status: 'PENDING',
-            limit: '100'
+            limit: '100',
         });
 
         apiClient.fetch(`/api/expenses/user/${user.id}?${params.toString()}`)
-            .then(res => res.json())
-            .then(data => {
+            .then((res) => res.json())
+            .then((data) => {
                 if (data.success) {
                     const pending = data.data.filter((exp: any) => getMonthlyPendingAmount(exp) > 0);
                     const total = pending.reduce((sum: number, exp: any) => sum + getMonthlyPendingAmount(exp), 0);
@@ -38,81 +41,93 @@ const Topbar: React.FC = () => {
             });
     }, [token, user?.id]);
 
+    const handleLogout = () => {
+        logout();
+        window.location.href = '/login';
+    };
 
     return (
-        <header
-            className={cn(
-                'fixed top-0 right-0 z-30 h-14 md:h-16 border-b border-border shadow-sm',
-                'bg-white/90 backdrop-blur-md',
-                'transition-all duration-300',
-                'left-0 lg:left-20',
-                sidebarOpen && 'lg:left-64'
-            )}
-        >
-            <div className="flex items-center justify-between h-full px-3 sm:px-6">
-                {/* Left Section */}
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={toggleSidebar}
-                        aria-label="Open Menu"
-                        aria-expanded={sidebarOpen}
-                        className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted/10 rounded-lg transition-colors hidden md:flex lg:hidden"
-                    >
-                        <Menu className="w-5 h-5" aria-hidden="true" />
-                    </button>
+        <header className="fixed top-0 left-0 right-0 z-40 h-14 md:h-16 border-b border-border bg-white/90 shadow-sm backdrop-blur-md">
+            <div className="mx-auto flex h-full max-w-[1600px] items-center justify-between gap-3 px-3 sm:px-6">
+                {/* Logo */}
+                <button
+                    type="button"
+                    className="shrink-0 select-none transition-opacity hover:opacity-90 focus:outline-none"
+                    onClick={() => {
+                        secretClickCount.current += 1;
+                        if (secretClickTimer.current) clearTimeout(secretClickTimer.current);
+                        secretClickTimer.current = setTimeout(() => {
+                            secretClickCount.current = 0;
+                        }, 2000);
+                        if (secretClickCount.current >= 5) {
+                            secretClickCount.current = 0;
+                            router.push('/forpreaw');
+                        }
+                    }}
+                    aria-label="Fluffy-ty Home"
+                >
+                    <Image
+                        src={fluffyWordmarkImage}
+                        alt="Fluffy-ty"
+                        priority
+                        width={96}
+                        height={32}
+                        className="h-6 w-auto max-w-[84px] rounded-md object-contain sm:h-7 sm:max-w-[96px]"
+                    />
+                </button>
 
-
-                </div>
-
-                {/* Center — Motivational Quote (hidden on mobile) */}
-                <div className="absolute left-1/2 -translate-x-1/2 hidden lg:flex items-center pointer-events-none select-none">
-                    <p className="text-[10px] lg:text-xs xl:text-sm font-medium text-muted-foreground/70 italic tracking-wide text-center whitespace-nowrap">
+                {/* Center — Motivational Quote (hidden on smaller screens) */}
+                <div className="pointer-events-none hidden min-w-0 flex-1 select-none items-center justify-center px-2 lg:flex">
+                    <p className="truncate text-center text-[10px] font-medium italic tracking-wide text-muted-foreground/70 xl:text-xs">
                         Don&apos;t wait for the perfect map; just start walking and create your own.
                     </p>
                 </div>
 
                 {/* Right Section */}
-                <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                    <Link
+                        href="/notes/calendar"
+                        aria-label="Calendar"
+                        className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted/10 hover:text-primary"
+                    >
+                        <CalendarDays className="h-5 w-5" aria-hidden="true" />
+                    </Link>
 
-                    {/* Notifications */}
                     <div className="relative">
                         <button
                             onClick={() => setShowNotifications(!showNotifications)}
                             aria-label="Notifications"
                             aria-expanded={showNotifications}
                             className={cn(
-                                "relative p-2 text-muted-foreground hover:text-primary hover:bg-muted/10 rounded-lg transition-colors",
-                                showNotifications && "text-primary bg-muted/10"
+                                'relative rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted/10 hover:text-primary',
+                                showNotifications && 'bg-muted/10 text-primary'
                             )}
                         >
-                            <Bell className="w-5 h-5" aria-hidden="true" />
+                            <Bell className="h-5 w-5" aria-hidden="true" />
                             {pendingCount > 0 && (
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full ring-2 ring-background/40" />
+                                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-background/40" />
                             )}
                         </button>
 
                         {showNotifications && (
                             <>
-                                <div
-                                    className="fixed inset-0 z-40"
-                                    onClick={() => setShowNotifications(false)}
-                                />
-                                <div className="absolute right-0 mt-3 w-[calc(100vw-24px)] sm:w-80 max-w-[360px] bg-popover border border-border rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                                    <div className="p-4 border-b border-border bg-muted/5 flex items-center justify-between">
+                                <div className="fixed inset-0 z-40" onClick={() => setShowNotifications(false)} />
+                                <div className="absolute right-0 z-50 mt-3 w-[calc(100vw-24px)] max-w-[360px] animate-in fade-in zoom-in-95 overflow-hidden rounded-2xl border border-border bg-popover shadow-2xl duration-200 sm:w-80">
+                                    <div className="flex items-center justify-between border-b border-border bg-muted/5 p-4">
                                         <div>
                                             <h3 className="font-bold text-foreground">Monthly Reminders</h3>
                                             <p className="text-[10px] text-muted-foreground">You have {pendingCount} pending items</p>
                                         </div>
-                                        <div className="bg-primary text-primary-foreground px-2 py-1 rounded-lg text-xs font-bold">
+                                        <div className="rounded-lg bg-primary px-2 py-1 text-xs font-bold text-primary-foreground">
                                             ฿{pendingTotal.toLocaleString()}
                                         </div>
                                     </div>
-                                    <div className="max-h-[300px] overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                                    <div className="custom-scrollbar max-h-[300px] space-y-1 overflow-y-auto p-2">
                                         {pendingItems.length > 0 ? (
                                             pendingItems.map((item) => (
-                                                <div key={item.id} className="p-3 hover:bg-primary/5 rounded-xl transition-colors group">
-                                                    <div className="flex items-center justify-between mb-1">
-                                                        <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+                                                <div key={item.id} className="group rounded-xl p-3 transition-colors hover:bg-primary/5">
+                                                    <div className="mb-1 flex items-center justify-between">
+                                                        <span className="text-sm font-medium text-foreground transition-colors group-hover:text-primary">
                                                             {item.item_name}
                                                         </span>
                                                         <span className="text-xs font-bold text-foreground">
@@ -127,16 +142,16 @@ const Topbar: React.FC = () => {
                                             ))
                                         ) : (
                                             <div className="p-8 text-center">
-                                                <Bell className="w-8 h-8 text-[#2E2C24] mx-auto mb-2" />
+                                                <Bell className="mx-auto mb-2 h-8 w-8 text-[#2E2C24]" />
                                                 <p className="text-sm text-[#71717A]">No pending payments</p>
                                             </div>
                                         )}
                                     </div>
-                                    <div className="p-3 bg-muted/5 border-t border-border">
+                                    <div className="border-t border-border bg-muted/5 p-3">
                                         <Link
                                             href="/expenses"
                                             onClick={() => setShowNotifications(false)}
-                                            className="block w-full text-center py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold rounded-xl transition-colors"
+                                            className="block w-full rounded-xl bg-primary py-2 text-center text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90"
                                         >
                                             View All Expenses
                                         </Link>
@@ -146,13 +161,24 @@ const Topbar: React.FC = () => {
                         )}
                     </div>
 
-                    {/* User Profile */}
-                    <div className="flex items-center gap-2 pl-2 sm:pl-3 sm:border-l border-border">
-                    <Link href="/settings" aria-label="Navigate to Settings" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity">
-                            <div className="text-right hidden md:block">
-                                <p className="text-sm font-medium text-foreground">{user?.name || 'User'}</p>
+                    <div className="flex items-center gap-1.5 border-l border-border pl-1.5 sm:gap-2 sm:pl-2">
+                        <button
+                            type="button"
+                            onClick={handleLogout}
+                            aria-label="Logout"
+                            className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-500"
+                        >
+                            <LogOut className="h-5 w-5" aria-hidden="true" />
+                        </button>
+                        <Link
+                            href="/settings"
+                            aria-label="Navigate to Settings"
+                            className="flex items-center gap-2 transition-opacity hover:opacity-80 sm:gap-3"
+                        >
+                            <div className="hidden text-right md:block">
+                                <p className="max-w-[120px] truncate text-sm font-medium text-foreground">{user?.name || 'User'}</p>
                             </div>
-                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-semibold shadow-lg shadow-primary/20">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 sm:h-10 sm:w-10">
                                 {user?.name?.charAt(0).toUpperCase() || 'U'}
                             </div>
                         </Link>

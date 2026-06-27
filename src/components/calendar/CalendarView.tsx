@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils';
 import { DbNote, DbNoteCategory, DbReminder } from '@/lib/supabase-types';
 import NoteModal from '../notes/NoteModal';
+import NoteCategoryIcon from '../notes/NoteCategoryIcon';
 import { apiClient } from '@/lib/api-client';
 import { useLoading } from '@/components/providers/LoadingProvider';
 
@@ -220,17 +221,16 @@ const CalendarView: React.FC = () => {
 
     const handleEditNote = (note: ExtendedNote) => { setSelectedNote(note); setDefaultDueDate(''); setIsModalOpen(true); };
     const handleCreateOnDate = (dateStr: string) => { setSelectedNote(null); setDefaultDueDate(dateStr); setIsModalOpen(true); };
-    const handleGoToDayView = (dateStr: string) => {
-        const [year, month, day] = dateStr.split('-').map(Number);
-        setCurrentDate(new Date(year, month - 1, day));
-        setViewMode('day');
-    };
 
     const getWeekStart = (date: Date) => {
         const d = new Date(date); d.setDate(d.getDate() - d.getDay()); return d;
     };
 
     // Note chip — colored by status (matching Journey status dots)
+    const renderCategoryIcon = (note: ExtendedNote, size = 14) => (
+        <NoteCategoryIcon categoryName={note.note_categories?.name || ''} size={size} />
+    );
+
     const renderNoteChip = (note: ExtendedNote, iconOnly = false) => {
         const statusColor = getStatusColor(note.status || 'New');
         const isDone = note.status === 'Done';
@@ -241,7 +241,7 @@ const CalendarView: React.FC = () => {
                     className="text-lg shrink-0"
                     title={note.title}
                 >
-                    {note.note_categories?.icon || '•'}
+                    {renderCategoryIcon(note, 16)}
                 </div>
             );
         }
@@ -271,7 +271,7 @@ const CalendarView: React.FC = () => {
                 >
                     {isDone && <Check className="w-1 h-1 sm:w-2.5 sm:h-2.5 text-white" />}
                 </button>
-                <span className="text-[10px] sm:text-xs shrink-0">{note.note_categories?.icon || '•'}</span>
+                <span className="text-[10px] sm:text-xs shrink-0 flex items-center">{renderCategoryIcon(note, 12)}</span>
                 <span className={cn("truncate", isDone && "opacity-60")}>{note.title}</span>
             </div>
         );
@@ -294,7 +294,7 @@ const CalendarView: React.FC = () => {
                 onDragOver={(e) => handleDragOver(e, dateStr)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, dateStr)}
-                onClick={() => handleGoToDayView(dateStr)}
+                onClick={() => handleCreateOnDate(dateStr)}
                 style={{ cursor: 'pointer' }}
             >
                 <div className="flex justify-between items-start mb-2 shrink-0">
@@ -383,7 +383,7 @@ const CalendarView: React.FC = () => {
                     onDragOver={(e) => handleDragOver(e, dateStr)}
                     onDragLeave={handleDragLeave}
                     onDrop={(e) => handleDrop(e, dateStr)}
-                    onClick={() => handleGoToDayView(dateStr)}
+                    onClick={() => handleCreateOnDate(dateStr)}
                     style={{ cursor: 'pointer' }}
                 >
                     <div className="text-center mb-3 shrink-0">
@@ -445,8 +445,8 @@ const CalendarView: React.FC = () => {
                             >
                                 {note.status === 'Done' && <Check className="w-3.5 h-3.5 text-white" />}
                             </button>
-                            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0" style={{ backgroundColor: `${statusColor.base}20` }}>
-                                {note.note_categories?.icon || '📝'}
+                            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${statusColor.base}20` }}>
+                                {renderCategoryIcon(note, 18)}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <h3 title={note.title} className={cn("text-sm font-bold truncate", note.status === 'Done' && "opacity-50")} style={{ color: statusColor.text }}>{note.title}</h3>
@@ -759,7 +759,7 @@ const CalendarView: React.FC = () => {
                                         </div>
                                         <h3 title={note.title} className={cn("font-bold text-sm truncate", note.status === 'Done' && "opacity-50")} style={{ color: statusColor.text }}>{note.title}</h3>
                                         <div className="flex items-center gap-1.5 mt-2">
-                                            <span className="text-xs shrink-0">{note.note_categories?.icon || '•'}</span>
+                                            <span className="shrink-0 flex items-center">{renderCategoryIcon(note, 14)}</span>
                                             <span className="text-[10px] font-bold" style={{ color: statusColor.text, opacity: 0.7 }}>{note.note_categories?.name || 'Uncategorized'}</span>
                                         </div>
                                     </div>

@@ -4,11 +4,10 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import {
     Search, Plus, Loader2, Trash2, GripVertical,
     Filter, X, CalendarDays, ChevronUp, ChevronDown, Settings,
-    MoreVertical, Copy, Calendar as LucideCalendar
+    MoreVertical, Copy, Calendar as LucideCalendar,
+    Sparkles, PlayCircle, AlertTriangle, CheckCircle2,
 } from 'lucide-react';
 import { 
-    startOfDay, 
-    endOfDay, 
     startOfWeek, 
     endOfWeek, 
     startOfMonth, 
@@ -30,11 +29,24 @@ interface ExtendedNote extends DbNote {
 // New status colors: New=yellow, In Progress=orange, Urgent=red, Done=blue
 // Column order: New first, then In Progress
 const STATUS_COLUMNS = ['New', 'In Progress', 'Urgent', 'Done'];
-const statusStyles: Record<string, { bg: string; text: string; border: string; dot: string; countBg: string; pillBg: string; ring: string }> = {
-    'New':         { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-[#f59e0b]',   countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35' },
-    'In Progress': { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-[#3B82F6]',   countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35' },
-    'Urgent':      { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-rose-500',    countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35' },
-    'Done':        { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-[#4b5563]',   countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35' },
+
+const formatStatusLabel = (status: string): string => {
+    if (status === 'In Progress') return 'In progress';
+    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+};
+
+const STATUS_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+    'New': Sparkles,
+    'In Progress': PlayCircle,
+    'Urgent': AlertTriangle,
+    'Done': CheckCircle2,
+};
+
+const statusStyles: Record<string, { bg: string; text: string; border: string; dot: string; countBg: string; pillBg: string; ring: string; icon: string }> = {
+    'New':         { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-[#f59e0b]',   countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35', icon: 'text-[#f59e0b]' },
+    'In Progress': { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-[#3B82F6]',   countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35', icon: 'text-[#3B82F6]' },
+    'Urgent':      { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-rose-500',    countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35', icon: 'text-rose-500' },
+    'Done':        { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-[#4b5563]',   countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35', icon: 'text-[#4b5563]' },
 };
 
 // Palette assigned to categories (round-robin by sort order)
@@ -49,6 +61,59 @@ const CATEGORY_PALETTE = [
 ];
 
 const getCategoryColor = (index: number) => CATEGORY_PALETTE[index % CATEGORY_PALETTE.length];
+
+const STATUS_CARD_THEMES: Record<string, { bg: string; accent: string; border: string }> = {
+    'New': { bg: '#F7F5F1', accent: '#f59e0b', border: '#E8E4DE' },
+    'In Progress': { bg: '#D5E3E8', accent: '#3B82F6', border: '#C5D8E0' },
+    'Urgent': { bg: '#E0DCD1', accent: '#e11d48', border: '#D0CCC0' },
+    'Done': { bg: '#E4E3BC', accent: '#98AD57', border: '#D4D3A8' },
+};
+
+interface StatusSummaryCardProps {
+    count: number;
+    bg: string;
+    accentColor: string;
+    borderColor: string;
+    ariaLabel: string;
+    icon: React.ComponentType<{ className?: string; style?: React.CSSProperties; strokeWidth?: number }>;
+    className?: string;
+}
+
+const StatusSummaryCard: React.FC<StatusSummaryCardProps> = ({
+    count,
+    bg,
+    accentColor,
+    borderColor,
+    ariaLabel,
+    icon: Icon,
+    className,
+}) => (
+    <div
+        role="status"
+        aria-label={`${ariaLabel}: ${count}`}
+        className={cn(
+            'relative overflow-hidden rounded-2xl border p-3.5 sm:p-4 shadow-[0_4px_16px_-4px_rgba(18,39,92,0.06)] min-h-[88px] flex-1 min-w-[108px] basis-0',
+            className
+        )}
+        style={{ backgroundColor: bg, borderColor }}
+    >
+        <div className="relative z-10 flex flex-col items-start gap-2">
+            <Icon className="w-6 h-6 sm:w-7 sm:h-7 shrink-0" style={{ color: accentColor }} strokeWidth={2.5} />
+            <p className="text-3xl font-black leading-none tabular-nums" style={{ color: accentColor }}>
+                {count}
+            </p>
+        </div>
+        <svg
+            className="absolute bottom-0 right-0 w-[88px] h-[56px] pointer-events-none"
+            viewBox="0 0 88 56"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+        >
+            <path d="M0 56 C 18 38, 34 48, 52 34 C 68 22, 78 30, 88 18 L 88 56 Z" fill={accentColor} opacity="0.18" />
+            <path d="M0 56 C 22 44, 40 52, 60 40 C 74 32, 82 38, 88 28 L 88 56 Z" fill={accentColor} opacity="0.32" />
+        </svg>
+    </div>
+);
 
 function getDaysRemainingText(dueDate: string, status?: string, updatedAt?: string): { text: string; isOverdue: boolean; isDueToday?: boolean } {
     const now = new Date();
@@ -100,21 +165,9 @@ const NoteDashboard: React.FC = () => {
     const [draggedCatId, setDraggedCatId] = useState<string | null>(null);
     const [dragOverCatId, setDragOverCatId] = useState<string | null>(null);
 
-    // Date filter - Default to 3 months ago and 6 months ahead
-    const currentDate = new Date();
-    const pastDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, currentDate.getDate());
-    const futureDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 6, currentDate.getDate());
-
-    // Format to YYYY-MM-DD
-    const formatDate = (d: Date) => {
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
-    const defaultDateFrom = formatDate(pastDate);
-    const defaultDateTo = formatDate(futureDate);
+    // Date filter - Default to current month
+    const defaultDateFrom = format(startOfMonth(new Date()), 'yyyy-MM-dd');
+    const defaultDateTo = format(endOfMonth(new Date()), 'yyyy-MM-dd');
     const [dateFrom, setDateFrom] = useState(defaultDateFrom);
     const [dateTo, setDateTo] = useState(defaultDateTo);
 
@@ -407,23 +460,8 @@ const NoteDashboard: React.FC = () => {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-black text-foreground tracking-tight">Journey</h1>
-                    {/* Status Summary - name before count, colored pill background */}
-                    <div className="flex items-center gap-2 mt-3 flex-wrap">
-                        {statusSummary.map(({ status, count }) => {
-                            const style = statusStyles[status];
-                            return (
-                                <div key={status} className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full", style.pillBg)}>
-                                    <div className={cn("w-2 h-2 rounded-full", style.dot)} />
-                                    <span className={cn("text-xs font-bold", style.text)}>{status}</span>
-                                    <span className={cn("text-sm font-black", style.text)}>{count}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h1 className="text-3xl font-black text-foreground tracking-tight">Journey</h1>
                 <div className="flex items-center gap-2 flex-wrap shrink-0">
                     <div className="group/search">
                         <Input
@@ -540,84 +578,123 @@ const NoteDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Filters Row */}
-            <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-2 bg-card/50 border border-border/50 rounded-xl px-3 py-1.5 focus-within:ring-1 focus-within:ring-primary shadow-sm">
-                    <CalendarDays className="w-4 h-4 text-muted-foreground mr-1" />
-                    <Input type="date" aria-label="From date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-8 w-36 bg-transparent border-0 text-sm p-0 focus:ring-0 font-medium" />
-                    <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest opacity-40">to</span>
-                    <Input type="date" aria-label="To date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-8 w-36 bg-transparent border-0 text-sm p-0 focus:ring-0 font-medium" />
-                    {(dateFrom !== defaultDateFrom || dateTo !== defaultDateTo) && (
-                        <button onClick={() => { setDateFrom(defaultDateFrom); setDateTo(defaultDateTo); }} aria-label="Clear date range" className="p-1 text-muted-foreground hover:text-rose-500 transition-colors"><X className="w-3.5 h-3.5" /></button>
-                    )}
+            {/* Status pills + summary cards + date filters */}
+            <div className="flex flex-col xl:flex-row gap-4 xl:gap-5 items-stretch xl:items-start">
+                <div className="space-y-4 flex-1 min-w-0">
+                    {/* Status pills */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {statusSummary.map(({ status, count }) => {
+                            const style = statusStyles[status];
+                            const StatusIcon = STATUS_ICONS[status];
+                            return (
+                                <div key={status} className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full", style.pillBg)}>
+                                    {StatusIcon && <StatusIcon className={cn("w-3.5 h-3.5 shrink-0", style.icon)} />}
+                                    <span className={cn("text-xs font-bold", style.text)}>{formatStatusLabel(status)}</span>
+                                    <span className={cn("text-sm font-black", style.text)}>{count}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Filters Row */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <div className="flex items-center gap-2 bg-card/50 border border-border/50 rounded-xl px-3 py-1.5 focus-within:ring-1 focus-within:ring-primary shadow-sm">
+                            <CalendarDays className="w-4 h-4 text-muted-foreground mr-1" />
+                            <Input type="date" aria-label="From date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-8 w-36 bg-transparent border-0 text-sm p-0 focus:ring-0 font-medium" />
+                            <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest opacity-40">to</span>
+                            <Input type="date" aria-label="To date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-8 w-36 bg-transparent border-0 text-sm p-0 focus:ring-0 font-medium" />
+                            {(dateFrom !== defaultDateFrom || dateTo !== defaultDateTo) && (
+                                <button onClick={() => { setDateFrom(defaultDateFrom); setDateTo(defaultDateTo); }} aria-label="Clear date range" className="p-1 text-muted-foreground hover:text-rose-500 transition-colors"><X className="w-3.5 h-3.5" /></button>
+                            )}
+                        </div>
+
+                        {/* Quick Filters */}
+                        <div className="flex items-center gap-1.5 p-1 bg-card/30 border border-border/50 rounded-xl shadow-sm">
+                            <button
+                                onClick={() => {
+                                    const today = format(new Date(), 'yyyy-MM-dd');
+                                    if (dateFrom === today && dateTo === today) {
+                                        setDateFrom(defaultDateFrom);
+                                        setDateTo(defaultDateTo);
+                                    } else {
+                                        setDateFrom(today);
+                                        setDateTo(today);
+                                    }
+                                }}
+                                className={cn(
+                                    "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                                    dateFrom === format(new Date(), 'yyyy-MM-dd') && dateTo === format(new Date(), 'yyyy-MM-dd')
+                                        ? "bg-primary text-primary-foreground shadow-md"
+                                        : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                )}
+                            >
+                                Today
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const now = new Date();
+                                    const start = format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+                                    const end = format(endOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+                                    if (dateFrom === start && dateTo === end) {
+                                        setDateFrom(defaultDateFrom);
+                                        setDateTo(defaultDateTo);
+                                    } else {
+                                        setDateFrom(start);
+                                        setDateTo(end);
+                                    }
+                                }}
+                                className={cn(
+                                    "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                                    dateFrom === format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd') && dateTo === format(endOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
+                                        ? "bg-primary text-primary-foreground shadow-md"
+                                        : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                )}
+                            >
+                                Week
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const now = new Date();
+                                    const start = format(startOfMonth(now), 'yyyy-MM-dd');
+                                    const end = format(endOfMonth(now), 'yyyy-MM-dd');
+                                    if (dateFrom === start && dateTo === end) {
+                                        setDateFrom(defaultDateFrom);
+                                        setDateTo(defaultDateTo);
+                                    } else {
+                                        setDateFrom(start);
+                                        setDateTo(end);
+                                    }
+                                }}
+                                className={cn(
+                                    "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
+                                    dateFrom === format(startOfMonth(new Date()), 'yyyy-MM-dd') && dateTo === format(endOfMonth(new Date()), 'yyyy-MM-dd')
+                                        ? "bg-primary text-primary-foreground shadow-md"
+                                        : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
+                                )}
+                            >
+                                Month
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Quick Filters */}
-                <div className="flex items-center gap-1.5 p-1 bg-card/30 border border-border/50 rounded-xl shadow-sm">
-                    <button
-                        onClick={() => {
-                            const today = format(new Date(), 'yyyy-MM-dd');
-                            if (dateFrom === today && dateTo === today) {
-                                setDateFrom(defaultDateFrom);
-                                setDateTo(defaultDateTo);
-                            } else {
-                                setDateFrom(today);
-                                setDateTo(today);
-                            }
-                        }}
-                        className={cn(
-                            "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
-                            dateFrom === format(new Date(), 'yyyy-MM-dd') && dateTo === format(new Date(), 'yyyy-MM-dd')
-                                ? "bg-primary text-primary-foreground shadow-md"
-                                : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                        )}
-                    >
-                        Today
-                    </button>
-                    <button
-                        onClick={() => {
-                            const now = new Date();
-                            const start = format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-                            const end = format(endOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-                            if (dateFrom === start && dateTo === end) {
-                                setDateFrom(defaultDateFrom);
-                                setDateTo(defaultDateTo);
-                            } else {
-                                setDateFrom(start);
-                                setDateTo(end);
-                            }
-                        }}
-                        className={cn(
-                            "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
-                            dateFrom === format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd') && dateTo === format(endOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd')
-                                ? "bg-primary text-primary-foreground shadow-md"
-                                : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                        )}
-                    >
-                        Week
-                    </button>
-                    <button
-                        onClick={() => {
-                            const now = new Date();
-                            const start = format(startOfMonth(now), 'yyyy-MM-dd');
-                            const end = format(endOfMonth(now), 'yyyy-MM-dd');
-                            if (dateFrom === start && dateTo === end) {
-                                setDateFrom(defaultDateFrom);
-                                setDateTo(defaultDateTo);
-                            } else {
-                                setDateFrom(start);
-                                setDateTo(end);
-                            }
-                        }}
-                        className={cn(
-                            "px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all",
-                            dateFrom === format(startOfMonth(new Date()), 'yyyy-MM-dd') && dateTo === format(endOfMonth(new Date()), 'yyyy-MM-dd')
-                                ? "bg-primary text-primary-foreground shadow-md"
-                                : "text-muted-foreground hover:bg-primary/10 hover:text-primary"
-                        )}
-                    >
-                        Month
-                    </button>
+                {/* Status summary cards — horizontal row, flexible width */}
+                <div className="flex gap-3 w-full xl:w-auto xl:flex-[1.35] xl:min-w-[360px] min-w-0 overflow-x-auto scrollbar-hide">
+                    {statusSummary.map(({ status, count }) => {
+                        const theme = STATUS_CARD_THEMES[status];
+                        const Icon = STATUS_ICONS[status];
+                        return (
+                            <StatusSummaryCard
+                                key={status}
+                                ariaLabel={formatStatusLabel(status)}
+                                count={count}
+                                bg={theme.bg}
+                                accentColor={theme.accent}
+                                borderColor={theme.border}
+                                icon={Icon}
+                            />
+                        );
+                    })}
                 </div>
             </div>
 
@@ -704,6 +781,7 @@ const NoteDashboard: React.FC = () => {
                     <div className="flex gap-5 md:grid md:grid-cols-2 xl:grid-cols-4">
                         {STATUS_COLUMNS.map(status => {
                             const style = statusStyles[status];
+                            const StatusIcon = STATUS_ICONS[status];
                             const columnNotes = filteredNotes.filter(n => n.status === status);
                             const isDragOver = dragOverStatus === status;
                             return (
@@ -718,15 +796,14 @@ const NoteDashboard: React.FC = () => {
                                     onDrop={(e) => handleDrop(e, status)}
                                 >
                                     {/* Column Header */}
-                                    <div className={cn("px-5 py-3.5 flex items-center justify-between border-b border-[#cdd5df] shrink-0 bg-[#ebeff4]")}>
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex h-2.5 w-2.5 items-center justify-center">
+                                    <div className={cn("px-5 py-3.5 flex items-center border-b border-[#cdd5df] shrink-0 bg-[#ebeff4]")}>
+                                        <div className="flex items-center gap-2">
+                                            {StatusIcon ? (
+                                                <StatusIcon className={cn("w-4 h-4 shrink-0", style.icon)} />
+                                            ) : (
                                                 <div className={cn("w-2.5 h-2.5 rounded-full shadow-[0_0_4px_rgba(0,0,0,0.1)]", style.dot)} />
-                                            </div>
-                                            <h2 className={cn("text-xs font-black uppercase tracking-widest", style.text)}>{status}</h2>
-                                        </div>
-                                        <div className={cn("min-w-[32px] h-6 flex items-center justify-center px-1.5 rounded-full text-xs font-black shadow-sm", style.text, style.countBg)}>
-                                            {columnNotes.length}
+                                            )}
+                                            <h2 className={cn("text-xs font-bold", style.text)}>{formatStatusLabel(status)}</h2>
                                         </div>
                                     </div>
 
