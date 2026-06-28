@@ -20,6 +20,7 @@ import NoteCategoryIcon from './NoteCategoryIcon';
 import { DbNote, DbNoteCategory, DbReminder } from '@/lib/supabase-types';
 import { apiClient } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
+import { NOTE_STATUS_COLORS } from '@/lib/note-status-colors';
 import { useLoading } from '@/components/providers/LoadingProvider';
 
 interface ExtendedNote extends DbNote {
@@ -43,11 +44,43 @@ const STATUS_ICONS: Record<string, React.ComponentType<{ className?: string }>> 
     'Done': CheckCircle2,
 };
 
-const statusStyles: Record<string, { bg: string; text: string; border: string; dot: string; countBg: string; pillBg: string; ring: string; icon: string }> = {
-    'New':         { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-[#f59e0b]',   countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35', icon: 'text-[#f59e0b]' },
-    'In Progress': { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-[#3B82F6]',   countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35', icon: 'text-[#3B82F6]' },
-    'Urgent':      { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-rose-500',    countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35', icon: 'text-rose-500' },
-    'Done':        { bg: 'bg-[#eceff3]', text: 'text-[#1f2937]', border: 'border-[#c0c7d1] border-t-[#7f8a99]', dot: 'bg-[#4b5563]',   countBg: 'bg-[#f8fafc] ring-1 ring-[#7f8a99]/35', pillBg: 'bg-[#e2e8f0]',  ring: 'ring-[#7f8a99]/35', icon: 'text-[#4b5563]' },
+const statusStyles: Record<string, { bg: string; text: string; border: string; dot: string; countBg: string; ring: string; icon: string }> = {
+    New: {
+        bg: 'bg-[#F7F2DC]',
+        text: 'text-[#563526]',
+        border: 'border-[#56352640] border-t-[#563526]',
+        dot: 'bg-[#563526]',
+        countBg: 'bg-[#F7F2DC] ring-1 ring-[#563526]/25',
+        ring: 'ring-[#563526]/25',
+        icon: 'text-[#563526]',
+    },
+    'In Progress': {
+        bg: 'bg-[#F5DDD0]',
+        text: 'text-[#5C2E2E]',
+        border: 'border-[#6B2D2D40] border-t-[#6B2D2D]',
+        dot: 'bg-[#6B2D2D]',
+        countBg: 'bg-[#F5DDD0] ring-1 ring-[#6B2D2D]/25',
+        ring: 'ring-[#6B2D2D]/25',
+        icon: 'text-[#5C2E2E]',
+    },
+    Urgent: {
+        bg: 'bg-[#6B2D2D]',
+        text: 'text-[#F7F2DC]',
+        border: 'border-[#6B2D2D] border-t-[#563526]',
+        dot: 'bg-[#F7F2DC]',
+        countBg: 'bg-[#6B2D2D] ring-1 ring-[#F7F2DC]/25',
+        ring: 'ring-[#F7F2DC]/25',
+        icon: 'text-[#F7F2DC]',
+    },
+    Done: {
+        bg: 'bg-[#DCEFE8]',
+        text: 'text-[#8A9099]',
+        border: 'border-[#5A9A8F40] border-t-[#5A9A8F]',
+        dot: 'bg-[#5A9A8F]',
+        countBg: 'bg-[#DCEFE8] ring-1 ring-[#5A9A8F]/25',
+        ring: 'ring-[#5A9A8F]/25',
+        icon: 'text-[#5A9A8F]',
+    },
 };
 
 // Palette assigned to categories (round-robin by sort order)
@@ -63,12 +96,12 @@ const CATEGORY_PALETTE = [
 
 const getCategoryColor = (index: number) => CATEGORY_PALETTE[index % CATEGORY_PALETTE.length];
 
-const STATUS_CARD_THEMES: Record<string, { bg: string; accent: string; border: string }> = {
-    'New': { bg: '#EBE4D6', accent: '#f59e0b', border: '#D9CEBD' },
-    'In Progress': { bg: '#BFD2DC', accent: '#3B82F6', border: '#A3BBC6' },
-    'Urgent': { bg: '#CFC8B8', accent: '#e11d48', border: '#B8AFA0' },
-    'Done': { bg: '#D8D7A8', accent: '#98AD57', border: '#C4C38E' },
-};
+const STATUS_CARD_THEMES: Record<string, { bg: string; accent: string; border: string; text: string }> = Object.fromEntries(
+    Object.entries(NOTE_STATUS_COLORS).map(([status, colors]) => [
+        status,
+        { bg: colors.bg, accent: colors.check, border: colors.border, text: colors.text },
+    ])
+) as Record<string, { bg: string; accent: string; border: string; text: string }>;
 
 interface StatusSummaryCardProps {
     count: number;
@@ -76,10 +109,10 @@ interface StatusSummaryCardProps {
     bg: string;
     accentColor: string;
     borderColor: string;
+    textColor: string;
     ariaLabel: string;
     icon: React.ComponentType<{ className?: string; style?: React.CSSProperties; strokeWidth?: number }>;
     className?: string;
-    onClick?: () => void;
 }
 
 const StatusSummaryCard: React.FC<StatusSummaryCardProps> = ({
@@ -88,33 +121,35 @@ const StatusSummaryCard: React.FC<StatusSummaryCardProps> = ({
     bg,
     accentColor,
     borderColor,
+    textColor,
     ariaLabel,
     icon: Icon,
     className,
-    onClick,
 }) => (
-    <button
-        type="button"
-        onClick={onClick}
+    <div
+        role="status"
         aria-label={`${ariaLabel}: ${count}`}
         className={cn(
-            'rounded-2xl border p-3.5 sm:p-4 shadow-[0_4px_16px_-4px_rgba(18,39,92,0.08)] min-h-[88px] flex-1 min-w-[108px] basis-0 text-left transition-all hover:brightness-[0.97] active:scale-[0.99]',
+            'rounded-2xl border p-3.5 sm:p-4 shadow-[0_4px_16px_-4px_rgba(18,39,92,0.08)] min-h-[88px] flex-1 min-w-[108px] basis-0',
             className
         )}
         style={{ backgroundColor: bg, borderColor }}
     >
         <div className="flex items-center justify-between gap-3 h-full">
             <div className="flex flex-col justify-between self-stretch min-h-[56px]">
-                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#64748B]">
+                <span
+                    className="text-[10px] sm:text-xs font-bold uppercase tracking-wider opacity-85"
+                    style={{ color: textColor }}
+                >
                     {label}
                 </span>
-                <p className="text-3xl font-black leading-none tabular-nums text-black">
+                <p className="text-3xl font-black leading-none tabular-nums" style={{ color: textColor }}>
                     {count}
                 </p>
             </div>
             <Icon className="w-7 h-7 sm:w-8 sm:h-8 shrink-0" style={{ color: accentColor }} strokeWidth={2} />
         </div>
-    </button>
+    </div>
 );
 
 function getDaysRemainingText(dueDate: string, status?: string, updatedAt?: string): { text: string; isOverdue: boolean; isDueToday?: boolean } {
@@ -587,24 +622,9 @@ const NoteDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Status pills + summary cards + date filters */}
+            {/* Summary cards + date filters */}
             <div className="flex flex-col xl:flex-row gap-4 xl:gap-5 items-stretch xl:items-start">
                 <div className="space-y-4 flex-1 min-w-0">
-                    {/* Status pills */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        {statusSummary.map(({ status, count }) => {
-                            const style = statusStyles[status];
-                            const StatusIcon = STATUS_ICONS[status];
-                            return (
-                                <div key={status} className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full", style.pillBg)}>
-                                    {StatusIcon && <StatusIcon className={cn("w-3.5 h-3.5 shrink-0", style.icon)} />}
-                                    <span className={cn("text-xs font-bold", style.text)}>{formatStatusLabel(status)}</span>
-                                    <span className={cn("text-sm font-black", style.text)}>{count}</span>
-                                </div>
-                            );
-                        })}
-                    </div>
-
                     {/* Filters Row */}
                     <div className="flex items-center gap-3 flex-wrap">
                         <div className="flex items-center gap-2 bg-card/50 border border-border/50 rounded-xl px-3 py-1.5 focus-within:ring-1 focus-within:ring-primary shadow-sm">
@@ -714,8 +734,8 @@ const NoteDashboard: React.FC = () => {
                                 bg={theme.bg}
                                 accentColor={theme.accent}
                                 borderColor={theme.border}
+                                textColor={theme.text}
                                 icon={Icon}
-                                onClick={() => handleOpenCreateWithStatus(status as 'New' | 'In Progress' | 'Urgent' | 'Done')}
                             />
                         );
                     })}
