@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseAdminClient } from '@/lib/supabase-server';
 import nodemailer from 'nodemailer';
 
@@ -14,7 +14,11 @@ const BACKUP_TABLES = [
     'note_categories',
     'tags',
     'note_tags',
-    'reminders'
+    'reminders',
+    'vocabulary_categories',
+    'vocabularies',
+    'vocabulary_translations',
+    'vocabulary_reviews'
 ];
 
 // Verify cron secret (same as expense-reminders)
@@ -158,7 +162,7 @@ export async function GET(request: NextRequest) {
         }
 
         const supabase = createSupabaseAdminClient();
-        const backupData: Record<string, any[]> = {};
+        const backupData: Record<string, unknown[]> = {};
         const tableStats: { table: string; count: number }[] = [];
 
         // Fetch all tables
@@ -215,10 +219,10 @@ export async function GET(request: NextRequest) {
             tableStats
         });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('Backup job error:', error);
         return NextResponse.json(
-            { error: error.message || 'Internal Server Error' },
+            { error: error instanceof Error ? error.message : 'Internal Server Error' },
             { status: 500 }
         );
     }
